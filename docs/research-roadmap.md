@@ -23,14 +23,15 @@ ARCHITECTURE.md უკვე გვაძლევს არქიტექტ�
 
 | ხელსაწყო | რა გვინდა ვიცოდეთ | სტატუსი | ფაილი |
 |----------|--------------------|---------|-------|
-| Figma Design Agent (native) | რა capabilities-ი აქვს today? რა გაუჭირდება? რა pricing-ის roadmap-ი? | TODO | `research/figma-design-agent.md` |
-| v0 (Vercel) Figma import | რა scope-ში მუშაობს? რა Figma-features-ი ვერ ხედავს? | TODO | `research/v0-figma.md` |
-| Google Stitch (Gemini 3) | რა MCP tools-ი აქვს? Figma integration? | TODO | `research/google-stitch.md` |
-| Uizard Autodesigner 2.0 | Pricing tiers, output fidelity, Figma export quality | TODO | `research/uizard.md` |
-| Magician (Diagram) | "Spells" UX pattern — რა ვისწავლოთ? | TODO | `research/magician.md` |
-| Visily | Screenshot-to-design accuracy benchmarks | TODO | `research/visily.md` |
-| Builder.io Visual Copilot | Component mapping logic | TODO | `research/builder-io.md` |
-| Mureal Wireframe Designer | Why so niche? Tier 1 lessons | TODO | `research/mureal.md` |
+| Figma Design Agent (native) | რა capabilities-ი აქვს today? რა გაუჭირდება? რა pricing-ის roadmap-ი? | DONE | `research/figma-design-agent.md` |
+| v0 (Vercel) Figma import | რა scope-ში მუშაობს? რა Figma-features-ი ვერ ხედავს? | DONE | `research/v0-figma.md` |
+| Google Stitch (Gemini 3) | რა MCP tools-ი აქვს? Figma integration? | DONE | `research/google-stitch.md` |
+| Uizard Autodesigner 2.0 | Pricing tiers, output fidelity, Figma export quality | DONE | `research/uizard.md` |
+| Magician (Diagram) | "Spells" UX pattern — რა ვისწავლოთ? | DONE | `research/magician.md` |
+| Visily | Screenshot-to-design accuracy benchmarks | DONE | `research/visily.md` |
+| Builder.io Visual Copilot | Component mapping logic | DONE | `research/builder-io.md` |
+| Mureal Wireframe Designer | Why so niche? Tier 1 lessons | DONE | `research/mureal.md` |
+| Figma Community AI plugins survey (8 in-store competitors) | Naming/pricing norms, table stakes, recurring gap vs our 5 wedges | DONE | `research/figma-plugin-competitors-survey.md` |
 
 ### Track B — Claude / Anthropic Capabilities
 
