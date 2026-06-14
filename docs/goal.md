@@ -122,12 +122,14 @@ Detection *აჩვენებs* ტკივილს (უფასო, viral
 - [ ] Anthropic API key + backend infra plan
 - [ ] MVP scope locked
 
-### Phase 1 — MVP (target: 12 კვირა after planning)
-- [ ] Figma plugin live in Community
-- [ ] Generate flow: prompt → DesignSpec → rendered Figma node, with token validation
-- [ ] Selection-based partial regen working
-- [ ] WCAG 2.2 AA contrast + target-size enforced
-- [ ] 100 active users in first month
+### Phase 1 — MVP v0.1 "Contrast, fixed right" (LOCKED — [requirements.md](./requirements.md))
+- [ ] Figma plugin live in Community (beta)
+- [ ] Reliable text-contrast detection (effective-background resolution; 3-tier; zero false-positive)
+- [ ] One-click + batch contrast fix — snap to on-system token, correctness-by-construction (verify loop)
+- [ ] Before/after diff (ratio + token + SC); single-step undo
+- [ ] Fully client-side (no backend/AI); deterministic
+- [ ] Target: 1,000 installs + 4.5★, reviews mention "actually fixes / reliable" (8 weeks)
+- [ ] *(v0.2+: target-size/spacing, paywall; v0.3: LLM tier alt-text)*
 
 ### Phase 2 — Pro (target: 6 თვის შემდეგ)
 - [ ] Pro tier launch ($X/mo)
