@@ -34,3 +34,6 @@ yarn-error.log*
 # OS / temp
 tmp/
 *.tmp
+
+# Browser MCP (Playwright) local artifacts
+.playwright-mcp/

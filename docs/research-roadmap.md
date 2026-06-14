@@ -32,6 +32,9 @@ ARCHITECTURE.md უკვე გვაძლევს არქიტექტ�
 | Builder.io Visual Copilot | Component mapping logic | DONE | `research/builder-io.md` |
 | Mureal Wireframe Designer | Why so niche? Tier 1 lessons | DONE | `research/mureal.md` |
 | Figma Community AI plugins survey (8 in-store competitors) | Naming/pricing norms, table stakes, recurring gap vs our 5 wedges | DONE | `research/figma-plugin-competitors-survey.md` |
+| Codia AI (deep-dive + DesignGen) | Full product surface, pricing, why free, DesignGen positioning | DONE | `research/codia.md` |
+| Figma plugin opportunity study | What's in-demand, what to build, audience/market sizing | DONE | `research/figma-plugin-opportunity.md` |
+| A11y + design-lint competitor teardown (Stark, FigmaLint, Adee, Contrast, axe, Include, Design Lint, Formalist…) | fix-vs-flag, reliability, pricing norms, the unoccupied whitespace for our correctness layer | DONE | `research/a11y-competitor-teardown.md` |
 
 ### Track B — Claude / Anthropic Capabilities
 

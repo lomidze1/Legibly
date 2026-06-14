@@ -4,9 +4,48 @@
 
 ---
 
+## 0. 🎯 LOCKED PRODUCT DIRECTION (2026-06-14) — ეს არასდროს უნდა დაიკარგოს
+
+> **გადაწყვეტილება D7-ით ([approach.md](./approach.md)) ჩაკეტილია user-ის explicit დადასტურებით 2026-06-14. ეს არის north-star. ნებისმიერი შემდგომი work ამას უნდა ემსახურებოდეს.**
+
+### რას ვაშენებთ (ერთი წინადადება)
+**Accessibility-first "correctness layer" Figma plugin** — ამოწმებს და **ასწორებს** ნებისმიერ დიზაინს (AI-generated თუ human-made): hard-fails off-system primitives, blocks/auto-fixes WCAG 2.2 AA-ზე. **ვიწყებთ a11y one-click auto-fix-ით (paid spearhead), ვაფართოებთ system-strict + brand-QA-მდე.**
+
+### რატომ ეს და არა generator (D7-ის ბირთვი)
+1. **Generator lane დაკარგულია** — saturated 8+ funded competitor-ით + Figma-მ უფასოდ nativize-ა. 2 კაცი distribution-ში ვერ აჯობებს.
+2. **Demand გადაინაცვლა "შექმნიდან" → "ნდობისკენ".** 2026-ის ტოპ ტკივილები: unreliable AI output, design-system drift, accessibility კოლაფსი — ეს **correctness/governance** პრობლემებია, არა generation.
+3. **Defensible vs Figma** — Figma საკუთარ output-ს a11y-ზე არ დაბლოკავს; neutral guardrail (ნებისმიერი გენერატორის output-ს ამოწმებს, Figma-ს ჩათვლით) მათთვის სტრუქტურულად რთული copy-ია.
+4. **2 კაცს უხდება** — audit/fix bounded პრობლემაა; full generation არა.
+5. **Legal wallet** — EAA (EU, enforceable 2025) + ADA lawsuits = compliance budget. შიში ხსნის საფულეს — ეს ერთადერთი "correctness" ტკივილია, რომელიც *საიმედოდ* იხდის.
+
+### 🔑 ხარისხის #1 წესი (TRUST = მთელი value)
+**არასდროს "ერთი ცუდი AI შედეგიდან მეორე ცუდი AI შედეგი."** Fix თვითონ არ უნდა იყოს AI-გამოცნობა. ამიტომ:
+- **Detection = deterministic-first** (contrast = math, target size = geometry); LLM მხოლოდ judgment-ზე, confidence level-ით.
+- **Remediation = correctness-by-construction** — apply fix → re-run იგივე deterministic check → commit მხოლოდ თუ passes; თუ ვერ → escalate user-ს, არასდროს silently ship a fail.
+- **System-strict fix** — snap to user-ის არსებულ token-ზე, არასდროს invent off-system value.
+
+### 💵 Money model (value, არა სულ უფასოდ)
+| | FREE (funnel/viral hook) | PAID ($12–19/mo) |
+|---|---|---|
+| Scan & **აჩვენე** პრობლემები | ✅ | ✅ |
+| **One-click auto-fix** | ❌ | ✅ 🔑 |
+| **Compliance/audit report** (export) | ❌ | ✅ 🔑 |
+| Batch fix · system-strict enforcement · brand-QA (v2) | ❌ | ✅ |
+
+Detection *აჩვენებs* ტკივილს (უფასო, viral) → Fix + Report *შლის* ტკივილს (paid). **Target: $300K–$1M ARR 2 კაცზე, team seats-ით $1M+.**
+
+### რა რჩება უცვლელი ძველი vision-იდან
+5 wedge (system-strict, in-loop WCAG 2.2 AA, selection-based regen, multi-screen state-machine, brand-QA vision) — ❗ ისევ ძალაშია, ოღონდ **repackaged "generator"-დან "correctness suite"-ად.** MCP-first portable core, backend proxy, 2-model strategy — უცვლელი.
+
+> ⚠️ **TODO (joint discussion):** `architecture.md`-ის ბირთვი generation-centric-ია; correctness-first reframe-ი ცალკე session-ში გადასახედია (CLAUDE.md §8 — არ შევცვალო ერთპიროვნულად).
+
+---
+
 ## 1. Vision Statement (ერთი წინადადება)
 
-**{{PRODUCT_NAME}} = AI Figma plugin, რომელიც გენერირებს და რედაქტირებს UI-ს **მკაცრად** მომხმარებლის საკუთარი design system-ის შესაბამისად, accessibility-ის გარანტიით.**
+**{{PRODUCT_NAME}} = accessibility-first "correctness layer" Figma plugin, რომელიც **ამოწმებს და ასწორებს** ნებისმიერ დიზაინს (AI-generated თუ human) — hard-fail off-system primitives, one-click WCAG 2.2 AA auto-fix — TRUST-ის გარანტიით (correctness-by-construction, არა AI-გამოცნობა).**
+
+> 📌 ეს refined vision-ია (D7, 2026-06-14). სრული locked direction — იხ. §0 ზემოთ.
 
 ---
 
