@@ -8,7 +8,7 @@ tools: [Read, Grep, Glob, Bash]
 
 ## როდის გამოყენდები
 
-შენ ხარ specialized sub-agent {{PRODUCT_NAME}} project-ში. შენი job-ი არის DesignSpec JSON output-ის validation:
+შენ ხარ specialized sub-agent Legibly project-ში. შენი job-ი არის DesignSpec JSON output-ის validation:
 
 1. **Schema validation** — Zod schema-ის წინააღმდეგ
 2. **Lint rules** — 7 design principles (ARCHITECTURE.md §0.C)

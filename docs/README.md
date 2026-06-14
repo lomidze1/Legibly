@@ -10,7 +10,7 @@
 
 | # | File | რას შეიცავს | წაიკითხე როცა |
 |---|------|--------------|----------------|
-| 1 | [`branding.md`](./branding.md) | პროდუქტის სახელი, naming convention, `{{PRODUCT_NAME}}` token | ყოველთვის — სახელის შესახებ უნდა იცოდე |
+| 1 | [`branding.md`](./branding.md) | პროდუქტის სახელი, naming convention, `Legibly` token | ყოველთვის — სახელის შესახებ უნდა იცოდე |
 | 2 | [`goal.md`](./goal.md) | რა არის ჩვენი მიზანი — ბიზნესის ჭრილში | session-ის დასაწყისში — ხედვის გასაგებად |
 | 3 | [`requirements.md`](./requirements.md) | რა გვინდა (functional + non-functional + constraints) | feature-ის implementation-მდე |
 | 4 | [`approach.md`](./approach.md) | რა გზით მივდივართ — strategy, principles, decision log | architecture-ის გადაწყვეტილებამდე |
@@ -44,7 +44,7 @@ docs/
 ## 🤖 Claude-ის სამუშაო წესები (ამ პროექტში)
 
 1. **დაიწყე ყოველი session აქედან.** წაიკითხე `goal.md` და `approach.md` სანამ რაიმეს დაწერ.
-2. **სახელი არ მოახდინო hardcode.** გამოიყენე `{{PRODUCT_NAME}}` token ახალ ფაილებში — დეტალები [`branding.md`](./branding.md)-ში.
+2. **სახელი არ მოახდინო hardcode.** გამოიყენე `Legibly` token ახალ ფაილებში — დეტალები [`branding.md`](./branding.md)-ში.
 3. **სუბ-აგენტები და skills.** გადახედე `.claude/agents/` და `.claude/skills/` — ბევრი task უკვე ავტომატიზებული გვაქვს.
 4. **main ბრანჩი sacred-ია.** ყოველი ცვლილება dev-ზე უნდა იქნას committed. main-ზე — მხოლოდ მომხმარებლის approval-ით.
 5. **Decisions log.** ყოველი არქიტექტურული გადაწყვეტილება უნდა შევიდეს `approach.md`-ში (Decision Log section).

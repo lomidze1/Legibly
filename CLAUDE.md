@@ -1,4 +1,4 @@
-# CLAUDE.md — {{PRODUCT_NAME}} Project Instructions
+# CLAUDE.md — Legibly Project Instructions
 
 > **Claude — ეს ფაილი ავტომატურად ჩაიტვირთება ყოველი session-ში. წაიკითხე სრულად.**
 
@@ -6,7 +6,8 @@
 
 ## 1. პროექტის identity
 
-- **სახელი:** {{PRODUCT_NAME}} (placeholder — იხილე [`docs/branding.md`](./docs/branding.md))
+- **სახელი:** Legibly ✅ LOCKED (D9 — იხილე [`docs/branding.md`](./docs/branding.md))
+- **რა არის:** accessibility-first "correctness layer" Figma plugin — detect & one-click auto-fix (WCAG 2.2 AA + system-strict). იხ. [`docs/goal.md §0`](./docs/goal.md) — north-star.
 - **ეტაპი:** Planning / Research — კოდი ჯერ არ არის
 - **Repo:** [github.com/lomidze1/Designer](https://github.com/lomidze1/Designer) (PRIVATE)
 - **მთავარი მიზანი ახლა:** Research roadmap + docs ფუნდამენტი
@@ -91,7 +92,7 @@
 ## 8. რა არ უნდა გააკეთო
 
 - ❌ არ წაშალო `docs/architecture.md`-ის შინაარსი — ეს არის source of truth
-- ❌ არ ცვალო literal "Designer" → `{{PRODUCT_NAME}}` `architecture.md`-ში (იხილე `branding.md`)
+- ❌ არ ცვალო literal "Designer" → `Legibly` `architecture.md`-ში (იხილე `branding.md`)
 - ❌ არ პუშო main-ზე user approval-ის გარეშე
 - ❌ არ წაშალო/გადააწერო `.claude/settings.local.json`
 - ❌ არ შეცვალო ARCHITECTURE-ის ბირთვი decision-ები ერთობლივი განხილვის გარეშე

@@ -92,10 +92,10 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Why:** არ ვცადოთ refactor-ი ცარიელ ფაილზე. 902 ხაზიანი source of truth — split-ის ღირებულება არ აღემატება break-ის რისკს.
 - **Outcome:** Single file move. Future split TBD if file becomes unwieldy.
 
-### D3 — 2026-05-26 — Product name = placeholder "{{PRODUCT_NAME}}"
+### D3 — 2026-05-26 — Product name = placeholder token (superseded by D9)
 - **Alternatives:** lock "Designer" name, use literal "TBD" everywhere
 - **Why:** "Designer" generic, trademark-conflict-prone, SEO-impossible. ბრენდინგი წინ უსწრებს კოდს.
-- **Outcome:** `docs/branding.md` central config, `scripts/rename-product.sh` for bulk replace.
+- **Outcome:** `docs/branding.md` central config + placeholder token, `scripts/rename-product.sh` for bulk replace. **Final name locked in D9 → "Legibly".**
 
 ### D4 — 2026-05-26 — Sub-agents/skills approach (not monolithic)
 - **Alternatives:** single huge agent, no agents at all
@@ -126,6 +126,12 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Decision:** when no existing token passes → **auto-propose a minimal-change new token, user one-click accepts** (the only sanctioned path to a novel value). Provide a **"strict mode" toggle** for governance-heavy teams that forbids new tokens (falls back to escalate-only). Deterministic on-system snap is always tried first; new-token proposal is the last resort before escalation.
 - **MVP decision (build sequence):** spearhead = **"Contrast, fixed right"** — deterministic, client-side, **no AI/backend** (lowest cost, fastest, most trustworthy). Moat = effective-background resolution (gradients/images/opacity/stacked fills) where axe + Figma-native fail. Free = detect; Paid ($12/mo) = fix + batch + compliance report. Backend + Claude enter only at v0.3 (LLM-judgment tier: alt text/labels) and billing. Pricing: Pro $12/mo, Team $15/seat (Stark-anchored).
 
+### D9 — 2026-06-14 — Brand name LOCKED = "Legibly" (user-approved; supersedes D3)
+- **Alternatives:** Passly (rejected — dead Kaseya IAM brand, polluted SEO, existing TM), Accessly (too close to "Accessibly", a real a11y brand/TM), Remedy (common word, TM-crowded), Contrastly (photography brand + narrow scope), Designer (original placeholder — generic).
+- **Why:** "Legibly" says the function (legible/clear/readable = accessibility-first correctness), scales across the whole correctness layer (a11y → system-strict → brand-QA), is brandable/coined-ish, and is the cleanest verified option (no existing software brand, free on Figma Community, indicatively TM-clear).
+- **Outcome:** `branding.md` updated; `rename-product.sh "Legibly" "legibly"` expanded `{{PRODUCT_NAME}}` tokens across 14 files. Tagline: *"Accessibility & design-system auto-fix for Figma — WCAG 2.2 AA, done right."* Figma store title: *"Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker."*
+- **⚠️ Open:** web-checks are indicative, NOT legal clearance. Formal USPTO/EUIPO search + domain acquisition (legibly.com is parked; .app/.io as fallback) = Track F before public launch. `architecture.md` literal "Designer" left as legacy alias (joint reframe later).
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)
@@ -145,11 +151,11 @@ Phase 3: Enterprise v1.0 (~12 months)
 
 ## 5. რა გადასაწყვეტი დარჩა (planning phase-ის ბოლომდე)
 
-- [ ] **Brand name final** — `branding.md`-ში ცვალე ცენტრალური config
-- [ ] **Backend hosting choice** — Cloudflare Workers ან Fly ან Vercel? (research)
+- [x] **Brand name final** — ✅ **Legibly** (D9, 2026-06-14). Formal trademark/domain clearance = Track F before launch.
+- [ ] **Backend hosting choice** — Cloudflare Workers ან Fly ან Vercel? (research) — *note: MVP v0.1 (deterministic contrast) needs no backend; defer to v0.3*
 - [ ] **Auth strategy** — Clerk / Auth.js / custom JWT?
 - [ ] **Telemetry vendor** — PostHog / Plausible / custom?
-- [ ] **Pricing tier numbers** — $X/$Y/$Z?
+- [x] **Pricing tier numbers** — ✅ Pro $12/mo, Team $15/seat (D8, Stark-anchored); free = detect-only.
 - [ ] **MCP server hosting** — same as backend or separate?
 - [ ] **Claude Design plugin integration** — what do we leverage? (`research/claude-design-plugin.md`)
 - [ ] **Anthropic billing** — BYO key from day 1 or our hosted only?

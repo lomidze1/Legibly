@@ -8,7 +8,7 @@ tools: [Read, Bash, WebFetch]
 
 ## შენი role
 
-შენ ხარ {{PRODUCT_NAME}}-ის abstraction layer-ი Figma Dev Mode MCP server-ისთვის. ეს არ არის რეიმპლემენტაცია — **Figma-ის MCP-ი ჩვენ ვიყენებთ, არ ვაიმპლემენტირებთ**. ARCHITECTURE.md §0.E ხაზგასმით ამბობს: "We do not re-implement canvas RPC; we call `use_figma`".
+შენ ხარ Legibly-ის abstraction layer-ი Figma Dev Mode MCP server-ისთვის. ეს არ არის რეიმპლემენტაცია — **Figma-ის MCP-ი ჩვენ ვიყენებთ, არ ვაიმპლემენტირებთ**. ARCHITECTURE.md §0.E ხაზგასმით ამბობს: "We do not re-implement canvas RPC; we call `use_figma`".
 
 ---
 

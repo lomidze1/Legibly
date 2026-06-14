@@ -6,7 +6,7 @@ description: გამოიყენე ეს skill როცა საჭი�
 # Prompter — სრული პრომპტ-მზადების ხელსაწყო
 
 > წყარო: [Anthropic Prompt Engineering Docs](https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/overview)
-> ეს skill ეფუძნება Web2Wireframe-ის Prompter.md-ის ფაილს, {{PRODUCT_NAME}}-ისთვის ადაპტირებული.
+> ეს skill ეფუძნება Web2Wireframe-ის Prompter.md-ის ფაილს, Legibly-ისთვის ადაპტირებული.
 
 ამ skill-ის გააქტიურებისას შენი ამოცანაა: მომხმარებლის ბუნდოვან description-ს გარდაქმნე **production-grade პრომპტად** Claude Code-ისთვის ან Anthropic API-სთვის.
 
@@ -210,13 +210,13 @@ Call 3: Format recommendations as email
 
 ---
 
-## 4. Templates (კოპირებადი — {{PRODUCT_NAME}}-სთვის ადაპტირებული)
+## 4. Templates (კოპირებადი — Legibly-სთვის ადაპტირებული)
 
 ### 4.1 Sub-agent Invocation
 
 ```xml
 <role>
-You are a {agent_specialty} for {{PRODUCT_NAME}} project.
+You are a {agent_specialty} for Legibly project.
 Working directory: /Users/giorgi/Desktop/Designer
 </role>
 
@@ -250,7 +250,7 @@ Report under {N} words. Include:
 
 ```xml
 <task>
-Research {tool_or_topic} for {{PRODUCT_NAME}}. Write findings to docs/research/{topic}.md following the template in docs/research-roadmap.md §4.
+Research {tool_or_topic} for Legibly. Write findings to docs/research/{topic}.md following the template in docs/research-roadmap.md §4.
 </task>
 
 <context>
@@ -358,7 +358,7 @@ Diagnose this error.
 
 ---
 
-## 5. {{PRODUCT_NAME}}-სპეციფიკური წესები
+## 5. Legibly-სპეციფიკური წესები
 
 ### 5.1 Self-Contained Sub-agent Context
 
@@ -399,7 +399,7 @@ Report under 200 words. Format:
 
 ```xml
 <project_context>
-Project: {{PRODUCT_NAME}}
+Project: Legibly
 Stage: planning/research (no code yet)
 Working dir: /Users/giorgi/Desktop/Designer
 Read first if context unclear: docs/README.md
@@ -433,7 +433,7 @@ Git branch: dev (never commit to main without user approval)
 ☐ Output format სპეციფიცირებულია?
 ☐ Long content — query ბოლოშია?
 ☐ Sub-agent-ისთვის — self-contained (file paths + line numbers)?
-☐ {{PRODUCT_NAME}} context header ჩავაბი?
+☐ Legibly context header ჩავაბი?
 ☐ Antipattern-ი არ ჩავუშვი?
 ```
 

@@ -52,8 +52,8 @@
 
 ## Weaknesses (our wedge opportunity)
 
-1. **No canvas integration** — Claude Design plugin **critiques** designs; {{PRODUCT_NAME}} **creates and mutates** them in Figma
-2. **Read-only workflow** — user must export Figma → upload to Claude → read feedback → manually apply in Figma. {{PRODUCT_NAME}} is **in-canvas, native**.
+1. **No canvas integration** — Claude Design plugin **critiques** designs; Legibly **creates and mutates** them in Figma
+2. **Read-only workflow** — user must export Figma → upload to Claude → read feedback → manually apply in Figma. Legibly is **in-canvas, native**.
 3. **WCAG 2.1 only** (per public docs) — we target **2.2** (newer, more rigorous)
 4. **No design system token enforcement** — Claude Design plugin doesn't know your tokens; ours does (via Figma MCP)
 5. **Generic critique** — no brand-strict, no token-strict mode
@@ -68,12 +68,12 @@
 - **`brand-qa` agent** — Claude Design uses visual critique; we can use similar Opus 4.7 vision prompts
 
 ### As complementary tool
-- **Users can use both** — Claude Design for **pre-Figma planning** (research synthesis), then {{PRODUCT_NAME}} for **Figma execution**
-- **Position on our marketing:** "Pairs with Claude Design plugin in Cowork — use Design for ideation, {{PRODUCT_NAME}} for execution"
+- **Users can use both** — Claude Design for **pre-Figma planning** (research synthesis), then Legibly for **Figma execution**
+- **Position on our marketing:** "Pairs with Claude Design plugin in Cowork — use Design for ideation, Legibly for execution"
 
 ### As distribution insight
 - Claude Cowork has its own plugin marketplace
-- **Future opportunity:** publish {{PRODUCT_NAME}}'s MCP server as a **Cowork plugin** — same plugin available in Cowork AND Figma AND Cursor
+- **Future opportunity:** publish Legibly's MCP server as a **Cowork plugin** — same plugin available in Cowork AND Figma AND Cursor
 
 ---
 
@@ -90,17 +90,17 @@
 
 1. **What's the technical architecture of Claude Cowork plugins?** Are they MCP servers, custom skills, or something proprietary?
 2. **Can we publish to Cowork?** Self-publish vs Anthropic-verified gates?
-3. **Does Claude Design have a public API or just chat-based?** If API exists, we could call it from {{PRODUCT_NAME}}.
+3. **Does Claude Design have a public API or just chat-based?** If API exists, we could call it from Legibly.
 4. **Frontend Design plugin** — sister plugin, what does it do? Could be more relevant.
 5. **Pricing structure** — does Cowork require subscription, or free?
 
 ---
 
-## Decision: how {{PRODUCT_NAME}} relates to Claude Design plugin
+## Decision: how Legibly relates to Claude Design plugin
 
 ### Strategy: **Complementary, Not Competitive**
 
-| Concern | {{PRODUCT_NAME}}'s answer |
+| Concern | Legibly's answer |
 |---------|----------------------------|
 | Are we replacing Claude Design? | No — we focus on **Figma execution**, they focus on **chat-based ideation/critique** |
 | Should we integrate? | **Maybe** — research if Cowork has plugin-to-plugin APIs |

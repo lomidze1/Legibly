@@ -43,7 +43,7 @@ Detection *აჩვენებs* ტკივილს (უფასო, viral
 
 ## 1. Vision Statement (ერთი წინადადება)
 
-**{{PRODUCT_NAME}} = accessibility-first "correctness layer" Figma plugin, რომელიც **ამოწმებს და ასწორებს** ნებისმიერ დიზაინს (AI-generated თუ human) — hard-fail off-system primitives, one-click WCAG 2.2 AA auto-fix — TRUST-ის გარანტიით (correctness-by-construction, არა AI-გამოცნობა).**
+**Legibly = accessibility-first "correctness layer" Figma plugin, რომელიც **ამოწმებს და ასწორებს** ნებისმიერ დიზაინს (AI-generated თუ human) — hard-fail off-system primitives, one-click WCAG 2.2 AA auto-fix — TRUST-ის გარანტიით (correctness-by-construction, არა AI-გამოცნობა).**
 
 > 📌 ეს refined vision-ია (D7, 2026-06-14). სრული locked direction — იხ. §0 ზემოთ.
 
@@ -53,7 +53,7 @@ Detection *აჩვენებs* ტკივილს (უფასო, viral
 
 1. **დიზაინერი არ უნდა ცდილობდეს AI-ს მართვას** — AI-მ უნდა იცოდეს მისი design system და automatically შეასრულოს მისი წესები.
 2. **Accessibility (WCAG 2.2 AA) უნდა იყოს გენერაციის ნაწილი**, არა post-hoc fix.
-3. **{{PRODUCT_NAME}}-ი არ უნდა იყოს მხოლოდ Figma plugin** — MCP-first არქიტექტურა Cursor/Claude Code/Stitch-ისთვისაც გაუშვებს მუშაობას.
+3. **Legibly-ი არ უნდა იყოს მხოლოდ Figma plugin** — MCP-first არქიტექტურა Cursor/Claude Code/Stitch-ისთვისაც გაუშვებს მუშაობას.
 
 ---
 
@@ -87,28 +87,28 @@ Detection *აჩვენებs* ტკივილს (უფასო, viral
 ### Segment A — Established Design System Owner
 - **ვინ:** in-house designer in product company, design lead at agency
 - **მტკივნეული:** AI generates inconsistent UI, breaks tokens, requires manual fixes
-- **{{PRODUCT_NAME}}-ის value:** system-strict generation = no fix-up labor
+- **Legibly-ის value:** system-strict generation = no fix-up labor
 - **Willingness to pay:** **HIGH** (saves real hours per project)
 - **MVP priority:** ⭐⭐⭐⭐⭐
 
 ### Segment B — Designer Without Established System
 - **ვინ:** freelancer, indie maker, small team
 - **მტკივნეული:** ვერ ბრძანებს AI-ს "make it look professional"; a11y ცოდნა მცირე
-- **{{PRODUCT_NAME}}-ის value:** opinionated defaults + a11y guarantee = "professional by default"
+- **Legibly-ის value:** opinionated defaults + a11y guarantee = "professional by default"
 - **Willingness to pay:** MEDIUM
 - **MVP priority:** ⭐⭐⭐⭐
 
 ### Segment C — PM / Non-Designer
 - **ვინ:** Product Manager, Engineer, Founder writing first screens
 - **მტკივნეული:** ვერ რხევლეფს Figma-ს learning curve-ს; Uizard/Visily-ი external tool
-- **{{PRODUCT_NAME}}-ის value:** prompt-to-screen native Figma-ში, არ ვტოვებთ tool-ს
+- **Legibly-ის value:** prompt-to-screen native Figma-ში, არ ვტოვებთ tool-ს
 - **Willingness to pay:** LOW-MEDIUM
 - **MVP priority:** ⭐⭐⭐
 
 ### Segment D — Dev / Designer via MCP
 - **ვინ:** dev/designer ვინც Cursor-ში ან Claude Code-ში მუშაობს
 - **მტკივნეული:** design იქმნება ცალკე, კოდი ცალკე — handoff აქვს
-- **{{PRODUCT_NAME}}-ის value:** MCP server-ი იძახებს {{PRODUCT_NAME}}-ის generation-ს Figma-ის გარეთ
+- **Legibly-ის value:** MCP server-ი იძახებს Legibly-ის generation-ს Figma-ის გარეთ
 - **Willingness to pay:** HIGH (developer tools market premium)
 - **MVP priority:** ⭐⭐⭐ (after Figma plugin proves PMF)
 

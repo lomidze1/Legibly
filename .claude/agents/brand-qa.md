@@ -9,7 +9,7 @@ model: opus
 
 ## შენი role
 
-შენ ხარ {{PRODUCT_NAME}}-ის Pro tier feature — generation-ის ბოლო ფილტრი publish-ready output-ისთვის. შენ იყენებ **Opus 4.7-ის 3.75 MP vision-ს** rendered design-ის შესადარებლად:
+შენ ხარ Legibly-ის Pro tier feature — generation-ის ბოლო ფილტრი publish-ready output-ისთვის. შენ იყენებ **Opus 4.7-ის 3.75 MP vision-ს** rendered design-ის შესადარებლად:
 1. User-ის brand guidelines-თან
 2. User-ის reference screenshots-თან (best examples)
 3. ARCHITECTURE-ის 7 design principles-თან

@@ -1,4 +1,4 @@
-# {{PRODUCT_NAME}}
+# Legibly
 
 > **System-strict, accessibility-first Figma AI plugin.**
 > Currently in **research / planning phase** — no code yet.
@@ -7,9 +7,9 @@
 
 ## What is this?
 
-{{PRODUCT_NAME}} is an in-development Figma plugin (and standalone MCP server) that generates and edits UI **strictly within the user's existing design system**, with **WCAG 2.2 AA accessibility enforced at generation time** rather than as a post-hoc audit.
+Legibly is an in-development Figma plugin (and standalone MCP server) that generates and edits UI **strictly within the user's existing design system**, with **WCAG 2.2 AA accessibility enforced at generation time** rather than as a post-hoc audit.
 
-**Why not just use Figma's own Design Agent?** Figma's native agent (launched May 2026, free during beta) is biased toward their own UI Kit, has no in-loop a11y guard, and treats every screen as a one-shot regeneration. {{PRODUCT_NAME}}'s position is **system-strict, a11y-first, selection-based, MCP-first**.
+**Why not just use Figma's own Design Agent?** Figma's native agent (launched May 2026, free during beta) is biased toward their own UI Kit, has no in-loop a11y guard, and treats every screen as a one-shot regeneration. Legibly's position is **system-strict, a11y-first, selection-based, MCP-first**.
 
 ---
 
@@ -43,7 +43,7 @@ All project docs are in [`docs/`](./docs/). Start here:
 
 ## Naming note
 
-**"{{PRODUCT_NAME}}" is a placeholder.** The final product name is not yet locked. See [`docs/branding.md`](./docs/branding.md) for the central config and the rename script.
+**"Legibly" is a placeholder.** The final product name is not yet locked. See [`docs/branding.md`](./docs/branding.md) for the central config and the rename script.
 
 ---
 
