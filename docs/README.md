@@ -18,7 +18,8 @@
 | 6 | [`links.md`](./links.md) | ყველა გარე reference (Anthropic, Figma, MCP, competitors) | როცა გჭირდება გარე dokumentation |
 | 7 | [`research-roadmap.md`](./research-roadmap.md) | რა უნდა გამოვიკვლიოთ — tools, plugins, libraries, generators | planning phase-ში |
 | 8 | [`glossary.md`](./glossary.md) | ტერმინების ლექსიკონი | როცა term-ი არ გესმის |
-| 9 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
+| 9 | [`website.md`](./website.md) | ვებსაიტის გეგმა (TODO — plugin-ზე დაფუძნებული) | launch-ის მომზადებისას |
+| 10 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
 
 ---
 
