@@ -132,6 +132,12 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Outcome:** `branding.md` updated; `rename-product.sh "Legibly" "legibly"` expanded `{{PRODUCT_NAME}}` tokens across 14 files. Tagline: *"Accessibility & design-system auto-fix for Figma — WCAG 2.2 AA, done right."* Figma store title: *"Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker."*
 - **⚠️ Open:** web-checks are indicative, NOT legal clearance. Formal USPTO/EUIPO search + domain acquisition (legibly.com is parked; .app/.io as fallback) = Track F before public launch. `architecture.md` literal "Designer" left as legacy alias (joint reframe later).
 
+### D10 — 2026-07-13 — v0.1 engine implemented; scaffold = raw Vite (resolves requirements Q4)
+- **Alternatives:** `create-figma-plugin` (F2-ის თავდაპირველი ვარაუდი)
+- **Why:** `create-figma-plugin` რეალურად Preact+esbuild-ზეა (არა React+Vite, როგორც F2 უშვებდა) და ერთი მცირე plugin-ისთვის ზედმეტ framework lock-in-ს შემოიტანდა. Raw dual-bundle Vite (IIFE main + singlefile ui) იძლევა სრულ კონტროლს + native vitest-ს.
+- **Outcome:** `plugin/` package: culori WCAG-2 gate + APCA advisory, effective-background resolver (fill stacks / opacity / z-order siblings; gradient/image/blend → needsReview), 3-tier classify/scan, token harvester (variables+styles, alias-resolved), fix engine (same-ramp → hue-filtered nearest → any token → D8 proposal → escalate) verification loop-ით, commit-time re-verify + revert, batch fix single undo-თი, strict mode, React UI. **120 unit tests green** (მ.შ. 500-case property sweep: committed candidate ვერასდროს ჩავარდება — NF1).
+- **⚠️ Deliberate deferral:** F13-ის "adjust background token" საფეხური v0.1-ში escalation guidance-ია და არა ავტო-კანდიდატი — გაზიარებული background-ის მუტაციამ შეიძლება sibling ტექსტების კონტრასტი დაამტვრიოს; უსაფრთხო ავტო-fix-ს სჭირდება dependent re-verification (v0.2 scope).
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

@@ -126,7 +126,7 @@
 | Q1 | **Paywall timing/mechanism** — free beta → v0.2 license keys (no server)? თუ paywall v0.1-დანვე? | `approach.md` (founder decision) |
 | Q2 | **Effective-background empirical spike** — fill-stack/gradient resolution fidelity real files-ზე; `node.reactions` reliability target-size-ისთვის (v0.2) | pre-build spike → `research/` |
 | Q3 | Compliance report format — CSV ჯერ, PDF მოგვიანებით? | v0.2 design |
-| Q4 | `create-figma-plugin` vs raw scaffold | `research/create-figma-plugin.md` (Track C) |
+| Q4 | ~~`create-figma-plugin` vs raw scaffold~~ | ✅ Resolved — raw Vite dual-bundle ([approach.md D10](./approach.md)) |
 | Q5 | License vendor — LemonSqueezy vs Gumroad vs Paddle (EU VAT) | `research/billing-providers.md` (Track D) |
 
 ---
