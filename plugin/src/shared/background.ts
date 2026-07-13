@@ -220,41 +220,57 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
   return { ok: true, fg, bg: { ...bg, a: 1 } };
 }
 
+/** Does this node's OWN fill stack contain any visible paint? */
+function hasVisiblePaint(n: NodeLite): boolean {
+  const fills = n.fills;
+  if (fills === undefined) return false;
+  if (isMixed(fills)) return true; // unknown → must not be ignored
+  if (!isPaintArray(fills)) return false;
+  return fills.some(paintVisible);
+}
+
 /**
- * Inspect one node rendered behind the text within the same parent.
- * Contributes its fills when it fully contains the text bbox; flags partial
- * overlap; ignores non-overlapping nodes.
+ * Does anything in this subtree actually paint pixels under the text bbox?
+ * Imported websites are full of transparent wrapper frames (div.container…)
+ * that overlap everything but paint nothing — those must be ignored, not
+ * flagged (the #1 false-needs-review source on real files).
+ */
+function subtreePaints(n: NodeLite, bbox: RectLite): boolean {
+  if (n.visible === false || nodeOpacity(n) === 0) return false;
+  const box = n.absoluteBoundingBox;
+  if (box && intersects(box, bbox) && hasVisiblePaint(n)) return true;
+  return (n.children ?? []).some((c) => subtreePaints(c, bbox));
+}
+
+/**
+ * Inspect one node rendered behind the text. Transparent subtrees are
+ * ignored; painting containers are resolved RECURSIVELY (children over own
+ * fills, back-to-front); a painted layer that only partially covers the
+ * text degrades to partial-overlap (never a guessed color).
  */
 function inspectBehindLayer(sib: NodeLite, bbox: RectLite, layers: Layer[]): CollectError | null {
   if (sib.visible === false || nodeOpacity(sib) === 0) return null;
+  if (!subtreePaints(sib, bbox)) return null; // transparent wrapper → ignore
+  if (!blendOk(sib.blendMode)) {
+    return { reason: 'blend-mode', detail: `"${sib.name}" uses blend mode ${sib.blendMode}` };
+  }
+  // Children render above the node's own fills; walk them front-to-back.
+  if (sib.children) {
+    for (let i = sib.children.length - 1; i >= 0; i--) {
+      const err = inspectBehindLayer(sib.children[i]!, bbox, layers);
+      if (err) return err;
+    }
+  }
+  if (!hasVisiblePaint(sib)) return null;
   const sibBox = sib.absoluteBoundingBox;
-  if (!sibBox) return null; // zero-size / unbounded nodes can't paint behind
-  if (!intersects(sibBox, bbox)) return null;
+  if (!sibBox || !intersects(sibBox, bbox)) return null;
   if (!contains(sibBox, bbox)) {
     return {
       reason: 'partial-overlap',
       detail: `"${sib.name}" partially overlaps the text — it may span multiple backgrounds`,
     };
   }
-  if (!blendOk(sib.blendMode)) {
-    return { reason: 'blend-mode', detail: `"${sib.name}" uses blend mode ${sib.blendMode}` };
-  }
-  // A covering layer with its own visible children painting inside the bbox
-  // is beyond flat-solid resolution (v0.1) → honest needs-review.
-  if (sib.children && sib.children.some((c) => childPaintsInside(c, bbox))) {
-    return {
-      reason: 'unresolved-background',
-      detail: `"${sib.name}" has child layers behind the text`,
-    };
-  }
   return collectFills(sib, layers);
-}
-
-function childPaintsInside(child: NodeLite, bbox: RectLite): boolean {
-  if (child.visible === false || nodeOpacity(child) === 0) return false;
-  const box = child.absoluteBoundingBox;
-  if (!box) return false;
-  return intersects(box, bbox);
 }
 
 function resolvePageBackground(

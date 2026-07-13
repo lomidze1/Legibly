@@ -173,7 +173,7 @@ export function App({ rpc }: Props): React.ReactElement {
           Scan selection
         </button>
         <button className="btn" disabled={scanning} onClick={() => void scan('page')}>
-          Scan page
+          Scan full canvas
         </button>
         {fixableNow.length > 0 && (
           <button className="btn" disabled={scanning} onClick={() => void applyAll()}>
@@ -209,7 +209,7 @@ export function App({ rpc }: Props): React.ReactElement {
         {!report && !scanning && (
           <div className="empty">
             <h3>Legibly</h3>
-            Scan your selection or the current page for WCAG {settings.level} text-contrast issues.
+            Scan your selection or the full canvas for WCAG {settings.level} text-contrast issues.
             <br />
             Detection is free and fully on-device — nothing leaves Figma.
           </div>

@@ -194,6 +194,145 @@ describe('resolveTextColors — happy paths', () => {
     if (r.ok) expect(r.fg.r).toBeCloseTo(0.5, 6);
   });
 
+  it('transparent wrapper frames are ignored — the imported-website case', () => {
+    // html-import tools generate stacks of no-fill wrapper frames that
+    // overlap everything; they must not poison the verdict.
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20) });
+    const wrapper = node({
+      type: 'FRAME',
+      name: 'div.container',
+      fills: [],
+      absoluteBoundingBox: box(10, 15, 50, 40), // partial overlap, but paints nothing
+      children: [],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [wrapper, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.bg).toEqual({ ...WHITE, a: 1 });
+  });
+
+  it('resolves THROUGH a no-fill wrapper to its painting child (recursion)', () => {
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20), fills: [solid(WHITE)] });
+    const card = node({
+      type: 'RECTANGLE',
+      fills: [solid(BLUE)],
+      absoluteBoundingBox: box(10, 10, 100, 50),
+    });
+    const wrapper = node({
+      type: 'FRAME',
+      name: 'div.hero',
+      fills: [],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [card],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [wrapper, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.bg).toEqual({ ...BLUE, a: 1 });
+  });
+
+  it('covering container: child card wins over the container own fill (z-order)', () => {
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20), fills: [solid(WHITE)] });
+    const card = node({
+      type: 'RECTANGLE',
+      fills: [solid(RED)],
+      absoluteBoundingBox: box(15, 15, 80, 40),
+    });
+    const section = node({
+      type: 'FRAME',
+      fills: [solid(BLUE)],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [card],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [section, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.bg).toEqual({ ...RED, a: 1 });
+  });
+
+  it('image deep inside a covering wrapper still degrades to image-fill', () => {
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20) });
+    const img = node({
+      type: 'RECTANGLE',
+      fills: [{ type: 'IMAGE' }],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+    });
+    const wrapper = node({
+      type: 'FRAME',
+      name: 'div.tile-image-wrapper',
+      fills: [],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [img],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [wrapper, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe('image-fill');
+  });
+
+  it('deeply nested transparent wrappers resolve to the real painted bg', () => {
+    const t = text({ absoluteBoundingBox: box(40, 40, 40, 10), fills: [solid(WHITE)] });
+    const deepBg = node({
+      type: 'RECTANGLE',
+      fills: [solid(BLACK)],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+    });
+    let inner = node({
+      type: 'FRAME',
+      fills: [],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [deepBg],
+    });
+    for (let i = 0; i < 4; i++) {
+      inner = node({
+        type: 'FRAME',
+        name: `div.wrap-${i}`,
+        fills: [],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [inner],
+      });
+    }
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [inner, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.bg).toEqual({ ...BLACK, a: 1 });
+  });
+
   it('invisible paints in the stack are skipped', () => {
     const t = text({});
     page([
@@ -292,12 +431,12 @@ describe('resolveTextColors — honest degradation (zero-false-positive contract
     if (!r.ok) expect(r.reason).toBe('partial-overlap');
   });
 
-  it('covering sibling with its own children behind the text → unresolved-background', () => {
+  it('painted child that only PARTIALLY covers the text → partial-overlap', () => {
     const t = text({ absoluteBoundingBox: box(20, 20, 60, 20) });
     const child = node({
       type: 'RECTANGLE',
       fills: [solid(RED)],
-      absoluteBoundingBox: box(15, 15, 80, 40),
+      absoluteBoundingBox: box(15, 15, 30, 40), // covers only the left edge
     });
     const group = node({
       type: 'FRAME',
@@ -312,10 +451,9 @@ describe('resolveTextColors — honest degradation (zero-false-positive contract
       children: [group, t],
     });
     page([root]);
-    withParents(root, root.parent ?? null);
     const r = resolveTextColors(t);
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.reason).toBe('unresolved-background');
+    if (!r.ok) expect(r.reason).toBe('partial-overlap');
   });
 
   it('gradient text fill → non-solid-text-fill', () => {
