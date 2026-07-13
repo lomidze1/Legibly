@@ -11,6 +11,7 @@ import type {
 import { DEFAULT_SETTINGS } from '../shared/types';
 import type { RpcClient } from '../shared/rpc';
 import { planFix, rgbaToHex } from '../shared/fix';
+import { reviewCopy } from '../shared/review-copy';
 
 interface Props {
   rpc: RpcClient;
@@ -26,6 +27,7 @@ function nextProposalName(): string {
 
 export function App({ rpc }: Props): React.ReactElement {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [showSettings, setShowSettings] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [report, setReport] = useState<ScanReport | null>(null);
   const [tokens, setTokens] = useState<TokenIndex | null>(null);
@@ -39,11 +41,13 @@ export function App({ rpc }: Props): React.ReactElement {
   }, [rpc]);
 
   const updateSettings = useCallback(
-    (next: Settings) => {
+    (next: Settings, keepResults = false) => {
       setSettings(next);
-      setReport(null);
-      setApplied({});
-      setFailures({});
+      if (!keepResults) {
+        setReport(null);
+        setApplied({});
+        setFailures({});
+      }
       void rpc.call('set-settings', next).catch(() => undefined);
     },
     [rpc]
@@ -126,6 +130,7 @@ export function App({ rpc }: Props): React.ReactElement {
   const fixableNow = violations.filter(
     (f) => plans[f.nodeId]?.status === 'fixable' && !applied[f.nodeId]
   );
+  const appliedCount = violations.filter((f) => applied[f.nodeId]).length;
 
   const applyAll = useCallback(async () => {
     const fixes = fixableNow.map((f) => {
@@ -175,58 +180,73 @@ export function App({ rpc }: Props): React.ReactElement {
         <button className="btn" disabled={scanning} onClick={() => void scan('page')}>
           Scan full canvas
         </button>
-        {fixableNow.length > 0 && (
-          <button className="btn" disabled={scanning} onClick={() => void applyAll()}>
-            Fix all ({fixableNow.length})
-          </button>
-        )}
+        <button
+          className={`btn btn-icon${showSettings ? ' btn-active' : ''}`}
+          title="Settings"
+          onClick={() => setShowSettings((s) => !s)}
+        >
+          ⚙
+        </button>
       </div>
 
-      <div className="settings">
-        <label>
-          Level
-          <select
-            value={settings.level}
-            onChange={(e) => updateSettings({ ...settings, level: e.target.value as Settings['level'] })}
-          >
-            <option value="AA">AA</option>
-            <option value="AAA">AAA</option>
-          </select>
-        </label>
-        <label title="Forbid new-token proposals — escalate instead (governance teams)">
-          <input
-            type="checkbox"
-            checked={settings.strictMode}
-            onChange={(e) => updateSettings({ ...settings, strictMode: e.target.checked })}
-          />
-          Strict mode
-        </label>
-      </div>
+      {showSettings && (
+        <div className="settings">
+          <label>
+            Check against
+            <select
+              value={settings.level}
+              onChange={(e) =>
+                updateSettings({ ...settings, level: e.target.value as Settings['level'] })
+              }
+            >
+              <option value="AA">AA — standard (recommended)</option>
+              <option value="AAA">AAA — stricter, optional</option>
+            </select>
+          </label>
+          <div className="microtext">
+            AA is the level laws and audits require. Changing it clears current results.
+          </div>
+        </div>
+      )}
 
       {error && <div className="error-bar">{error}</div>}
 
       <div className="results">
         {!report && !scanning && (
           <div className="empty">
-            <h3>Legibly</h3>
-            Scan your selection or the full canvas for WCAG {settings.level} text-contrast issues.
-            <br />
-            Detection is free and fully on-device — nothing leaves Figma.
+            <h3>Find hard-to-read text in 3 steps</h3>
+            <ol className="steps">
+              <li>Select a frame — or select nothing to check the whole canvas</li>
+              <li>Click Scan</li>
+              <li>Fix issues in one click, using your own color styles</li>
+            </ol>
+            <button className="btn btn-primary" onClick={() => void scan('selection')}>
+              Scan selection
+            </button>
+            <div className="microtext">Runs on your device. Nothing leaves Figma.</div>
           </div>
         )}
         {scanning && <div className="empty">Scanning…</div>}
         {report && !scanning && (
           <>
+            <NextStepBanner
+              violations={violations.length}
+              fixable={fixableNow.length}
+              appliedCount={appliedCount}
+              reviews={reviews.length}
+              strictMode={settings.strictMode}
+              onFixAll={() => void applyAll()}
+              onToggleStrict={(v) => updateSettings({ ...settings, strictMode: v }, true)}
+            />
             <div className="summary">
-              Scanned <strong>{report.scannedCount}</strong> text layers ·{' '}
-              <strong>{report.passCount}</strong> pass · <strong>{violations.length}</strong>{' '}
-              violations · <strong>{reviews.length}</strong> need review
+              {report.scannedCount} text layers checked against {settings.level} ·{' '}
+              {report.passCount} look good
             </div>
 
             {violations.length > 0 && (
               <>
                 <div className="tier-heading">
-                  Violations <span className="count">{violations.length}</span>
+                  Hard to read <span className="count">{violations.length}</span>
                 </div>
                 {violations.map((f) => (
                   <ViolationCard
@@ -247,27 +267,12 @@ export function App({ rpc }: Props): React.ReactElement {
             {reviews.length > 0 && (
               <>
                 <div className="tier-heading">
-                  Needs review <span className="count">{reviews.length}</span>
+                  Check by eye <span className="count">{reviews.length}</span>
                 </div>
                 {reviews.map((f) => (
-                  <div className="card" key={f.nodeId}>
-                    <div className="card-head">
-                      <span className="node-name" onClick={() => selectNode(f.nodeId)}>
-                        {f.nodeName}
-                      </span>
-                      <span className="badge badge-review">NEEDS REVIEW</span>
-                    </div>
-                    <div className="detail">{f.detail}</div>
-                  </div>
+                  <ReviewCard key={f.nodeId} finding={f} onSelect={selectNode} />
                 ))}
               </>
-            )}
-
-            {violations.length === 0 && reviews.length === 0 && (
-              <div className="empty">
-                <h3>All clear ✓</h3>
-                No certain contrast violations found in the scanned layers.
-              </div>
             )}
           </>
         )}
@@ -281,9 +286,74 @@ export function App({ rpc }: Props): React.ReactElement {
               <div key={s}>· {s}</div>
             ))}
           </details>
-          Violations are mathematically certain (zero false positives). Uncertain cases are listed
-          as “needs review”, never silently passed.
+          Flagged issues are mathematically certain (zero false positives). Anything uncertain is
+          listed under “Check by eye”, never silently passed.
         </div>
+      )}
+    </div>
+  );
+}
+
+interface BannerProps {
+  violations: number;
+  fixable: number;
+  appliedCount: number;
+  reviews: number;
+  strictMode: boolean;
+  onFixAll: () => void;
+  onToggleStrict: (v: boolean) => void;
+}
+
+/** One strip that answers: what did I get, and what do I do now? */
+function NextStepBanner({
+  violations,
+  fixable,
+  appliedCount,
+  reviews,
+  strictMode,
+  onFixAll,
+  onToggleStrict,
+}: BannerProps): React.ReactElement {
+  let message: string;
+  let tone: 'ok' | 'action' | 'info' = 'info';
+  if (violations === 0 && reviews === 0) {
+    message = 'All clear — nothing to fix.';
+    tone = 'ok';
+  } else if (violations === 0) {
+    message = `No certain issues. ${reviews} layer${reviews === 1 ? '' : 's'} to check by eye below.`;
+  } else if (appliedCount === violations) {
+    message = 'All fixed ✓ — one Cmd-Z undoes everything.';
+    tone = 'ok';
+  } else if (fixable > 0) {
+    message = `${violations} layer${violations === 1 ? ' is' : 's are'} hard to read — ${fixable} can be fixed in one click.`;
+    tone = 'action';
+  } else {
+    message = `${violations} hard-to-read layer${violations === 1 ? '' : 's'} — see the options on each card below.`;
+  }
+  return (
+    <div className={`banner banner-${tone}`}>
+      <div className="banner-row">
+        <span>{message}</span>
+        {fixable > 0 && (
+          <button className="btn btn-primary btn-sm" onClick={onFixAll}>
+            Fix all {fixable}
+          </button>
+        )}
+      </div>
+      {violations > 0 && appliedCount < violations && (
+        <label className="strict-row" title="Applies when fixing, not when scanning">
+          <input
+            type="checkbox"
+            checked={strictMode}
+            onChange={(e) => onToggleStrict(e.target.checked)}
+          />
+          Only use my existing colors
+          <span className="microtext">
+            {strictMode
+              ? 'Legibly will never create a new color token.'
+              : 'Off: Legibly may propose one new token when none of yours passes.'}
+          </span>
+        </label>
       )}
     </div>
   );
@@ -291,6 +361,36 @@ export function App({ rpc }: Props): React.ReactElement {
 
 function Swatch({ color }: { color: RGBA }): React.ReactElement {
   return <span className="swatch" style={{ background: rgbaToHex(color) }} />;
+}
+
+function ReviewCard({
+  finding: f,
+  onSelect,
+}: {
+  finding: Finding;
+  onSelect: (nodeId: string) => void;
+}): React.ReactElement {
+  const copy = reviewCopy(f.reason);
+  return (
+    <div className="card">
+      <div className="card-head">
+        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
+          {f.nodeName}
+        </span>
+        <span className="badge badge-review">CHECK BY EYE</span>
+      </div>
+      <div className="detail">{copy.title}</div>
+      <details className="review-details">
+        <summary>Why, and what to do</summary>
+        <div className="detail">{copy.why}</div>
+        <div className="detail">
+          <strong>What to do:</strong> {copy.todo}
+        </div>
+        <div className="microtext">Tip: click the layer name above to jump to it on the canvas.</div>
+        <div className="microtext">Technical detail: {f.detail}</div>
+      </details>
+    </div>
+  );
 }
 
 interface CardProps {
@@ -323,13 +423,13 @@ function ViolationCard({
             <Swatch color={f.bg} />
           </span>
         )}
-        <span className="node-name" onClick={() => onSelect(f.nodeId)}>
+        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
           {f.nodeName}
         </span>
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
         ) : (
-          <span className="badge badge-violation">SC {f.sc}</span>
+          <span className="badge badge-violation">LOW CONTRAST</span>
         )}
       </div>
 
@@ -367,16 +467,17 @@ function ViolationCard({
                 <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f, plan)}>
                   {busy
                     ? 'Creating…'
-                    : `Accept new token ${rgbaToHex(plan.proposal.proposedColor)} (${plan.proposal.verifiedRatio.toFixed(2)}:1)`}
+                    : `Accept new color ${rgbaToHex(plan.proposal.proposedColor)} (${plan.proposal.verifiedRatio.toFixed(2)}:1)`}
                 </button>
                 <Swatch color={plan.proposal.proposedColor} />
+                <span className="microtext">None of your colors passes here — this adds one new token to your file.</span>
               </>
             )}
             {plan?.status === 'unfixable' && (
               <div className="escalation">
-                No on-system token reaches {plan.before.requiredRatio}:1 against this background
-                {strictMode ? ' (strict mode: new tokens are off)' : ''}. Options: change the
-                background, add a compliant token to your system, or acknowledge &amp; override.
+                None of your existing colors reaches {plan.before.requiredRatio}:1 on this background
+                {strictMode ? ' (new colors are off)' : ''}. Try changing the background, or add a
+                darker/lighter color to your styles.
               </div>
             )}
           </div>
