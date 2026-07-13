@@ -1,0 +1,30 @@
+{
+  "name": "legibly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker for Figma",
+  "scripts": {
+    "build": "npm run build:main && npm run build:ui",
+    "build:main": "vite build --config vite.main.config.ts",
+    "build:ui": "vite build --config vite.ui.config.ts",
+    "typecheck": "tsc -p tsconfig.main.json --noEmit && tsc -p tsconfig.ui.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "culori": "^4.0.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "@types/culori": "^2.1.1",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vite-plugin-singlefile": "^2.0.3",
+    "vitest": "^2.1.8"
+  }
+}

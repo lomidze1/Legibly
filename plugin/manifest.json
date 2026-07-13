@@ -1,0 +1,12 @@
+{
+  "name": "Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker",
+  "id": "legibly-contrast-fixer",
+  "api": "1.0.0",
+  "main": "dist/main.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}
