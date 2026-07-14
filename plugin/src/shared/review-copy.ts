@@ -81,6 +81,11 @@ export const REVIEW_COPY: Record<NeedsReviewReason, ReviewCopy> = {
     why: 'The 3:1 rule applies only to parts users must SEE to operate the UI — whether this one is essential or decorative is your call.',
     todo: 'If people need to notice it to use the screen, aim for 3:1 or higher against its background.',
   },
+  'missing-alt': {
+    title: 'Image has no alt text recorded',
+    why: 'Screen-reader users need a text alternative for informative images. Figma has no native alt field, so Legibly records it for dev handoff and the report.',
+    todo: 'Write a short description of what the image conveys, or mark it decorative if it carries no information.',
+  },
   'invisible-text': {
     title: 'Invisible text layer',
     why: 'This text exists in the design but has no visible color (0% opacity or no fill) — a common leftover from imports. Real users won’t see it, but it may still be read out by assistive tech in the final product.',

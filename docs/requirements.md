@@ -62,7 +62,7 @@
 |----------|-------|----------------|
 | ~~Target size (24px AA) + text spacing~~ | ✅ **shipped 2026-07-14** ([approach.md D12](./approach.md)) | 44/48 platform floors — later |
 | ~~Non-text / UI contrast (SC 1.4.11)~~ | ✅ **shipped 2026-07-14** (interactive icons/strokes; D12) | free-floating graphics — judgment, footer-ში |
-| LLM-judgment tier (alt text, labels — SC 1.1.1/4.1.2) | **v0.3** | სჭირდება backend + Claude + verification (აქ ერთვება AI) |
+| ~~LLM tier: alt text (SC 1.1.1)~~ | ✅ **shipped 2026-07-14** BYOK-first ([approach.md D14](./approach.md)) | labels/4.1.2 + hosted backend — v0.4, billing-თან ერთად |
 | System-strict design-token enforcement (non-a11y) | v1.0 | ცალკე module; FigmaLint owns token-cleanup (free) |
 | Brand-QA vision pass (Opus) | v2 | premium; vision cost |
 | Multi-screen / generation / "fix it for me" generate | — | არასდროს headline (D7); optional internal action only |

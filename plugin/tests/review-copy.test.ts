@@ -21,6 +21,7 @@ const ALL_REASONS: NeedsReviewReason[] = [
   'maybe-interactive',
   'line-height-floor',
   'non-text-judgment',
+  'missing-alt',
 ];
 
 describe('REVIEW_COPY', () => {

@@ -16,6 +16,7 @@ const SC_NAMES: Record<string, string> = {
   '1.4.11': 'Non-text Contrast',
   '2.5.8': 'Target Size (Minimum)',
   '1.4.12': 'Text Spacing',
+  '1.1.1': 'Non-text Content (alt text)',
 };
 
 function esc(v: string | number | undefined): string {

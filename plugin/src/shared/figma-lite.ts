@@ -80,6 +80,8 @@ export interface NodeLite {
   characters?: string;
   /** {unit:'PERCENT'|'PIXELS'|'AUTO', value?} | figma.mixed */
   lineHeight?: unknown;
+  /** Plugin data reader — present on real nodes; fixtures may provide it. */
+  getSharedPluginData?: (namespace: string, key: string) => string;
   // page-only
   backgrounds?: readonly PaintLite[];
 }

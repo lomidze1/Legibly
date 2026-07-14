@@ -35,7 +35,8 @@ export type NeedsReviewReason =
   | 'invisible-text'
   | 'maybe-interactive'
   | 'line-height-floor'
-  | 'non-text-judgment';
+  | 'non-text-judgment'
+  | 'missing-alt';
 
 export interface Finding {
   nodeId: string;
@@ -82,6 +83,8 @@ export interface ScanReport {
   scannedCount: number;
   /** Interactive targets examined (2.5.8 / 1.4.11). */
   targetCount: number;
+  /** Content-sized images examined for alt text (1.1.1). */
+  imageCount: number;
   /** SCs we do not evaluate in v0.1 — transparency footer (F7). */
   notChecked: string[];
   durationMs: number;
@@ -165,8 +168,8 @@ export const DEFAULT_SETTINGS: Settings = {
 
 /** What we do NOT (fully) check — the transparency footer (F7). */
 export const NOT_CHECKED_SCS: string[] = [
-  '1.1.1 Non-text Content / alt text (v0.3)',
-  '2.4.6 Headings & Labels (v0.3)',
+  '1.1.1 — alt-text PRESENCE is tracked (recorded via Legibly); its quality is your review',
+  '2.4.6 Headings & Labels',
   '2.5.8 — elements without prototype interactions are “check by eye” only',
   '1.4.11 — only icons/borders on interactive elements are measured',
   '1.4.12 — only authored line-height; letter/word spacing adaptability is runtime-only',

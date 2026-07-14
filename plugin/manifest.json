@@ -7,6 +7,7 @@
   "editorType": ["figma"],
   "documentAccess": "dynamic-page",
   "networkAccess": {
-    "allowedDomains": ["none"]
+    "allowedDomains": ["https://api.anthropic.com"],
+    "reasoning": "Optional AI alt-text assist only: with the user's own Anthropic API key, the selected image is sent directly to Anthropic. All checks and fixes run entirely on-device; nothing else ever leaves Figma."
   }
 }

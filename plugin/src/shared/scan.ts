@@ -10,6 +10,7 @@ import { classifyTextNode } from './classify';
 import { checkTextSpacing } from './text-spacing';
 import { collectTargets, checkTargetSizes } from './target-size';
 import { checkNonTextContrast } from './non-text';
+import { checkAltText, hasImageFill } from './alt-text';
 
 function isRendered(node: NodeLite): boolean {
   return node.visible !== false && (typeof node.opacity !== 'number' || node.opacity > 0);
@@ -39,6 +40,7 @@ export function scanNodes(
     passCount: 0,
     scannedCount: texts.length,
     targetCount: 0,
+    imageCount: 0,
     notChecked: NOT_CHECKED_SCS,
     durationMs: 0,
   };
@@ -60,6 +62,21 @@ export function scanNodes(
   report.findings.push(...sizes.findings);
   const nonText = checkNonTextContrast(targets);
   report.findings.push(...nonText.findings);
+
+  // 1.1.1 alt-text presence over content-sized images
+  const walkImages = (n: NodeLite): void => {
+    if (!isRendered(n)) return;
+    if (hasImageFill(n)) {
+      const result = checkAltText(n);
+      if (result === 'pass') report.imageCount++;
+      else if (result) {
+        report.imageCount++;
+        report.findings.push(result);
+      }
+    }
+    if (n.children) for (const c of n.children) walkImages(c);
+  };
+  for (const r of roots) walkImages(r);
 
   // violations first, then needsReview; stable within tiers
   report.findings.sort((a, b) => (a.tier === b.tier ? 0 : a.tier === 'violation' ? -1 : 1));

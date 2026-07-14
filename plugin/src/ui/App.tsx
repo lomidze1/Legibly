@@ -16,6 +16,7 @@ import { reviewCopy } from '../shared/review-copy';
 import { DEEP_CHECKABLE, deepVerdict, DeepVerdict } from '../shared/deep-check';
 import { buildCsv, csvFileName } from '../shared/report-csv';
 import type { RectLite } from '../shared/figma-lite';
+import { AltSuggestion, bytesToBase64, requestAltText } from '../shared/ai-client';
 
 interface Props {
   rpc: RpcClient;
@@ -59,6 +60,10 @@ export function App({ rpc }: Props): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [deep, setDeep] = useState<Record<string, DeepVerdict>>({});
   const [bgPlans, setBgPlans] = useState<Record<string, BgFixPlan | null>>({});
+  /** BYOK — memory only, never persisted (clientStorage is not a secret store). */
+  const [aiKey, setAiKey] = useState('');
+  const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
+  const [altSuggestions, setAltSuggestions] = useState<Record<string, AltSuggestion>>({});
 
   useEffect(() => {
     rpc.call<Settings>('get-settings').then(setSettings).catch(() => undefined);
@@ -316,6 +321,51 @@ export function App({ rpc }: Props): React.ReactElement {
     [rpc, settings]
   );
 
+  /** 1.1.1: record alt text / decorative flag. */
+  const saveAlt = useCallback(
+    async (f: Finding, value: { altText?: string; decorative?: boolean }) => {
+      const key = keyOf(f);
+      setBusy((b) => ({ ...b, [key]: true }));
+      try {
+        const result = await rpc.call<AppliedFix>('set-alt-text', { nodeId: f.nodeId, ...value });
+        setApplied((a) => ({ ...a, [key]: result }));
+        setFailures(({ [key]: _, ...rest }) => rest);
+      } catch (e) {
+        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
+      } finally {
+        setBusy((b) => ({ ...b, [key]: false }));
+      }
+    },
+    [rpc]
+  );
+
+  /** 1.1.1 AI assist: export the image, ask Claude, stage for review (never auto-applied). */
+  const suggestAlt = useCallback(
+    async (f: Finding) => {
+      const key = keyOf(f);
+      setBusy((b) => ({ ...b, [key]: true }));
+      try {
+        const exported = await rpc.call<{ png: Uint8Array; nodeName: string; contextText: string }>(
+          'export-image',
+          { nodeId: f.nodeId }
+        );
+        const suggestion = await requestAltText(fetch, aiKey, {
+          imageBase64: bytesToBase64(exported.png, btoa),
+          nodeName: exported.nodeName,
+          contextText: exported.contextText,
+        });
+        setAltSuggestions((s) => ({ ...s, [key]: suggestion }));
+        setAltDrafts((d) => ({ ...d, [key]: suggestion.altText }));
+        setFailures(({ [key]: _, ...rest }) => rest);
+      } catch (e) {
+        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
+      } finally {
+        setBusy((b) => ({ ...b, [key]: false }));
+      }
+    },
+    [rpc, aiKey]
+  );
+
   /** Compliance report (F19) — CSV download built fully client-side. */
   const exportCsv = useCallback(async () => {
     if (!report) return;
@@ -378,6 +428,20 @@ export function App({ rpc }: Props): React.ReactElement {
           </label>
           <div className="microtext">
             AA is the level laws and audits require. Changing it clears current results.
+          </div>
+          <label style={{ marginTop: 8 }}>
+            AI assist (optional)
+            <input
+              type="password"
+              placeholder="Anthropic API key (sk-ant-…)"
+              value={aiKey}
+              onChange={(e) => setAiKey(e.target.value)}
+              style={{ flex: 1 }}
+            />
+          </label>
+          <div className="microtext">
+            Enables AI alt-text suggestions. Kept in memory only — cleared when the plugin closes.
+            Only the selected image is sent, directly to Anthropic with your key.
           </div>
         </div>
       )}
@@ -451,19 +515,36 @@ export function App({ rpc }: Props): React.ReactElement {
                 <div className="tier-heading">
                   Check by eye <span className="count">{reviews.length}</span>
                 </div>
-                {reviews.map((f) => (
-                  <ReviewCard
-                    key={keyOf(f)}
-                    finding={f}
-                    applied={applied[keyOf(f)]}
-                    failure={failures[keyOf(f)]}
-                    busy={!!busy[keyOf(f)]}
-                    deep={deep[keyOf(f)]}
-                    onSelect={selectNode}
-                    onFix={applyOne}
-                    onDeepCheck={runDeepCheck}
-                  />
-                ))}
+                {reviews.map((f) =>
+                  f.reason === 'missing-alt' ? (
+                    <AltCard
+                      key={keyOf(f)}
+                      finding={f}
+                      applied={applied[keyOf(f)]}
+                      failure={failures[keyOf(f)]}
+                      busy={!!busy[keyOf(f)]}
+                      draft={altDrafts[keyOf(f)] ?? ''}
+                      suggestion={altSuggestions[keyOf(f)]}
+                      aiEnabled={aiKey.trim().length > 0}
+                      onDraft={(v) => setAltDrafts((d) => ({ ...d, [keyOf(f)]: v }))}
+                      onSelect={selectNode}
+                      onSave={saveAlt}
+                      onSuggest={suggestAlt}
+                    />
+                  ) : (
+                    <ReviewCard
+                      key={keyOf(f)}
+                      finding={f}
+                      applied={applied[keyOf(f)]}
+                      failure={failures[keyOf(f)]}
+                      busy={!!busy[keyOf(f)]}
+                      deep={deep[keyOf(f)]}
+                      onSelect={selectNode}
+                      onFix={applyOne}
+                      onDeepCheck={runDeepCheck}
+                    />
+                  )
+                )}
               </>
             )}
 
@@ -652,6 +733,99 @@ function ReviewCard({
               <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f)}>
                 {busy ? 'Fixing…' : 'Set line height to 150%'}
               </button>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+interface AltCardProps {
+  finding: Finding;
+  applied: AppliedFix | undefined;
+  failure: string | undefined;
+  busy: boolean;
+  draft: string;
+  suggestion: AltSuggestion | undefined;
+  aiEnabled: boolean;
+  onDraft: (value: string) => void;
+  onSelect: (nodeId: string) => void;
+  onSave: (finding: Finding, value: { altText?: string; decorative?: boolean }) => Promise<void>;
+  onSuggest: (finding: Finding) => Promise<void>;
+}
+
+/** 1.1.1 card: manual entry, decorative marker, review-required AI suggestion. */
+function AltCard({
+  finding: f,
+  applied,
+  failure,
+  busy,
+  draft,
+  suggestion,
+  aiEnabled,
+  onDraft,
+  onSelect,
+  onSave,
+  onSuggest,
+}: AltCardProps): React.ReactElement {
+  const copy = reviewCopy(f.reason);
+  // Low-confidence AI output must be edited before it can be saved (research §3).
+  const mustEdit = suggestion?.confidence === 'low' && draft === suggestion.altText;
+  return (
+    <div className="card">
+      <div className="card-head">
+        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
+          {f.nodeName}
+        </span>
+        {applied ? (
+          <span className="badge badge-fixed">{applied.after === 'decorative' ? 'DECORATIVE ✓' : 'ALT RECORDED ✓'}</span>
+        ) : (
+          <span className="badge badge-review">ALT TEXT</span>
+        )}
+      </div>
+      {applied ? (
+        <div className="diff">
+          {applied.changeDescription}
+          <br />
+          WCAG 2.2 — SC {applied.sc} presence recorded (quality stays your review)
+        </div>
+      ) : (
+        <>
+          <div className="detail">{copy.title}</div>
+          {failure && <div className="error-bar">{failure}</div>}
+          {suggestion && (
+            <div className="detail">
+              AI suggests ({suggestion.confidence} confidence
+              {suggestion.decision === 'decorative' ? ', decorative' : ''}): {suggestion.rationale}
+              {mustEdit && <strong> — low confidence: edit the text before saving.</strong>}
+            </div>
+          )}
+          <div className="card-actions">
+            <input
+              type="text"
+              placeholder="Describe what this image conveys…"
+              value={draft}
+              onChange={(e) => onDraft(e.target.value)}
+              style={{ flex: '1 1 100%' }}
+              maxLength={150}
+            />
+            <button
+              className="btn btn-primary btn-sm"
+              disabled={busy || draft.trim().length < 3 || mustEdit}
+              onClick={() => void onSave(f, { altText: draft })}
+            >
+              {busy ? 'Saving…' : 'Save alt text'}
+            </button>
+            <button className="btn btn-sm" disabled={busy} onClick={() => void onSave(f, { decorative: true })}>
+              Mark decorative
+            </button>
+            {aiEnabled ? (
+              <button className="btn btn-sm" disabled={busy} onClick={() => void onSuggest(f)}>
+                {busy ? 'Asking AI…' : '✨ Suggest with AI'}
+              </button>
+            ) : (
+              <span className="microtext">Add your Anthropic API key in ⚙ to enable AI suggestions.</span>
             )}
           </div>
         </>

@@ -156,6 +156,11 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Background-adjust fix (F13 step 3 — ხურავს D10-ის deferral-ს):** unfixable ვარდნებზე ვეძებთ bg-owner-ს (ერთადერთი გაუმჭვირვალე solid layer) და ვცდით user-ის ტოკენებს probing-ით. Commit-კრიტერიუმი **frame-wide**: target გადის **და** ფრეიმზე არცერთი მანამდე-გამავალი ტექსტი/icon-probe არ ვარდება; probe ყოველთვის აღადგენს საწყის fill-ს. Strict mode-ს არ ეხება (მხოლოდ არსებული ტოკენები).
 - 202 tests green.
 
+### D14 — 2026-07-14 — v0.3 shipped: alt-text tier (1.1.1) BYOK-first, hosted backend გადავადებული
+- **Context:** requirements-ის v0.3 = LLM tier (backend + Claude). Hosted backend-ს სჭირდება deploy + key vault + billing (Q1/Q5 ღია) — ავტონომიურად ვერ კეთდება და distribution-first ლოგიკითაც ნაადრევია.
+- **Decision:** **BYOK-first** — architecture-ის sanctioned fallback გზა ("BYOK direct: key in memory only, plugin → api.anthropic.com, allowlisted"). Manifest allowedDomains = ["https://api.anthropic.com"] reasoning-ით; privacy story განახლდა პატიოსნად: "ყველა შემოწმება on-device; optional AI assist შენი key-თ მხოლოდ არჩეულ სურათს აგზავნის". Hosted proxy → billing-ის გადაწყვეტისას (v0.4+).
+- **Implementation:** 1.1.1 presence check deterministic-ია (sharedPluginData "legibly" store + decorative flag; <32px images skipped as noise) → ყოველთვის needsReview. AI assist: claude-opus-4-8, forced strict tool (emit_alt_text: decision/altText/confidence/rationale), deterministic validator gate (length/prefix/decorative-empty), **always review-required** — low confidence აიძულებს edit-ს; canvas-ს პირდაპირ ვერასდროს წვდება (research §3 trust discipline). Manual entry + decorative marker AI-ის გარეშეც მუშაობს. 228 tests green.
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

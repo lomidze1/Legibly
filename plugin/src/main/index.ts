@@ -4,7 +4,8 @@
  * node selection, settings persistence.
  */
 import { createRpcServer } from '../shared/rpc';
-import { scanNodes } from '../shared/scan';
+import { collectTextNodes, scanNodes } from '../shared/scan';
+import { ALT_KEY, ALT_NS, DECORATIVE_KEY } from '../shared/alt-text';
 import type { NodeLite } from '../shared/figma-lite';
 import type { RGBA, ScanReport, Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
@@ -118,6 +119,51 @@ const handlers = {
     return { png, rect, imageCssWidth: root.absoluteBoundingBox!.width, fg, required };
   },
   'file-name': () => figma.root.name,
+  /** Export an image node (≤512px) + nearby text — grounding for AI alt text. */
+  'export-image': async (payload: { nodeId: string }) => {
+    const node = await figma.getNodeByIdAsync(payload.nodeId);
+    if (!node || !('exportAsync' in node)) throw new Error('Image node not found');
+    const scene = node as SceneNode & ExportMixin;
+    const box = (scene as unknown as NodeLite).absoluteBoundingBox;
+    const longest = Math.max(box?.width ?? 512, box?.height ?? 512);
+    const scale = Math.min(1, 512 / longest);
+    const png = await scene.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: scale } });
+
+    // Grounding context: text near the image (its parent frame's copy).
+    const parent = (scene as unknown as NodeLite).parent;
+    const contextText = parent
+      ? collectTextNodes([parent])
+          .map((t) => t.characters ?? '')
+          .join(' · ')
+          .slice(0, 300)
+      : '';
+    return { png, nodeName: scene.name, contextText };
+  },
+  /** Record alt text / decorative flag in sharedPluginData (1.1.1). */
+  'set-alt-text': async (payload: { nodeId: string; altText?: string; decorative?: boolean }) => {
+    const node = await figma.getNodeByIdAsync(payload.nodeId);
+    if (!node || !('setSharedPluginData' in node)) throw new Error('Node not found');
+    const scene = node as SceneNode;
+    if (payload.decorative) {
+      scene.setSharedPluginData(ALT_NS, DECORATIVE_KEY, 'true');
+      scene.setSharedPluginData(ALT_NS, ALT_KEY, '');
+    } else {
+      scene.setSharedPluginData(ALT_NS, ALT_KEY, (payload.altText ?? '').trim());
+      scene.setSharedPluginData(ALT_NS, DECORATIVE_KEY, '');
+    }
+    figma.commitUndo();
+    return {
+      nodeId: scene.id,
+      nodeName: scene.name,
+      sc: '1.1.1',
+      before: 'missing',
+      after: payload.decorative ? 'decorative' : 'recorded',
+      target: 'alt text',
+      changeDescription: payload.decorative
+        ? 'marked decorative (empty alt)'
+        : `alt text: “${(payload.altText ?? '').trim()}”`,
+    };
+  },
   /** F13 step 3: can this violation be fixed by re-tokening the BACKGROUND? */
   'plan-bg-fix': async (payload: {
     nodeId: string;
