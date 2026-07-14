@@ -243,31 +243,48 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
     cur = parent;
   }
 
-  // 3. Fold ancestor opacities into each layer and flatten back-to-front.
-  // A single gradient layer is resolved by sampling: the verdict must hold
-  // for EVERY sample. More than one gradient stacked → honest needs-review.
-  const gradients = layers.filter((l): l is GradientLayer => l.kind === 'gradient');
-  if (gradients.length > 1) {
+  // 3. Truncate behind the front-most fully opaque layer: whatever is
+  // painted deeper is invisible to the text and must not affect the verdict
+  // (an opaque gradient button on a gradient page is ONE gradient, not two).
+  const effAlpha = (l: Layer): number => Math.min(1, l.localAlpha * ancestorAlpha(l.owner));
+  const isOpaqueLayer = (l: Layer): boolean =>
+    effAlpha(l) >= 1 && (l.kind === 'solid' || l.stops.every((s) => s.color.a >= 1));
+  const kept: Layer[] = [];
+  for (const l of layers) {
+    kept.push(l);
+    if (isOpaqueLayer(l)) break;
+  }
+
+  // Gradients are resolved by sampling: the verdict must hold for EVERY
+  // sample. Two stacked (translucent) gradients → every combination of
+  // their samples. Three or more → honest needs-review.
+  const gradients = kept.filter((l): l is GradientLayer => l.kind === 'gradient');
+  if (gradients.length > 2) {
     return {
       ok: false,
       reason: 'gradient-fill',
-      detail: 'Multiple gradients are stacked behind the text',
+      detail: 'Several gradients are stacked behind the text',
     };
   }
-  const gradientSamples = gradients.length === 1 ? sampleGradient(gradients[0]!.stops) : [null];
-  if (gradientSamples.length === 0) {
+  const gridSteps = gradients.length > 1 ? 9 : 24;
+  const sampleSets = gradients.map((g) => sampleGradient(g.stops, gridSteps));
+  if (sampleSets.some((s) => s.length === 0)) {
     return { ok: false, reason: 'gradient-fill', detail: 'Gradient has no color stops' };
   }
+  let combos: RGBA[][] = [[]];
+  for (const set of sampleSets) combos = combos.flatMap((c) => set.map((s) => [...c, s]));
+
   const pageSolid = resolvePageBackground(pageBackgrounds);
 
   const bgs: RGBA[] = [];
-  for (const sample of gradientSamples) {
-    const backToFront = layers
+  for (const combo of combos) {
+    let gradientIndex = 0;
+    const backToFront = kept
       .map((l) => {
-        const anc = ancestorAlpha(l.owner);
-        if (l.kind === 'solid') return { ...l.color, a: Math.min(1, l.localAlpha * anc) };
-        const s = sample!;
-        return { r: s.r, g: s.g, b: s.b, a: Math.min(1, s.a * l.localAlpha * anc) };
+        const a = effAlpha(l);
+        if (l.kind === 'solid') return { ...l.color, a };
+        const s = combo[gradientIndex++]!;
+        return { r: s.r, g: s.g, b: s.b, a: Math.min(1, s.a * a) };
       })
       .reverse();
     let bg = flattenStack(backToFront);

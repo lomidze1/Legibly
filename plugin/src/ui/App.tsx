@@ -228,11 +228,16 @@ export function App({ rpc }: Props): React.ReactElement {
       <div className="results">
         {!report && !scanning && (
           <div className="empty">
-            <h3>Find hard-to-read text in 3 steps</h3>
+            <h3>Find issues in your design — and fix them in one click</h3>
+            <div className="microtext empty-sub">
+              Checks your design against WCAG 2.2 (AA/AAA) — the accessibility standard behind EAA
+              and ADA compliance. Deterministic checks, zero false positives, fixes from your own
+              color styles.
+            </div>
             <ol className="steps">
               <li>Select a frame</li>
               <li>Click Scan</li>
-              <li>Fix issues in one click, using your own color styles</li>
+              <li>Fix issues</li>
             </ol>
             <div className="microtext">Runs on your device. Nothing leaves Figma.</div>
           </div>

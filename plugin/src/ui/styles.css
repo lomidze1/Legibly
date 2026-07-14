@@ -97,6 +97,8 @@ body {
 }
 .strict-row .microtext { flex-basis: 100%; margin-top: 2px; }
 
+.empty-sub { max-width: 300px; margin: 8px auto 0; }
+
 .steps {
   text-align: left;
   margin: 12px auto 16px;

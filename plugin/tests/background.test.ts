@@ -404,12 +404,67 @@ describe('resolveTextColors — gradient sampling', () => {
     }
   });
 
-  it('two stacked gradients → honest gradient-fill needs-review', () => {
+  it('an OPAQUE gradient truncates the stack — deeper gradients are invisible (button-on-gradient-page case)', () => {
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20), fills: [solid(WHITE)] });
+    const BLUE_A = { r: 0.18, g: 0.44, b: 0.93 };
+    const BLUE_B = { r: 0.11, g: 0.37, b: 0.88 };
+    const button = node({
+      type: 'FRAME',
+      fills: [grad(BLUE_A, BLUE_B)], // fully opaque button gradient
+      absoluteBoundingBox: box(10, 10, 100, 50),
+      children: [],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [grad(WHITE, BLACK)], // page-level gradient BEHIND the button
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [button, t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true); // one effective gradient, not "multiple stacked"
+    if (r.ok) {
+      // every sample is the button's blue — the page gradient never leaks in
+      for (const b of r.bgs) {
+        expect(b.b).toBeGreaterThan(0.8);
+        expect(b.r).toBeLessThan(0.2);
+      }
+    }
+  });
+
+  it('TWO translucent gradients resolve via cross-sampling', () => {
     const t = text({});
     page([
       node({
         type: 'FRAME',
         fills: [grad(WHITE, BLACK), { ...grad(BLACK, WHITE), opacity: 0.5 }],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.bgs.length).toBeGreaterThan(50); // combination grid
+      expect(r.bgs.every((b) => b.a === 1)).toBe(true);
+    }
+  });
+
+  it('three stacked translucent gradients → honest gradient-fill needs-review', () => {
+    const t = text({});
+    const translucent = (from: typeof WHITE, to: typeof BLACK) => ({
+      ...grad(from, to),
+      opacity: 0.5,
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [
+          translucent(WHITE, BLACK),
+          translucent(BLACK, WHITE),
+          translucent(WHITE, BLACK),
+        ],
         absoluteBoundingBox: box(0, 0, 200, 100),
         children: [t],
       }),
