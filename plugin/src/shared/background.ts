@@ -155,7 +155,7 @@ function collectFills(node: NodeLite, out: Layer[]): CollectError | null {
         continue;
       }
       const reason = nonSolidReason(p.type);
-      return { reason, detail: `"${node.name}" has a ${p.type.toLowerCase()} fill behind the text` };
+      return { reason, detail: `"${node.name}" has a ${p.type.toLowerCase()} fill behind the element` };
     }
     out.push({ kind: 'solid', color: p.color, localAlpha: paintAlpha(p) * nodeOpacity(node), owner: node });
   }
@@ -207,15 +207,30 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
   if (fg.a === 0) return { ok: false, reason: 'invisible', detail: 'Text fill is fully transparent' };
   fg = { ...fg, a: fg.a * nodeOpacity(text) * ancestorAlpha(text) };
 
-  // 2. Background: collect layers front-to-back walking up the tree.
-  const bbox = text.absoluteBoundingBox;
+  // 2. Background behind the element.
+  const backdrop = resolveBackdrop(text);
+  if (!backdrop.ok) return backdrop;
+  return { ok: true, fg, bg: backdrop.bgs[0]!, bgs: backdrop.bgs };
+}
+
+export type BackdropResult =
+  | { ok: true; bgs: RGBA[] }
+  | { ok: false; reason: NeedsReviewReason; detail: string };
+
+/**
+ * Resolve everything painted BEHIND a node (any node — text, icon, button):
+ * collect layers front-to-back walking up the tree, truncate at the first
+ * fully opaque layer, resolve gradients by sampling.
+ */
+export function resolveBackdrop(node: NodeLite): BackdropResult {
+  const bbox = node.absoluteBoundingBox;
   if (!bbox) {
-    return { ok: false, reason: 'unresolved-background', detail: 'Text has no bounding box' };
+    return { ok: false, reason: 'unresolved-background', detail: `"${node.name}" has no bounding box` };
   }
   const layers: Layer[] = [];
   let pageBackgrounds: readonly PaintLite[] | undefined;
 
-  let cur: NodeLite = text;
+  let cur: NodeLite = node;
   while (cur.parent) {
     const parent: NodeLite = cur.parent;
     if (parent.type === 'PAGE') {
@@ -263,7 +278,7 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
     return {
       ok: false,
       reason: 'gradient-fill',
-      detail: 'Several gradients are stacked behind the text',
+      detail: 'Several gradients are stacked behind the element',
     };
   }
   const gridSteps = gradients.length > 1 ? 9 : 24;
@@ -304,12 +319,12 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
       return {
         ok: false,
         reason: 'unresolved-background',
-        detail: 'Background never becomes opaque behind the text',
+        detail: 'Background never becomes opaque behind the element',
       };
     }
     bgs.push({ ...bg, a: 1 });
   }
-  return { ok: true, fg, bg: bgs[0]!, bgs };
+  return { ok: true, bgs };
 }
 
 /** Does this node's OWN fill stack contain any visible paint? */
@@ -335,7 +350,7 @@ function subtreePaints(n: NodeLite, bbox: RectLite): boolean {
 }
 
 /**
- * Inspect one node rendered behind the text. Transparent subtrees are
+ * Inspect one node rendered behind the element. Transparent subtrees are
  * ignored; painting containers are resolved RECURSIVELY (children over own
  * fills, back-to-front); a painted layer that only partially covers the
  * text degrades to partial-overlap (never a guessed color).

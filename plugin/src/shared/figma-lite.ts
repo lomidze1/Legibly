@@ -63,14 +63,23 @@ export interface NodeLite {
   opacity?: number;
   blendMode?: string;
   fills?: readonly PaintLite[] | unknown; // unknown covers figma.mixed
+  strokes?: readonly PaintLite[];
   parent?: NodeLite | null;
   children?: readonly NodeLite[];
   absoluteBoundingBox?: RectLite | null;
+  /** Prototype interactions — explicit interactivity signal (2.5.8). */
+  reactions?: readonly unknown[];
+  /** Auto-layout: 'NONE' | 'HORIZONTAL' | 'VERTICAL' | 'GRID'. */
+  layoutMode?: string;
+  minWidth?: number | null;
+  minHeight?: number | null;
   // text-only
   fontSize?: number | unknown;
   fontWeight?: number | unknown;
   fontName?: { family: string; style: string } | unknown;
   characters?: string;
+  /** {unit:'PERCENT'|'PIXELS'|'AUTO', value?} | figma.mixed */
+  lineHeight?: unknown;
   // page-only
   backgrounds?: readonly PaintLite[];
 }

@@ -1,11 +1,15 @@
 /**
- * Scanner (F5): traverse selection or page, classify every visible text node.
- * Pure over NodeLite so the whole pipeline is unit-testable (C1).
+ * Scanner: traverse selection or page and run every check —
+ * text contrast (1.4.3), target size (2.5.8), non-text contrast (1.4.11),
+ * text spacing capability (1.4.12). Pure over NodeLite (C1).
  */
 import type { ScanReport, Settings } from './types';
 import { NOT_CHECKED_SCS } from './types';
 import { NodeLite } from './figma-lite';
 import { classifyTextNode } from './classify';
+import { checkTextSpacing } from './text-spacing';
+import { collectTargets, checkTargetSizes } from './target-size';
+import { checkNonTextContrast } from './non-text';
 
 function isRendered(node: NodeLite): boolean {
   return node.visible !== false && (typeof node.opacity !== 'number' || node.opacity > 0);
@@ -34,14 +38,29 @@ export function scanNodes(
     findings: [],
     passCount: 0,
     scannedCount: texts.length,
+    targetCount: 0,
     notChecked: NOT_CHECKED_SCS,
     durationMs: 0,
   };
+
+  // 1.4.3 + 1.4.12 over text nodes
   for (const t of texts) {
     const result = classifyTextNode(t, settings);
     if (result.kind === 'pass') report.passCount++;
     else if (result.kind === 'finding') report.findings.push(result.finding);
+
+    const spacing = checkTextSpacing(t);
+    if (spacing) report.findings.push(spacing);
   }
+
+  // 2.5.8 + 1.4.11 over interactive targets
+  const targets = collectTargets(roots);
+  report.targetCount = targets.length;
+  const sizes = checkTargetSizes(targets);
+  report.findings.push(...sizes.findings);
+  const nonText = checkNonTextContrast(targets);
+  report.findings.push(...nonText.findings);
+
   // violations first, then needsReview; stable within tiers
   report.findings.sort((a, b) => (a.tier === b.tier ? 0 : a.tier === 'violation' ? -1 : 1));
   report.durationMs = now() - start;

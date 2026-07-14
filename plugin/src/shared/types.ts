@@ -32,7 +32,10 @@ export type NeedsReviewReason =
   | 'unresolved-background'
   | 'non-solid-text-fill'
   | 'no-text-fill'
-  | 'invisible-text';
+  | 'invisible-text'
+  | 'maybe-interactive'
+  | 'line-height-floor'
+  | 'non-text-judgment';
 
 export interface Finding {
   nodeId: string;
@@ -63,6 +66,12 @@ export interface Finding {
   detail: string;
   /** Name of the token/style currently bound to the fill (same-ramp step, F13). */
   currentTokenName?: string;
+  /** Which paint a color fix applies to (1.4.3 text vs 1.4.11 icon/border). */
+  paintTarget?: 'text-fill' | 'shape-fill' | 'stroke';
+  /** SC 2.5.8 data. */
+  targetSize?: { width: number; height: number; required: number; autoFixable: boolean };
+  /** SC 1.4.12 data. */
+  lineHeight?: { ratio: number; fixable: boolean };
 }
 
 export interface ScanReport {
@@ -71,6 +80,8 @@ export interface ScanReport {
   passCount: number;
   /** Nodes scanned in total. */
   scannedCount: number;
+  /** Interactive targets examined (2.5.8 / 1.4.11). */
+  targetCount: number;
   /** SCs we do not evaluate in v0.1 — transparency footer (F7). */
   notChecked: string[];
   durationMs: number;
@@ -121,10 +132,13 @@ export interface AppliedFix {
   nodeId: string;
   nodeName: string;
   sc: string;
-  beforeRatio: number;
-  afterRatio: number;
-  requiredRatio: number;
-  /** e.g. "text/muted → text/primary" or "new token: legibly/fixed-1". */
+  /** Measured before, e.g. "2.90:1" | "18×20px" | "120%". */
+  before: string;
+  /** Verified after, e.g. "4.60:1" | "24×24px" | "150%". */
+  after: string;
+  /** The requirement met, e.g. "4.5:1" | "24×24px" | "150%". */
+  target: string;
+  /** e.g. "text/muted → text/primary" or "min size set to 24×24". */
   changeDescription: string;
 }
 
@@ -139,12 +153,12 @@ export const DEFAULT_SETTINGS: Settings = {
   strictMode: false,
 };
 
-/** SCs outside v0.1 scope, shown in the transparency footer (F7). */
+/** What we do NOT (fully) check — the transparency footer (F7). */
 export const NOT_CHECKED_SCS: string[] = [
-  '1.4.11 Non-text Contrast (v0.2)',
-  '2.5.8 Target Size (v0.2)',
-  '1.4.12 Text Spacing (v0.2)',
   '1.1.1 Non-text Content / alt text (v0.3)',
   '2.4.6 Headings & Labels (v0.3)',
+  '2.5.8 — elements without prototype interactions are “check by eye” only',
+  '1.4.11 — only icons/borders on interactive elements are measured',
+  '1.4.12 — only authored line-height; letter/word spacing adaptability is runtime-only',
   'Focus order, reflow, semantics — not determinable from a static Figma file',
 ];
