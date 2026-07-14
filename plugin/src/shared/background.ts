@@ -26,8 +26,9 @@ import { flattenStack } from './contrast';
 export type ResolveResult =
   /** `bgs` = every sampled background (length 1 for flat solids); `bg` = bgs[0]. */
   | { ok: true; fg: RGBA; bg: RGBA; bgs: RGBA[] }
-  | { ok: false; reason: NeedsReviewReason; detail: string }
-  | { ok: false; reason: 'invisible'; detail: string };
+  /** `fg` is included when the text color itself resolved (deep check needs it). */
+  | { ok: false; reason: NeedsReviewReason; detail: string; fg?: RGBA }
+  | { ok: false; reason: 'invisible'; detail: string; fg?: RGBA };
 
 interface SolidLayer {
   kind: 'solid';
@@ -209,7 +210,7 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
 
   // 2. Background behind the element.
   const backdrop = resolveBackdrop(text);
-  if (!backdrop.ok) return backdrop;
+  if (!backdrop.ok) return { ...backdrop, fg };
   return { ok: true, fg, bg: backdrop.bgs[0]!, bgs: backdrop.bgs };
 }
 

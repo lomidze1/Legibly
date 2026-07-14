@@ -47,10 +47,9 @@ export function classifyTextNode(node: NodeLite, settings: Settings): ClassifyRe
         finding: needsReview(node, 'invisible-text', 'Text layer exists but has no visible color'),
       };
     }
-    return {
-      kind: 'finding',
-      finding: needsReview(node, resolved.reason, resolved.detail),
-    };
+    const finding = needsReview(node, resolved.reason, resolved.detail);
+    if (resolved.fg) finding.fg = resolved.fg; // enables the pixel deep check
+    return { kind: 'finding', finding };
   }
 
   const large = isLargeText(fontSize, fontWeight);
