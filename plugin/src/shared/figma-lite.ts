@@ -20,14 +20,24 @@ export interface SolidPaintLite {
   boundVariables?: { color?: { id: string } };
 }
 
+export interface GradientStopLite {
+  position: number;
+  color: { r: number; g: number; b: number; a: number };
+}
+
 export interface OtherPaintLite {
   type: string; // GRADIENT_LINEAR | GRADIENT_RADIAL | ... | IMAGE | VIDEO
   visible?: boolean;
   opacity?: number;
   blendMode?: string;
+  gradientStops?: readonly GradientStopLite[];
 }
 
 export type PaintLite = SolidPaintLite | OtherPaintLite;
+
+export function isGradientPaint(p: PaintLite): p is OtherPaintLite {
+  return p.type.startsWith('GRADIENT');
+}
 
 export function isSolidPaint(p: PaintLite): p is SolidPaintLite {
   return p.type === 'SOLID';

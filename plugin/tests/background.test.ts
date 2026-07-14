@@ -349,6 +349,77 @@ describe('resolveTextColors — happy paths', () => {
   });
 });
 
+describe('resolveTextColors — gradient sampling', () => {
+  const grad = (from: { r: number; g: number; b: number }, to: { r: number; g: number; b: number }) => ({
+    type: 'GRADIENT_LINEAR',
+    gradientStops: [
+      { position: 0, color: { ...from, a: 1 } },
+      { position: 1, color: { ...to, a: 1 } },
+    ],
+  });
+
+  it('resolves a gradient into multiple samples covering both ends', () => {
+    const t = text({});
+    page([
+      node({
+        type: 'FRAME',
+        fills: [grad(WHITE, BLACK)],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.bgs.length).toBeGreaterThan(10);
+      const reds = r.bgs.map((b) => b.r);
+      expect(Math.max(...reds)).toBeCloseTo(1, 4); // white end present
+      expect(Math.min(...reds)).toBeCloseTo(0, 4); // black end present
+      expect(r.bgs.every((b) => b.a === 1)).toBe(true);
+    }
+  });
+
+  it('semi-transparent gradient composites each sample over the backdrop', () => {
+    const t = text({});
+    const halfGrad = {
+      type: 'GRADIENT_LINEAR',
+      gradientStops: [
+        { position: 0, color: { r: 0, g: 0, b: 0, a: 0.5 } },
+        { position: 1, color: { r: 0, g: 0, b: 0, a: 0.5 } },
+      ],
+    };
+    page([
+      node({
+        type: 'FRAME',
+        fills: [solid(WHITE), halfGrad],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      // 50% black over white everywhere → all samples mid-gray
+      for (const b of r.bgs) expect(b.r).toBeCloseTo(0.5, 4);
+    }
+  });
+
+  it('two stacked gradients → honest gradient-fill needs-review', () => {
+    const t = text({});
+    page([
+      node({
+        type: 'FRAME',
+        fills: [grad(WHITE, BLACK), { ...grad(BLACK, WHITE), opacity: 0.5 }],
+        absoluteBoundingBox: box(0, 0, 200, 100),
+        children: [t],
+      }),
+    ]);
+    const r = resolveTextColors(t);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.reason).toBe('gradient-fill');
+  });
+});
+
 describe('resolveTextColors — honest degradation (zero-false-positive contract, F8)', () => {
   it('gradient fill behind text → gradient-fill', () => {
     const t = text({});

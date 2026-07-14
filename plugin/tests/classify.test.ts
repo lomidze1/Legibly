@@ -66,10 +66,23 @@ describe('classifyTextNode — verdicts', () => {
     expect(classifyTextNode(t, AA).kind).toBe('skip');
   });
 
-  it('text without fills is skipped (not rendered)', () => {
+  it('text without fills → needsReview invisible-text (import artifact)', () => {
     const t = text({ fills: [] });
     onWhite(t);
-    expect(classifyTextNode(t, AA).kind).toBe('skip');
+    const r = classifyTextNode(t, AA);
+    expect(r.kind).toBe('finding');
+    if (r.kind === 'finding') {
+      expect(r.finding.tier).toBe('needsReview');
+      expect(r.finding.reason).toBe('invisible-text');
+    }
+  });
+
+  it('text with a 0%-opacity fill → needsReview invisible-text', () => {
+    const t = text({ fills: [solid(GRAY_77, { opacity: 0 })] });
+    onWhite(t);
+    const r = classifyTextNode(t, AA);
+    expect(r.kind).toBe('finding');
+    if (r.kind === 'finding') expect(r.finding.reason).toBe('invisible-text');
   });
 
   it('mixed font size → needsReview, never a violation (F8)', () => {
@@ -83,7 +96,7 @@ describe('classifyTextNode — verdicts', () => {
     }
   });
 
-  it('gradient behind text → needsReview, never a violation (F8)', () => {
+  it('gradient WITHOUT stop data → needsReview, never a violation (F8)', () => {
     const t = text({ fills: [solid(GRAY_77)] });
     page([
       node({
@@ -96,5 +109,73 @@ describe('classifyTextNode — verdicts', () => {
     const r = classifyTextNode(t, AA);
     expect(r.kind).toBe('finding');
     if (r.kind === 'finding') expect(r.finding.tier).toBe('needsReview');
+  });
+});
+
+describe('classifyTextNode — gradients decided by sampling', () => {
+  const stops = (a: { r: number; g: number; b: number }, b: { r: number; g: number; b: number }) => [
+    { position: 0, color: { ...a, a: 1 } },
+    { position: 1, color: { ...b, a: 1 } },
+  ];
+
+  function onGradient(t: ReturnType<typeof text>, from: { r: number; g: number; b: number }, to: { r: number; g: number; b: number }) {
+    page([
+      node({
+        type: 'FRAME',
+        fills: [{ type: 'GRADIENT_LINEAR', gradientStops: stops(from, to) }],
+        absoluteBoundingBox: box(0, 0, 400, 200),
+        children: [t],
+      }),
+    ]);
+  }
+
+  it('PASSES when every spot of the gradient passes (black on white→#eee)', () => {
+    const t = text({ fills: [solid({ r: 0, g: 0, b: 0 })] });
+    onGradient(t, WHITE, { r: 0.93, g: 0.93, b: 0.93 });
+    expect(classifyTextNode(t, AA).kind).toBe('pass');
+  });
+
+  it('VIOLATION when every spot fails (#777 on white→#f0f0f0), with range detail', () => {
+    const t = text({ fills: [solid(GRAY_77)] });
+    onGradient(t, WHITE, { r: 0.94, g: 0.94, b: 0.94 });
+    const r = classifyTextNode(t, AA);
+    expect(r.kind).toBe('finding');
+    if (r.kind === 'finding') {
+      expect(r.finding.tier).toBe('violation');
+      expect(r.finding.bgSamples!.length).toBeGreaterThan(2);
+      expect(r.finding.detail).toContain('across the gradient');
+    }
+  });
+
+  it('needsReview gradient-range when the gradient straddles the threshold', () => {
+    const t = text({ fills: [solid(GRAY_77)] }); // 4.48 on white (fail), 4.69 on black (pass)
+    onGradient(t, WHITE, { r: 0, g: 0, b: 0 });
+    const r = classifyTextNode(t, AA);
+    expect(r.kind).toBe('finding');
+    if (r.kind === 'finding') {
+      expect(r.finding.tier).toBe('needsReview');
+      expect(r.finding.reason).toBe('gradient-range');
+      expect(r.finding.detail).toMatch(/varies from .* to .*/);
+    }
+  });
+
+  it('semi-transparent solid button over a gradient still resolves (the "My User" case)', () => {
+    const t = text({ absoluteBoundingBox: box(20, 20, 60, 20), fills: [solid({ r: 0, g: 0, b: 0 })] });
+    const button = node({
+      type: 'FRAME',
+      fills: [solid({ r: 0.05, g: 0.05, b: 0.07 }, { opacity: 0.08 })],
+      absoluteBoundingBox: box(10, 10, 100, 50),
+      children: [],
+    });
+    page([
+      node({
+        type: 'FRAME',
+        fills: [{ type: 'GRADIENT_LINEAR', gradientStops: stops(WHITE, { r: 0.9, g: 0.92, b: 0.98 }) }],
+        absoluteBoundingBox: box(0, 0, 400, 200),
+        children: [button, t],
+      }),
+    ]);
+    // black text over a light gradient seen through an 8% dark veil → passes everywhere
+    expect(classifyTextNode(t, AA).kind).toBe('pass');
   });
 });

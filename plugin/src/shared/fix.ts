@@ -47,17 +47,27 @@ export function rampPrefix(name: string): string | null {
   return m ? m[1]! : null;
 }
 
+/** Worst-case ratio of a color against every sampled background. */
+export function minRatioOver(fg: RGBA, bgs: readonly RGBA[]): number {
+  let min = Infinity;
+  for (const bg of bgs) min = Math.min(min, wcagRatio(fg, bg));
+  return min;
+}
+
 /**
  * Algorithm A (remediation research §1.1): minimal perceptual adjustment —
  * binary search on OKLCH lightness, hue held constant, chroma clamped into
- * gamut. Returns a passing color or null when even the extreme endpoint
- * cannot reach the target (e.g. mid-gray backgrounds).
+ * gamut. Accepts one bg or all gradient samples; the candidate must pass
+ * against EVERY sample. Returns null when even the extreme endpoint cannot
+ * reach the target (mid-gray or light-to-dark gradient backgrounds).
  */
-export function minimalContrastFix(fg: RGBA, bg: RGBA, target: number): RGBA | null {
-  const bgL = toOklch(bg).l;
+export function minimalContrastFix(fg: RGBA, bg: RGBA | readonly RGBA[], target: number): RGBA | null {
+  const bgs = Array.isArray(bg) ? (bg as readonly RGBA[]) : [bg as RGBA];
+  if (bgs.length === 0) return null;
+  const avgBgL = bgs.reduce((s, b) => s + toOklch(b).l, 0) / bgs.length;
   const c = oklch(toCulori(fg));
   if (!c) return null;
-  const goDarker = bgL >= 0.5;
+  const goDarker = avgBgL >= 0.5;
 
   const candidateAt = (l: number): RGBA => {
     const clamped = clampChroma({ ...c, l }, 'oklch');
@@ -66,7 +76,7 @@ export function minimalContrastFix(fg: RGBA, bg: RGBA, target: number): RGBA | n
   };
 
   const endpoint = candidateAt(goDarker ? 0 : 1);
-  if (wcagRatio(endpoint, bg) < target) return null; // unreachable → escalate
+  if (minRatioOver(endpoint, bgs) < target) return null; // unreachable → escalate
 
   let lo = goDarker ? 0 : c.l;
   let hi = goDarker ? c.l : 1;
@@ -74,7 +84,7 @@ export function minimalContrastFix(fg: RGBA, bg: RGBA, target: number): RGBA | n
   for (let i = 0; i < 20; i++) {
     const mid = (lo + hi) / 2;
     const cand = candidateAt(mid);
-    if (wcagRatio(cand, bg) >= target) {
+    if (minRatioOver(cand, bgs) >= target) {
       best = cand;
       if (goDarker) lo = mid;
       else hi = mid;
@@ -110,12 +120,12 @@ interface Candidate {
  */
 function orderedCandidates(
   fg: RGBA,
-  bg: RGBA,
+  bgs: readonly RGBA[],
   required: number,
   tokens: TokenCandidate[],
   currentTokenName?: string
 ): Candidate[] {
-  const passing = tokens.filter((t) => wcagRatio(t.color, bg) >= required);
+  const passing = tokens.filter((t) => minRatioOver(t.color, bgs) >= required);
   const byDistance = (a: TokenCandidate, b: TokenCandidate) => dist(fg, a.color) - dist(fg, b.color);
 
   const out: Candidate[] = [];
@@ -166,11 +176,13 @@ export function planFix(
     };
   }
   const { fg, bg, requiredRatio: required } = finding;
-  const before = { ratio: finding.ratio ?? wcagRatio(fg, bg), requiredRatio: required };
+  // On a gradient the fix must hold against every sampled background.
+  const bgs: readonly RGBA[] = finding.bgSamples?.length ? finding.bgSamples : [bg];
+  const before = { ratio: finding.ratio ?? minRatioOver(fg, bgs), requiredRatio: required };
 
-  for (const cand of orderedCandidates(fg, bg, required, tokens, currentTokenName)) {
+  for (const cand of orderedCandidates(fg, bgs, required, tokens, currentTokenName)) {
     // RE-RUN THE EXACT SAME CHECK — the judge, not the generator, authorizes.
-    const verifiedRatio = wcagRatio(cand.color, bg);
+    const verifiedRatio = minRatioOver(cand.color, bgs);
     if (verifiedRatio >= required) {
       return {
         nodeId: finding.nodeId,
@@ -184,9 +196,9 @@ export function planFix(
   // No on-system token passes. D8: propose a minimal-change new token —
   // unless strict mode forbids novel values (F14) → escalate.
   if (!settings.strictMode) {
-    const proposed = minimalContrastFix(fg, bg, required);
+    const proposed = minimalContrastFix(fg, bgs, required);
     if (proposed) {
-      const verifiedRatio = wcagRatio(proposed, bg);
+      const verifiedRatio = minRatioOver(proposed, bgs);
       if (verifiedRatio >= required) {
         return {
           nodeId: finding.nodeId,

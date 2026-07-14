@@ -180,6 +180,20 @@ export function App({ rpc }: Props): React.ReactElement {
         <button className="btn" disabled={scanning} onClick={() => void scan('page')}>
           Scan full canvas
         </button>
+        {report && (
+          <button
+            className="btn btn-icon"
+            title="Clear results"
+            onClick={() => {
+              setReport(null);
+              setApplied({});
+              setFailures({});
+              setError(null);
+            }}
+          >
+            ✕
+          </button>
+        )}
         <button
           className={`btn btn-icon${showSettings ? ' btn-active' : ''}`}
           title="Settings"
@@ -216,13 +230,10 @@ export function App({ rpc }: Props): React.ReactElement {
           <div className="empty">
             <h3>Find hard-to-read text in 3 steps</h3>
             <ol className="steps">
-              <li>Select a frame — or select nothing to check the whole canvas</li>
+              <li>Select a frame</li>
               <li>Click Scan</li>
               <li>Fix issues in one click, using your own color styles</li>
             </ol>
-            <button className="btn btn-primary" onClick={() => void scan('selection')}>
-              Scan selection
-            </button>
             <div className="microtext">Runs on your device. Nothing leaves Figma.</div>
           </div>
         )}
@@ -334,9 +345,14 @@ function NextStepBanner({
     <div className={`banner banner-${tone}`}>
       <div className="banner-row">
         <span>{message}</span>
-        {fixable > 0 && (
-          <button className="btn btn-primary btn-sm" onClick={onFixAll}>
-            Fix all {fixable}
+        {violations > 0 && appliedCount < violations && (
+          <button
+            className="btn btn-primary btn-sm"
+            disabled={fixable === 0}
+            title={fixable === 0 ? 'No automatic fix available — see the options on each card' : undefined}
+            onClick={onFixAll}
+          >
+            Fix issues{fixable > 0 ? ` (${fixable})` : ''}
           </button>
         )}
       </div>

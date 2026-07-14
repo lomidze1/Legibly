@@ -28,8 +28,13 @@ export const REVIEW_COPY: Record<NeedsReviewReason, ReviewCopy> = {
   },
   'gradient-fill': {
     title: 'Text sits on a gradient',
-    why: 'A gradient has many colors behind the text — some spots may pass while others fail.',
+    why: 'This gradient can’t be measured (missing color data or several gradients stacked).',
     todo: 'Check the lightest and darkest areas by eye, or place the text on a solid color.',
+  },
+  'gradient-range': {
+    title: 'Contrast varies across the gradient',
+    why: 'Behind this text the gradient goes from passing to failing — some areas are readable, some aren’t.',
+    todo: 'Check where the text actually sits, or adjust the gradient colors so the whole range passes, then rescan.',
   },
   'blend-mode': {
     title: 'A blend effect is in the way',
@@ -60,6 +65,11 @@ export const REVIEW_COPY: Record<NeedsReviewReason, ReviewCopy> = {
     title: 'Text has no visible color',
     why: 'This layer has no visible fill, so there is nothing to measure.',
     todo: 'If the text should be visible, give it a fill and rescan.',
+  },
+  'invisible-text': {
+    title: 'Invisible text layer',
+    why: 'This text exists in the design but has no visible color (0% opacity or no fill) — a common leftover from imports. Real users won’t see it, but it may still be read out by assistive tech in the final product.',
+    todo: 'If it’s not needed, delete the layer. If it should be visible, give it a color and rescan.',
   },
 };
 

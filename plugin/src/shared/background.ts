@@ -16,6 +16,7 @@ import {
   RectLite,
   contains,
   intersects,
+  isGradientPaint,
   isMixed,
   isPaintArray,
   isSolidPaint,
@@ -23,17 +24,28 @@ import {
 import { flattenStack } from './contrast';
 
 export type ResolveResult =
-  | { ok: true; fg: RGBA; bg: RGBA }
+  /** `bgs` = every sampled background (length 1 for flat solids); `bg` = bgs[0]. */
+  | { ok: true; fg: RGBA; bg: RGBA; bgs: RGBA[] }
   | { ok: false; reason: NeedsReviewReason; detail: string }
   | { ok: false; reason: 'invisible'; detail: string };
 
-interface Layer {
+interface SolidLayer {
+  kind: 'solid';
   color: { r: number; g: number; b: number };
   /** fill opacity × owning node opacity (ancestor opacity applied later). */
   localAlpha: number;
   /** The node that owns this fill — used to fold in ancestor opacities. */
   owner: NodeLite;
 }
+
+interface GradientLayer {
+  kind: 'gradient';
+  stops: readonly import('./figma-lite').GradientStopLite[];
+  localAlpha: number;
+  owner: NodeLite;
+}
+
+type Layer = SolidLayer | GradientLayer;
 
 const OK_NODE_BLEND = new Set(['NORMAL', 'PASS_THROUGH', undefined]);
 
@@ -58,6 +70,45 @@ function nonSolidReason(type: string): NeedsReviewReason {
   if (type === 'IMAGE') return 'image-fill';
   if (type === 'VIDEO') return 'video-fill';
   return 'unresolved-background';
+}
+
+/**
+ * Sample a gradient densely: every stop plus a fine grid between them.
+ * Geometry is deliberately ignored (which part of the gradient sits under
+ * the text) — the verdict must hold for the WHOLE gradient, which can only
+ * be conservative: it may under-decide (→ needsReview), never mis-decide.
+ */
+export function sampleGradient(
+  stops: readonly import('./figma-lite').GradientStopLite[],
+  gridSteps = 24
+): RGBA[] {
+  const sorted = [...stops].sort((a, b) => a.position - b.position);
+  if (sorted.length === 0) return [];
+  if (sorted.length === 1) return [{ ...sorted[0]!.color }];
+  const samples: RGBA[] = sorted.map((s) => ({ ...s.color }));
+  for (let i = 1; i <= gridSteps; i++) {
+    const pos =
+      sorted[0]!.position + ((sorted[sorted.length - 1]!.position - sorted[0]!.position) * i) / (gridSteps + 1);
+    // find surrounding stops
+    let lo = sorted[0]!;
+    let hi = sorted[sorted.length - 1]!;
+    for (let j = 0; j < sorted.length - 1; j++) {
+      if (sorted[j]!.position <= pos && pos <= sorted[j + 1]!.position) {
+        lo = sorted[j]!;
+        hi = sorted[j + 1]!;
+        break;
+      }
+    }
+    const span = hi.position - lo.position;
+    const t = span === 0 ? 0 : (pos - lo.position) / span;
+    samples.push({
+      r: lo.color.r + (hi.color.r - lo.color.r) * t,
+      g: lo.color.g + (hi.color.g - lo.color.g) * t,
+      b: lo.color.b + (hi.color.b - lo.color.b) * t,
+      a: lo.color.a + (hi.color.a - lo.color.a) * t,
+    });
+  }
+  return samples;
 }
 
 /** Product of `opacity` over all ancestors strictly above `node` (up to page). */
@@ -93,10 +144,20 @@ function collectFills(node: NodeLite, out: Layer[]): CollectError | null {
       return { reason: 'blend-mode', detail: `"${node.name}" uses blend mode ${p.blendMode}` };
     }
     if (!isSolidPaint(p)) {
+      // Gradients with stop data are resolvable by sampling (see §flatten).
+      if (isGradientPaint(p) && p.gradientStops && p.gradientStops.length > 0) {
+        out.push({
+          kind: 'gradient',
+          stops: p.gradientStops,
+          localAlpha: paintAlpha(p) * nodeOpacity(node),
+          owner: node,
+        });
+        continue;
+      }
       const reason = nonSolidReason(p.type);
       return { reason, detail: `"${node.name}" has a ${p.type.toLowerCase()} fill behind the text` };
     }
-    out.push({ color: p.color, localAlpha: paintAlpha(p) * nodeOpacity(node), owner: node });
+    out.push({ kind: 'solid', color: p.color, localAlpha: paintAlpha(p) * nodeOpacity(node), owner: node });
   }
   return null;
 }
@@ -183,41 +244,55 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
   }
 
   // 3. Fold ancestor opacities into each layer and flatten back-to-front.
-  const backToFront = layers
-    .map((l) => ({ ...l.color, a: Math.min(1, l.localAlpha * ancestorAlpha(l.owner)) }))
-    .reverse();
-  let bg = flattenStack(backToFront);
+  // A single gradient layer is resolved by sampling: the verdict must hold
+  // for EVERY sample. More than one gradient stacked → honest needs-review.
+  const gradients = layers.filter((l): l is GradientLayer => l.kind === 'gradient');
+  if (gradients.length > 1) {
+    return {
+      ok: false,
+      reason: 'gradient-fill',
+      detail: 'Multiple gradients are stacked behind the text',
+    };
+  }
+  const gradientSamples = gradients.length === 1 ? sampleGradient(gradients[0]!.stops) : [null];
+  if (gradientSamples.length === 0) {
+    return { ok: false, reason: 'gradient-fill', detail: 'Gradient has no color stops' };
+  }
+  const pageSolid = resolvePageBackground(pageBackgrounds);
 
-  if (bg.a < 1) {
-    // Composite over the page background if it is a flat solid.
-    const pageSolid = resolvePageBackground(pageBackgrounds);
-    if (pageSolid === 'non-solid') {
-      return {
-        ok: false,
-        reason: 'unresolved-background',
-        detail: 'Page background is not a flat solid',
-      };
-    }
-    if (pageSolid === 'none') {
-      if (bg.a < 0.999) {
+  const bgs: RGBA[] = [];
+  for (const sample of gradientSamples) {
+    const backToFront = layers
+      .map((l) => {
+        const anc = ancestorAlpha(l.owner);
+        if (l.kind === 'solid') return { ...l.color, a: Math.min(1, l.localAlpha * anc) };
+        const s = sample!;
+        return { r: s.r, g: s.g, b: s.b, a: Math.min(1, s.a * l.localAlpha * anc) };
+      })
+      .reverse();
+    let bg = flattenStack(backToFront);
+
+    if (bg.a < 1) {
+      // Composite over the page background if it is a flat solid.
+      if (pageSolid === 'non-solid') {
         return {
           ok: false,
           reason: 'unresolved-background',
-          detail: 'Background never becomes opaque behind the text',
+          detail: 'Page background is not a flat solid',
         };
       }
-    } else {
-      bg = flattenStack([pageSolid, bg]);
+      if (pageSolid !== 'none') bg = flattenStack([pageSolid, bg]);
     }
+    if (bg.a < 0.999) {
+      return {
+        ok: false,
+        reason: 'unresolved-background',
+        detail: 'Background never becomes opaque behind the text',
+      };
+    }
+    bgs.push({ ...bg, a: 1 });
   }
-  if (bg.a < 0.999) {
-    return {
-      ok: false,
-      reason: 'unresolved-background',
-      detail: 'Background never becomes opaque behind the text',
-    };
-  }
-  return { ok: true, fg, bg: { ...bg, a: 1 } };
+  return { ok: true, fg, bg: bgs[0]!, bgs };
 }
 
 /** Does this node's OWN fill stack contain any visible paint? */

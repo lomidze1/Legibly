@@ -85,6 +85,20 @@ describe('minimalContrastFix — binary search on OKLCH lightness', () => {
     const midGray = rgba(0.5, 0.5, 0.5); // neither black nor white reaches 7:1
     expect(minimalContrastFix(hexToRgba('#777777'), midGray, 7)).toBeNull();
   });
+
+  it('multi-sample: the fix must pass against EVERY gradient sample', () => {
+    const samples = [WHITE, rgba(0.9, 0.9, 0.9), rgba(0.8, 0.8, 0.8)];
+    const fixed = minimalContrastFix(hexToRgba('#999999'), samples, 4.5);
+    expect(fixed).not.toBeNull();
+    for (const s of samples) {
+      expect(wcagRatio(fixed!, s)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it('multi-sample: white-to-black gradient at 7:1 is unreachable → null', () => {
+    const samples = [WHITE, rgba(0, 0, 0)];
+    expect(minimalContrastFix(hexToRgba('#777777'), samples, 7)).toBeNull();
+  });
 });
 
 describe('planFix — resolution order (F13)', () => {
@@ -158,6 +172,25 @@ describe('planFix — resolution order (F13)', () => {
     const f = violation(hexToRgba('#777777'), midGray, 7);
     const plan = planFix(f, [], AA);
     expect(plan.status).toBe('unfixable');
+  });
+
+  it('gradient violation: chosen token passes the WHOLE sampled range', () => {
+    const fg = hexToRgba('#999999');
+    const samples = [WHITE, rgba(0.85, 0.85, 0.85)];
+    const f: Finding = {
+      ...violation(fg, WHITE),
+      bgSamples: samples,
+      ratio: 2.2,
+    };
+    const tokens = [
+      token('edge', 'gray/700', hexToRgba('#5a5a5a')), // passes on white only, fails on #d9d9d9? — passes 4.5 on white, ~3.3 on #d9… actually vs 0.85 gray
+      token('deep', 'gray/900', hexToRgba('#1a1a1a')), // passes both
+    ];
+    const plan = planFix(f, tokens, AA);
+    expect(plan.status).toBe('fixable');
+    for (const s of samples) {
+      expect(wcagRatio(plan.candidate!.token!.color, s)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 
   it('non-violation findings are not planned', () => {

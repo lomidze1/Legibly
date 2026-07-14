@@ -23,6 +23,7 @@ export type Tier = 'violation' | 'needsReview';
 
 export type NeedsReviewReason =
   | 'gradient-fill'
+  | 'gradient-range'
   | 'image-fill'
   | 'video-fill'
   | 'blend-mode'
@@ -30,7 +31,8 @@ export type NeedsReviewReason =
   | 'partial-overlap'
   | 'unresolved-background'
   | 'non-solid-text-fill'
-  | 'no-text-fill';
+  | 'no-text-fill'
+  | 'invisible-text';
 
 export interface Finding {
   nodeId: string;
@@ -42,6 +44,11 @@ export interface Finding {
   fg?: RGBA;
   /** Composited effective background (opaque). Present on violations. */
   bg?: RGBA;
+  /**
+   * All sampled backgrounds when the text sits on a gradient (F6 extension):
+   * a verdict/fix must hold against EVERY sample. Absent for flat solids.
+   */
+  bgSamples?: RGBA[];
   /** Measured WCAG 2 contrast ratio. */
   ratio?: number;
   /** Required ratio for this node at the configured level. */

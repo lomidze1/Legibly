@@ -8,6 +8,7 @@ import type { NeedsReviewReason } from '../src/shared/types';
 
 const ALL_REASONS: NeedsReviewReason[] = [
   'gradient-fill',
+  'gradient-range',
   'image-fill',
   'video-fill',
   'blend-mode',
@@ -16,6 +17,7 @@ const ALL_REASONS: NeedsReviewReason[] = [
   'unresolved-background',
   'non-solid-text-fill',
   'no-text-fill',
+  'invisible-text',
 ];
 
 describe('REVIEW_COPY', () => {
