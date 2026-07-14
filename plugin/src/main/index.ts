@@ -44,9 +44,9 @@ async function scan(payload: { scope: 'selection' | 'page'; settings: Settings }
     throw new Error('Nothing selected — select frames or layers to scan');
   }
   const report = scanNodes(roots, payload.settings);
-  // Enrich violations with the currently bound token name (same-ramp step, F13).
+  // Enrich text-contrast violations with the bound token name (same-ramp, F13).
   for (const f of report.findings) {
-    if (f.tier === 'violation') {
+    if (f.tier === 'violation' && f.sc === '1.4.3') {
       (f as { currentTokenName?: string }).currentTokenName = await currentTokenName(f.nodeId);
     }
   }
@@ -60,16 +60,23 @@ const handlers = {
     nodeId: string;
     instruction: FixInstruction;
     settings: Settings;
-    beforeRatio: number;
-    requiredRatio: number;
+    before: string;
+    target: string;
+    sc: string;
   }) => {
-    const applied = await applyFix(payload.nodeId, payload.instruction, payload.settings, payload.beforeRatio);
-    applied.requiredRatio = payload.requiredRatio;
+    const applied = await applyFix(
+      payload.nodeId,
+      payload.instruction,
+      payload.settings,
+      payload.before,
+      payload.target,
+      payload.sc
+    );
     figma.commitUndo();
     return applied;
   },
   'apply-batch': (payload: {
-    fixes: { nodeId: string; instruction: FixInstruction; beforeRatio: number }[];
+    fixes: { nodeId: string; instruction: FixInstruction; before: string; target: string; sc: string }[];
     settings: Settings;
   }) => applyBatch(payload.fixes, payload.settings),
   'select-node': async (payload: { nodeId: string }) => {

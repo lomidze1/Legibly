@@ -19,10 +19,28 @@ interface Props {
 
 type BatchResult = { applied: AppliedFix[]; failed: { nodeId: string; error: string }[] };
 
+type Instruction =
+  | { kind: 'token'; token: NonNullable<FixPlan['candidate']>['token']; paintTarget?: string }
+  | { kind: 'proposal'; color: RGBA; tokenName: string; paintTarget?: string }
+  | { kind: 'min-size'; required: number }
+  | { kind: 'line-height'; percent: number };
+
+const SC_BADGE: Record<string, string> = {
+  '1.4.3': 'LOW CONTRAST',
+  '1.4.11': 'ICON/BORDER',
+  '2.5.8': 'TAP TARGET',
+  '1.4.12': 'LINE HEIGHT',
+};
+
 let proposalCounter = 0;
 function nextProposalName(): string {
   proposalCounter += 1;
   return `legibly/contrast-fix-${proposalCounter}`;
+}
+
+/** A finding's fixes are tracked per node AND per criterion. */
+function keyOf(f: Finding): string {
+  return `${f.nodeId}:${f.sc}`;
 }
 
 export function App({ rpc }: Props): React.ReactElement {
@@ -85,78 +103,120 @@ export function App({ rpc }: Props): React.ReactElement {
     [report]
   );
 
+  /** Color plans for contrast-based violations (1.4.3, 1.4.11). */
   const plans = useMemo(() => {
     const map: Record<string, FixPlan> = {};
     if (!tokens) return map;
     for (const f of violations) {
-      map[f.nodeId] = planFix(f, tokens.tokens, settings, f.currentTokenName);
+      if (f.fg && f.bg) map[keyOf(f)] = planFix(f, tokens.tokens, settings, f.currentTokenName);
     }
     return map;
   }, [violations, tokens, settings]);
 
+  /** Everything one click away: color-fixable + auto-fixable tap targets. */
+  const fixableNow = useMemo(
+    () =>
+      violations.filter((f) => {
+        if (applied[keyOf(f)]) return false;
+        if (f.targetSize) return f.targetSize.autoFixable;
+        return plans[keyOf(f)]?.status === 'fixable';
+      }),
+    [violations, plans, applied]
+  );
+  const appliedCount = violations.filter((f) => applied[keyOf(f)]).length;
+
+  /** Build the RPC payload for one finding, or null when not one-click. */
+  const payloadFor = useCallback(
+    (f: Finding): { instruction: Instruction; before: string; target: string } | null => {
+      if (f.targetSize?.autoFixable) {
+        return {
+          instruction: { kind: 'min-size', required: f.targetSize.required },
+          before: `${Math.round(f.targetSize.width)}×${Math.round(f.targetSize.height)}px`,
+          target: `${f.targetSize.required}×${f.targetSize.required}px`,
+        };
+      }
+      if (f.lineHeight?.fixable) {
+        return {
+          instruction: { kind: 'line-height', percent: 150 },
+          before: `${(f.lineHeight.ratio * 100).toFixed(0)}%`,
+          target: '150%',
+        };
+      }
+      const plan = plans[keyOf(f)];
+      if (plan?.status === 'fixable' && plan.candidate?.token) {
+        return {
+          instruction: { kind: 'token', token: plan.candidate.token, paintTarget: f.paintTarget ?? 'text-fill' },
+          before: `${plan.before.ratio.toFixed(2)}:1`,
+          target: `${plan.before.requiredRatio}:1`,
+        };
+      }
+      if (plan?.status === 'needs-proposal' && plan.proposal?.proposedColor) {
+        return {
+          instruction: {
+            kind: 'proposal',
+            color: plan.proposal.proposedColor,
+            tokenName: nextProposalName(),
+            paintTarget: f.paintTarget ?? 'text-fill',
+          },
+          before: `${plan.before.ratio.toFixed(2)}:1`,
+          target: `${plan.before.requiredRatio}:1`,
+        };
+      }
+      return null;
+    },
+    [plans]
+  );
+
   const applyOne = useCallback(
-    async (finding: Finding, plan: FixPlan) => {
-      const instruction =
-        plan.status === 'fixable' && plan.candidate?.token
-          ? { kind: 'token' as const, token: plan.candidate.token }
-          : plan.status === 'needs-proposal' && plan.proposal?.proposedColor
-            ? {
-                kind: 'proposal' as const,
-                color: plan.proposal.proposedColor,
-                tokenName: nextProposalName(),
-              }
-            : null;
-      if (!instruction) return;
-      setBusy((b) => ({ ...b, [finding.nodeId]: true }));
+    async (f: Finding) => {
+      const payload = payloadFor(f);
+      if (!payload) return;
+      const key = keyOf(f);
+      setBusy((b) => ({ ...b, [key]: true }));
       try {
         const result = await rpc.call<AppliedFix>('apply-fix', {
-          nodeId: finding.nodeId,
-          instruction,
+          nodeId: f.nodeId,
+          instruction: payload.instruction,
           settings,
-          beforeRatio: plan.before.ratio,
-          requiredRatio: plan.before.requiredRatio,
+          before: payload.before,
+          target: payload.target,
+          sc: f.sc,
         });
-        setApplied((a) => ({ ...a, [finding.nodeId]: result }));
-        setFailures(({ [finding.nodeId]: _, ...rest }) => rest);
+        setApplied((a) => ({ ...a, [key]: result }));
+        setFailures(({ [key]: _, ...rest }) => rest);
       } catch (e) {
-        setFailures((f) => ({ ...f, [finding.nodeId]: e instanceof Error ? e.message : String(e) }));
+        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
       } finally {
-        setBusy((b) => ({ ...b, [finding.nodeId]: false }));
+        setBusy((b) => ({ ...b, [key]: false }));
       }
     },
-    [rpc, settings]
+    [payloadFor, rpc, settings]
   );
-
-  const fixableNow = violations.filter(
-    (f) => plans[f.nodeId]?.status === 'fixable' && !applied[f.nodeId]
-  );
-  const appliedCount = violations.filter((f) => applied[f.nodeId]).length;
 
   const applyAll = useCallback(async () => {
-    const fixes = fixableNow.map((f) => {
-      const plan = plans[f.nodeId]!;
-      return {
-        nodeId: f.nodeId,
-        instruction: { kind: 'token' as const, token: plan.candidate!.token! },
-        beforeRatio: plan.before.ratio,
-        requiredRatio: plan.before.requiredRatio,
-      };
-    });
+    const fixes = fixableNow
+      .map((f) => {
+        const payload = payloadFor(f);
+        return payload
+          ? { nodeId: f.nodeId, instruction: payload.instruction, before: payload.before, target: payload.target, sc: f.sc }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
     if (fixes.length === 0) return;
     setScanning(true);
     try {
       const result = await rpc.call<BatchResult>('apply-batch', { fixes, settings });
       setApplied((a) => {
         const next = { ...a };
-        for (const ap of result.applied) {
-          const plan = plans[ap.nodeId];
-          next[ap.nodeId] = { ...ap, requiredRatio: plan?.before.requiredRatio ?? ap.requiredRatio };
-        }
+        for (const ap of result.applied) next[`${ap.nodeId}:${ap.sc}`] = ap;
         return next;
       });
-      setFailures((f) => {
-        const next = { ...f };
-        for (const fail of result.failed) next[fail.nodeId] = fail.error;
+      setFailures((prev) => {
+        const next = { ...prev };
+        for (const fail of result.failed) {
+          const f = fixableNow.find((v) => v.nodeId === fail.nodeId);
+          next[f ? keyOf(f) : fail.nodeId] = fail.error;
+        }
         return next;
       });
     } catch (e) {
@@ -164,7 +224,7 @@ export function App({ rpc }: Props): React.ReactElement {
     } finally {
       setScanning(false);
     }
-  }, [fixableNow, plans, rpc, settings]);
+  }, [fixableNow, payloadFor, rpc, settings]);
 
   const selectNode = useCallback(
     (nodeId: string) => void rpc.call('select-node', { nodeId }).catch(() => undefined),
@@ -255,23 +315,23 @@ export function App({ rpc }: Props): React.ReactElement {
               onToggleStrict={(v) => updateSettings({ ...settings, strictMode: v }, true)}
             />
             <div className="summary">
-              {report.scannedCount} text layers checked against {settings.level} ·{' '}
-              {report.passCount} look good
+              {report.scannedCount} text layers · {report.targetCount} interactive targets checked
+              against {settings.level} · {report.passCount} text layers look good
             </div>
 
             {violations.length > 0 && (
               <>
                 <div className="tier-heading">
-                  Hard to read <span className="count">{violations.length}</span>
+                  Issues found <span className="count">{violations.length}</span>
                 </div>
                 {violations.map((f) => (
                   <ViolationCard
-                    key={f.nodeId}
+                    key={keyOf(f)}
                     finding={f}
-                    plan={plans[f.nodeId]}
-                    applied={applied[f.nodeId]}
-                    failure={failures[f.nodeId]}
-                    busy={!!busy[f.nodeId]}
+                    plan={plans[keyOf(f)]}
+                    applied={applied[keyOf(f)]}
+                    failure={failures[keyOf(f)]}
+                    busy={!!busy[keyOf(f)]}
                     strictMode={settings.strictMode}
                     onSelect={selectNode}
                     onFix={applyOne}
@@ -286,9 +346,24 @@ export function App({ rpc }: Props): React.ReactElement {
                   Check by eye <span className="count">{reviews.length}</span>
                 </div>
                 {reviews.map((f) => (
-                  <ReviewCard key={f.nodeId} finding={f} onSelect={selectNode} />
+                  <ReviewCard
+                    key={keyOf(f)}
+                    finding={f}
+                    applied={applied[keyOf(f)]}
+                    failure={failures[keyOf(f)]}
+                    busy={!!busy[keyOf(f)]}
+                    onSelect={selectNode}
+                    onFix={applyOne}
+                  />
                 ))}
               </>
+            )}
+
+            {violations.length === 0 && reviews.length === 0 && (
+              <div className="empty">
+                <h3>All clear ✓</h3>
+                No certain issues found in the scanned layers.
+              </div>
             )}
           </>
         )}
@@ -341,10 +416,10 @@ function NextStepBanner({
     message = 'All fixed ✓ — one Cmd-Z undoes everything.';
     tone = 'ok';
   } else if (fixable > 0) {
-    message = `${violations} layer${violations === 1 ? ' is' : 's are'} hard to read — ${fixable} can be fixed in one click.`;
+    message = `${violations} issue${violations === 1 ? '' : 's'} found — ${fixable} can be fixed in one click.`;
     tone = 'action';
   } else {
-    message = `${violations} hard-to-read layer${violations === 1 ? '' : 's'} — see the options on each card below.`;
+    message = `${violations} issue${violations === 1 ? '' : 's'} found — see the options on each card below.`;
   }
   return (
     <div className={`banner banner-${tone}`}>
@@ -384,13 +459,31 @@ function Swatch({ color }: { color: RGBA }): React.ReactElement {
   return <span className="swatch" style={{ background: rgbaToHex(color) }} />;
 }
 
-function ReviewCard({
-  finding: f,
-  onSelect,
-}: {
+function FixedDiff({ applied }: { applied: AppliedFix }): React.ReactElement {
+  return (
+    <div className="diff">
+      <span className="ok">
+        {applied.before} → {applied.after}
+      </span>{' '}
+      (target {applied.target})
+      <br />
+      {applied.changeDescription}
+      <br />
+      WCAG 2.2 — SC {applied.sc} satisfied
+    </div>
+  );
+}
+
+interface ReviewCardProps {
   finding: Finding;
+  applied: AppliedFix | undefined;
+  failure: string | undefined;
+  busy: boolean;
   onSelect: (nodeId: string) => void;
-}): React.ReactElement {
+  onFix: (finding: Finding) => Promise<void>;
+}
+
+function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: ReviewCardProps): React.ReactElement {
   const copy = reviewCopy(f.reason);
   return (
     <div className="card">
@@ -398,18 +491,36 @@ function ReviewCard({
         <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
           {f.nodeName}
         </span>
-        <span className="badge badge-review">CHECK BY EYE</span>
+        {applied ? (
+          <span className="badge badge-fixed">FIXED ✓</span>
+        ) : (
+          <span className="badge badge-review">{SC_BADGE[f.sc] ?? 'CHECK BY EYE'}</span>
+        )}
       </div>
-      <div className="detail">{copy.title}</div>
-      <details className="review-details">
-        <summary>Why, and what to do</summary>
-        <div className="detail">{copy.why}</div>
-        <div className="detail">
-          <strong>What to do:</strong> {copy.todo}
-        </div>
-        <div className="microtext">Tip: click the layer name above to jump to it on the canvas.</div>
-        <div className="microtext">Technical detail: {f.detail}</div>
-      </details>
+      {applied ? (
+        <FixedDiff applied={applied} />
+      ) : (
+        <>
+          <div className="detail">{copy.title}</div>
+          {failure && <div className="error-bar">{failure}</div>}
+          <details className="review-details">
+            <summary>Why, and what to do</summary>
+            <div className="detail">{copy.why}</div>
+            <div className="detail">
+              <strong>What to do:</strong> {copy.todo}
+            </div>
+            <div className="microtext">Tip: click the layer name above to jump to it on the canvas.</div>
+            <div className="microtext">Technical detail: {f.detail}</div>
+          </details>
+          {f.lineHeight?.fixable && (
+            <div className="card-actions">
+              <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f)}>
+                {busy ? 'Fixing…' : 'Set line height to 150%'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -422,7 +533,7 @@ interface CardProps {
   busy: boolean;
   strictMode: boolean;
   onSelect: (nodeId: string) => void;
-  onFix: (finding: Finding, plan: FixPlan) => Promise<void>;
+  onFix: (finding: Finding) => Promise<void>;
 }
 
 function ViolationCard({
@@ -450,21 +561,12 @@ function ViolationCard({
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
         ) : (
-          <span className="badge badge-violation">LOW CONTRAST</span>
+          <span className="badge badge-violation">{SC_BADGE[f.sc] ?? `SC ${f.sc}`}</span>
         )}
       </div>
 
       {applied ? (
-        <div className="diff">
-          <span className="ok">
-            {applied.beforeRatio.toFixed(2)}:1 → {applied.afterRatio.toFixed(2)}:1
-          </span>{' '}
-          (target {f.requiredRatio}:1)
-          <br />
-          {applied.changeDescription}
-          <br />
-          WCAG 2.2 — SC {applied.sc} Contrast (Minimum) satisfied
-        </div>
+        <FixedDiff applied={applied} />
       ) : (
         <>
           <div className="detail">
@@ -478,14 +580,25 @@ function ViolationCard({
           </div>
           {failure && <div className="error-bar">{failure}</div>}
           <div className="card-actions">
+            {f.targetSize &&
+              (f.targetSize.autoFixable ? (
+                <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => void onFix(f)}>
+                  {busy ? 'Fixing…' : `Fix → min size ${f.targetSize.required}×${f.targetSize.required}`}
+                </button>
+              ) : (
+                <div className="escalation">
+                  No auto layout on this element, so Legibly can’t resize it safely. Enlarge it to at
+                  least {f.targetSize.required}×{f.targetSize.required}px, or add clear space around it.
+                </div>
+              ))}
             {plan?.status === 'fixable' && plan.candidate?.token && (
-              <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => void onFix(f, plan)}>
+              <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => void onFix(f)}>
                 {busy ? 'Fixing…' : `Fix → ${plan.candidate.token.name} (${plan.candidate.verifiedRatio.toFixed(2)}:1)`}
               </button>
             )}
             {plan?.status === 'needs-proposal' && plan.proposal?.proposedColor && (
               <>
-                <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f, plan)}>
+                <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f)}>
                   {busy
                     ? 'Creating…'
                     : `Accept new color ${rgbaToHex(plan.proposal.proposedColor)} (${plan.proposal.verifiedRatio.toFixed(2)}:1)`}

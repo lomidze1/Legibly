@@ -60,8 +60,8 @@
 
 | Deferred | როდის | რატომ არა ახლა |
 |----------|-------|----------------|
-| Target size (24/44/48) + text spacing fixes | **v0.2** | deterministic, ბუნებრივი გაფართოება; ჯერ contrast |
-| Non-text / UI contrast (SC 1.4.11) | v0.2 | deterministic, მაგრამ მეტი edge cases |
+| ~~Target size (24px AA) + text spacing~~ | ✅ **shipped 2026-07-14** ([approach.md D12](./approach.md)) | 44/48 platform floors — later |
+| ~~Non-text / UI contrast (SC 1.4.11)~~ | ✅ **shipped 2026-07-14** (interactive icons/strokes; D12) | free-floating graphics — judgment, footer-ში |
 | LLM-judgment tier (alt text, labels — SC 1.1.1/4.1.2) | **v0.3** | სჭირდება backend + Claude + verification (აქ ერთვება AI) |
 | System-strict design-token enforcement (non-a11y) | v1.0 | ცალკე module; FigmaLint owns token-cleanup (free) |
 | Brand-QA vision pass (Opus) | v2 | premium; vision cost |

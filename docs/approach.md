@@ -143,6 +143,13 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Decision:** გრადიენტი deterministic-ად წყდება sampling-ით (stops + dense grid, geometry ignored = conservative): **ყველა sample გადის → pass · ყველა ჭარბობს → violation · straddle → needsReview range-ით** ("2.1:1–6.3:1"). Fix-კანდიდატი მთელ range-ზე მოწმდება (`minRatioOver`). Zero-FP კონტრაქტი უცვლელი — geometry-ს იგნორი მხოლოდ under-decide-ს იძლევა, mis-decide-ს ვერასდროს.
 - **Also:** rendered-but-invisible ტექსტი (0% fill — import artifact) აღარ იჩქმალება → needsReview `invisible-text`.
 
+### D12 — 2026-07-14 — v0.2 checks shipped: target size (2.5.8), text spacing (1.4.12), non-text contrast (1.4.11)
+- **Scope per requirements §2 deferred roadmap** (user-approved "შეასრულე 2 შემდეგი ფაზა"). Honesty tiers detection research §2.2–2.3-ის მიხედვით:
+  - **2.5.8:** interactive = prototype reactions (certain → violation-eligible) vs სახელით მიხვედრილი (suspect → needsReview). 24×24 + სრული spacing exception (24px circle геометрия); nested targets collapse outermost-ზე. Fix: auto-layout min-size, commit-time re-verify + revert; non-auto-layout → guidance.
+  - **1.4.12:** capability check only — authored line-height < 1.5× → **ყოველთვის needsReview** (runtime adaptability static ფაილიდან არ დგინდება); one-click "150%" fix explicit user action-ით. AUTO/letter-spacing არ იფლაგება (noise).
+  - **1.4.11:** მხოლოდ interactive target-ების icons/strokes (meaningful-vs-decorative judgment-ის პატიოსანი შემოფარგვლა); certain target + all-samples-fail → violation, სხვა ყველაფერი needsReview. Fix = იგივე token-snap engine (planFix) paintTarget-ით.
+- **Engine:** applyFix გაფართოვდა min-size/line-height/shape-fill/stroke სახეობებით — თითო fix-ს თავისი verifier-judge აქვს (იგივე ფუნქცია რაც detector-ს, NF1). 178 tests green.
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

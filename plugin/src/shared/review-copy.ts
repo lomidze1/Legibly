@@ -66,6 +66,21 @@ export const REVIEW_COPY: Record<NeedsReviewReason, ReviewCopy> = {
     why: 'This layer has no visible fill, so there is nothing to measure.',
     todo: 'If the text should be visible, give it a fill and rescan.',
   },
+  'maybe-interactive': {
+    title: 'Might be a tap target that’s too small',
+    why: 'It’s named like a control but has no prototype interaction, so we can’t be certain it’s interactive.',
+    todo: 'If it is interactive, make it at least 24×24px or leave clear space around it. If not, ignore this.',
+  },
+  'line-height-floor': {
+    title: 'Line height below the 1.5× floor',
+    why: 'Some readers increase line spacing to 1.5× to follow the text. Layouts authored tighter than that often break or clip when they do.',
+    todo: 'Raise the line height to at least 150% (one click below), or verify the layout tolerates looser spacing.',
+  },
+  'non-text-judgment': {
+    title: 'Icon or border may need more contrast',
+    why: 'The 3:1 rule applies only to parts users must SEE to operate the UI — whether this one is essential or decorative is your call.',
+    todo: 'If people need to notice it to use the screen, aim for 3:1 or higher against its background.',
+  },
   'invisible-text': {
     title: 'Invisible text layer',
     why: 'This text exists in the design but has no visible color (0% opacity or no fill) — a common leftover from imports. Real users won’t see it, but it may still be read out by assistive tech in the final product.',

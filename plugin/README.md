@@ -1,9 +1,13 @@
-# Legibly — Figma plugin (v0.1 "Contrast, fixed right")
+# Legibly — Figma plugin (v0.2)
 
-Accessibility-first correctness layer: finds WCAG 2.2 AA text-contrast
-violations **reliably** (effective-background resolution) and fixes them
-one-click by snapping to the user's own tokens — correctness-by-construction.
-Fully client-side: no backend, no AI, no network (`networkAccess: none`).
+Accessibility-first correctness layer. Checks WCAG 2.2 AA/AAA:
+**1.4.3** text contrast (effective-background resolution + gradient
+sampling), **1.4.11** non-text contrast (icons/borders on interactive
+targets), **2.5.8** target size (24×24 + spacing exception), **1.4.12**
+text-spacing capability (line-height floor). One-click fixes snap to the
+user's own tokens — correctness-by-construction (every fix re-verified by
+the same check that flagged it, else reverted). Fully client-side: no
+backend, no AI, no network (`networkAccess: none`).
 
 ## Dev quickstart
 
@@ -55,5 +59,9 @@ the mutation is reverted. A bad fix cannot physically stay on the canvas.
 | `tests/scan.test.ts` | traversal, ordering, 500-node perf budget (NF4) |
 | `tests/tokens.test.ts` | harvester: aliases, cycles, translucent exclusion |
 | `tests/fix.test.ts` | resolution order, D8/strict, 500-case property sweep |
-| `tests/apply.test.ts` | commit-time verify + revert, batch single undo |
+| `tests/apply.test.ts` | commit-time verify + revert for every fix kind, batch single undo |
+| `tests/target-size.test.ts` | 2.5.8: collection, spacing exception, honesty tiers |
+| `tests/text-spacing.test.ts` | 1.4.12: line-height floor capability check |
+| `tests/non-text.test.ts` | 1.4.11: icons/strokes vs backdrop, judgment tiers |
+| `tests/review-copy.test.ts` | every needs-review reason has human guidance |
 | `tests/rpc.test.ts` | bridge correlation + errors |

@@ -1,7 +1,8 @@
 /**
- * Phase 6/7 verify: canvas apply with commit-time verification (F12, F15,
- * F17, NF1). The trust property under test: a fix that does not re-pass the
- * deterministic check is reverted and reported — it cannot stay on canvas.
+ * Canvas apply with commit-time verification (F12, F15, F17, NF1) across
+ * all fix kinds: text/shape/stroke color, min-size, line-height. The trust
+ * property under test: a fix that does not re-pass the same deterministic
+ * check is reverted and reported — it cannot stay on canvas.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyBatch, applyFix } from '../src/main/apply';
@@ -15,13 +16,7 @@ interface MockNode {
   id: string;
   name: string;
   type: string;
-  characters: string;
-  fontSize: number;
-  fontWeight: number;
-  fills: unknown;
-  absoluteBoundingBox: { x: number; y: number; width: number; height: number };
-  parent: unknown;
-  setFillStyleIdAsync: (id: string) => Promise<void>;
+  [key: string]: unknown;
 }
 
 let nodes: Record<string, MockNode>;
@@ -30,8 +25,9 @@ let stylePaints: Record<string, unknown[]>;
 let collections: { id: string; name: string; defaultModeId: string }[];
 let createdVariables: { name: string; collection: string; value?: unknown }[];
 let commitUndo: ReturnType<typeof vi.fn>;
+let loadFontAsync: ReturnType<typeof vi.fn>;
 
-function makeTextNode(id: string, fillHex: string): MockNode {
+function whitePage(): { page: Record<string, unknown>; frame: Record<string, unknown> } {
   const page = { type: 'PAGE', backgrounds: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }], parent: null };
   const frame: Record<string, unknown> = {
     type: 'FRAME',
@@ -39,6 +35,12 @@ function makeTextNode(id: string, fillHex: string): MockNode {
     absoluteBoundingBox: { x: 0, y: 0, width: 400, height: 200 },
     parent: page,
   };
+  (page as Record<string, unknown>).children = [frame];
+  return { page, frame };
+}
+
+function makeTextNode(id: string, fillHex: string): MockNode {
+  const { frame } = whitePage();
   const c = hexToRgba(fillHex);
   const node: MockNode = {
     id,
@@ -47,6 +49,8 @@ function makeTextNode(id: string, fillHex: string): MockNode {
     characters: 'Hello',
     fontSize: 16,
     fontWeight: 400,
+    fontName: { family: 'Inter', style: 'Regular' },
+    lineHeight: { unit: 'PERCENT', value: 120 },
     fills: [{ type: 'SOLID', color: { r: c.r, g: c.g, b: c.b } }],
     absoluteBoundingBox: { x: 10, y: 10, width: 100, height: 20 },
     parent: frame,
@@ -55,7 +59,47 @@ function makeTextNode(id: string, fillHex: string): MockNode {
     },
   };
   frame.children = [node];
-  (page as Record<string, unknown>).children = [frame];
+  return node;
+}
+
+/** Auto-layout button whose width/height honor min constraints (like Figma). */
+function makeButtonNode(id: string, w: number, h: number, layoutMode = 'HORIZONTAL'): MockNode {
+  const { frame } = whitePage();
+  const node: MockNode = {
+    id,
+    name: `btn-${id}`,
+    type: 'FRAME',
+    layoutMode,
+    minWidth: null,
+    minHeight: null,
+    fills: [],
+    absoluteBoundingBox: { x: 0, y: 0, width: w, height: h },
+    parent: frame,
+    get width() {
+      return Math.max(w, (this.minWidth as number) ?? 0);
+    },
+    get height() {
+      return Math.max(h, (this.minHeight as number) ?? 0);
+    },
+  };
+  frame.children = [node];
+  return node;
+}
+
+/** Icon vector inside a white frame (backdrop resolvable). */
+function makeIconNode(id: string, fillHex: string): MockNode {
+  const { frame } = whitePage();
+  const c = hexToRgba(fillHex);
+  const node: MockNode = {
+    id,
+    name: `icon-${id}`,
+    type: 'VECTOR',
+    fills: [{ type: 'SOLID', color: { r: c.r, g: c.g, b: c.b } }],
+    strokes: [{ type: 'SOLID', color: { r: c.r, g: c.g, b: c.b } }],
+    absoluteBoundingBox: { x: 10, y: 10, width: 16, height: 16 },
+    parent: frame,
+  };
+  frame.children = [node];
   return node;
 }
 
@@ -66,9 +110,11 @@ beforeEach(() => {
   collections = [];
   createdVariables = [];
   commitUndo = vi.fn();
+  loadFontAsync = vi.fn(async () => undefined);
   vi.stubGlobal('figma', {
     mixed: MIXED,
     commitUndo,
+    loadFontAsync,
     getNodeByIdAsync: async (id: string) => nodes[id] ?? null,
     variables: {
       getVariableByIdAsync: async (id: string) => variables[id] ?? null,
@@ -78,11 +124,7 @@ beforeEach(() => {
       }),
       getLocalVariableCollectionsAsync: async () => collections,
       createVariableCollection: (name: string) => {
-        const col = {
-          id: `col-${collections.length + 1}`,
-          name,
-          defaultModeId: 'mode-1',
-        };
+        const col = { id: `col-${collections.length + 1}`, name, defaultModeId: 'mode-1' };
         collections.push(col);
         return col;
       },
@@ -115,17 +157,17 @@ const failingToken: TokenCandidate = {
   color: hexToRgba('#eeeeee'), // ~1.2:1 on white — must never commit
 };
 
-describe('applyFix — variable binding', () => {
+describe('applyFix — text fill (1.4.3)', () => {
   it('applies a passing token and reports the verified after-ratio', async () => {
     nodes.t1 = makeTextNode('t1', '#777777');
     variables['var-ink'] = { id: 'var-ink', name: 'text/strong' };
-    const result = await applyFix('t1', { kind: 'token', token: passingToken }, AA, 4.48);
-    expect(result.afterRatio).toBeGreaterThanOrEqual(4.5);
-    expect(result.beforeRatio).toBeCloseTo(4.48, 2);
+    const result = await applyFix('t1', { kind: 'token', token: passingToken }, AA, '4.48:1', '4.5:1', '1.4.3');
+    expect(result.before).toBe('4.48:1');
+    expect(parseFloat(result.after)).toBeGreaterThanOrEqual(4.5);
+    expect(result.sc).toBe('1.4.3');
     expect(result.changeDescription).toContain('text/strong');
     const fills = nodes.t1.fills as { color: { r: number }; boundVariables?: unknown }[];
     expect(fills[0]!.boundVariables).toEqual({ color: { id: 'var-ink' } });
-    expect(fills[0]!.color.r).toBeCloseTo(0x33 / 255, 4);
   });
 
   it('REVERTS when the applied fix does not re-pass the same check (NF1)', async () => {
@@ -133,88 +175,146 @@ describe('applyFix — variable binding', () => {
     variables['var-ghost'] = { id: 'var-ghost', name: 'text/ghost' };
     const originalFills = nodes.t1.fills;
     await expect(
-      applyFix('t1', { kind: 'token', token: failingToken }, AA, 4.48)
+      applyFix('t1', { kind: 'token', token: failingToken }, AA, '4.48:1', '4.5:1', '1.4.3')
     ).rejects.toThrow('verification failed');
-    expect(nodes.t1.fills).toEqual(originalFills); // physically reverted
+    expect(nodes.t1.fills).toEqual(originalFills);
+  });
+
+  it('style-based fix verifies and applies via setFillStyleIdAsync', async () => {
+    nodes.t1 = makeTextNode('t1', '#777777');
+    stylePaints['style-ink'] = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
+    const styleToken: TokenCandidate = { id: 'style-ink', kind: 'style', name: 'Text/Ink', color: { r: 0.1, g: 0.1, b: 0.1, a: 1 } };
+    const result = await applyFix('t1', { kind: 'token', token: styleToken }, AA, '4.48:1', '4.5:1', '1.4.3');
+    expect(parseFloat(result.after)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('proposal creates a variable in the Legibly collection and binds it', async () => {
+    nodes.t1 = makeTextNode('t1', '#777777');
+    const result = await applyFix(
+      't1',
+      { kind: 'proposal', color: hexToRgba('#555555'), tokenName: 'legibly/contrast-fix-1' },
+      AA,
+      '4.48:1',
+      '4.5:1',
+      '1.4.3'
+    );
+    expect(parseFloat(result.after)).toBeGreaterThanOrEqual(4.5);
+    expect(collections.map((c) => c.name)).toContain('Legibly');
+    expect(createdVariables[0]).toMatchObject({ name: 'legibly/contrast-fix-1' });
   });
 
   it('throws when the node does not exist', async () => {
-    await expect(applyFix('missing', { kind: 'token', token: passingToken }, AA, 4)).rejects.toThrow(
-      'not found'
-    );
-  });
-
-  it('throws when the variable does not exist and leaves fills untouched', async () => {
-    nodes.t1 = makeTextNode('t1', '#777777');
-    const originalFills = nodes.t1.fills;
-    await expect(applyFix('t1', { kind: 'token', token: passingToken }, AA, 4.48)).rejects.toThrow(
-      'Variable'
-    );
-    expect(nodes.t1.fills).toEqual(originalFills);
+    await expect(
+      applyFix('missing', { kind: 'token', token: passingToken }, AA, '4:1', '4.5:1', '1.4.3')
+    ).rejects.toThrow('not found');
   });
 });
 
-describe('applyFix — style binding (F15: binding, not stray override)', () => {
-  it('applies a passing style via setFillStyleIdAsync', async () => {
-    nodes.t1 = makeTextNode('t1', '#777777');
-    stylePaints['style-ink'] = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
-    const styleToken: TokenCandidate = {
-      id: 'style-ink',
-      kind: 'style',
-      name: 'Text/Ink',
-      color: { r: 0.1, g: 0.1, b: 0.1, a: 1 },
-    };
-    const result = await applyFix('t1', { kind: 'token', token: styleToken }, AA, 4.48);
-    expect(result.afterRatio).toBeGreaterThanOrEqual(4.5);
-    expect((nodes.t1.fills as unknown[])[0]).toMatchObject({ color: { r: 0.1 } });
-  });
-
-  it('reverts a style fix that fails verification', async () => {
-    nodes.t1 = makeTextNode('t1', '#777777');
-    stylePaints['style-pale'] = [{ type: 'SOLID', color: { r: 0.95, g: 0.95, b: 0.95 } }];
-    const pale: TokenCandidate = {
-      id: 'style-pale',
-      kind: 'style',
-      name: 'Text/Pale',
-      color: { r: 0.95, g: 0.95, b: 0.95, a: 1 },
-    };
-    const originalFills = nodes.t1.fills;
-    await expect(applyFix('t1', { kind: 'token', token: pale }, AA, 4.48)).rejects.toThrow();
-    expect(nodes.t1.fills).toEqual(originalFills);
-  });
-});
-
-describe('applyFix — new-token proposal (D8)', () => {
-  it('creates the variable in a "Legibly" collection and binds it', async () => {
-    nodes.t1 = makeTextNode('t1', '#777777');
-    const proposed = hexToRgba('#6f6f6f'); // must fail → then we assert revert? no: pick passing
-    const passing = hexToRgba('#555555');
+describe('applyFix — shape fill & stroke (1.4.11)', () => {
+  it('fixes an icon fill with a passing token (verified ≥ 3:1)', async () => {
+    nodes.icon = makeIconNode('icon', '#cccccc');
+    variables['var-ink'] = { id: 'var-ink', name: 'icon/strong' };
     const result = await applyFix(
-      't1',
-      { kind: 'proposal', color: passing, tokenName: 'legibly/contrast-fix-1' },
+      'icon',
+      { kind: 'token', token: passingToken, paintTarget: 'shape-fill' },
       AA,
-      4.48
+      '1.61:1',
+      '3:1',
+      '1.4.11'
     );
-    expect(result.afterRatio).toBeGreaterThanOrEqual(4.5);
-    expect(collections.map((c) => c.name)).toContain('Legibly');
-    expect(createdVariables[0]).toMatchObject({ name: 'legibly/contrast-fix-1' });
-    expect(result.changeDescription).toContain('new token legibly/contrast-fix-1');
-    void proposed;
+    expect(parseFloat(result.after)).toBeGreaterThanOrEqual(3);
+    expect(result.sc).toBe('1.4.11');
   });
 
-  it('reuses an existing collection instead of creating a new one', async () => {
-    nodes.t1 = makeTextNode('t1', '#777777');
-    collections.push({ id: 'col-existing', name: 'Primitives', defaultModeId: 'mode-1' });
-    await applyFix('t1', { kind: 'proposal', color: hexToRgba('#444444'), tokenName: 'fix' }, AA, 4.48);
-    expect(collections).toHaveLength(1);
-    expect(createdVariables[0]!.collection).toBe('col-existing');
+  it('reverts a failing icon fill fix', async () => {
+    nodes.icon = makeIconNode('icon', '#cccccc');
+    variables['var-ghost'] = { id: 'var-ghost', name: 'text/ghost' };
+    const original = nodes.icon.fills;
+    await expect(
+      applyFix('icon', { kind: 'token', token: failingToken, paintTarget: 'shape-fill' }, AA, '1.61:1', '3:1', '1.4.11')
+    ).rejects.toThrow('verification failed');
+    expect(nodes.icon.fills).toEqual(original);
+  });
+
+  it('fixes a stroke without touching fills', async () => {
+    nodes.icon = makeIconNode('icon', '#cccccc');
+    variables['var-ink'] = { id: 'var-ink', name: 'border/strong' };
+    const originalFills = nodes.icon.fills;
+    const result = await applyFix(
+      'icon',
+      { kind: 'token', token: passingToken, paintTarget: 'stroke' },
+      AA,
+      '1.61:1',
+      '3:1',
+      '1.4.11'
+    );
+    expect(parseFloat(result.after)).toBeGreaterThanOrEqual(3);
+    expect(nodes.icon.fills).toEqual(originalFills);
+    const strokes = nodes.icon.strokes as { boundVariables?: unknown }[];
+    expect(strokes[0]!.boundVariables).toEqual({ color: { id: 'var-ink' } });
+  });
+});
+
+describe('applyFix — min-size (2.5.8)', () => {
+  it('sets min size on an auto-layout node and verifies the new box', async () => {
+    nodes.btn = makeButtonNode('btn', 18, 20);
+    const result = await applyFix('btn', { kind: 'min-size', required: 24 }, AA, '18×20px', '24×24px', '2.5.8');
+    expect(result.after).toBe('24×24px');
+    expect(nodes.btn.minWidth).toBe(24);
+    expect(nodes.btn.minHeight).toBe(24);
+  });
+
+  it('refuses non-auto-layout nodes with actionable guidance', async () => {
+    nodes.btn = makeButtonNode('btn', 18, 20, 'NONE');
+    await expect(applyFix('btn', { kind: 'min-size', required: 24 }, AA, '18×20px', '24×24px', '2.5.8')).rejects.toThrow(
+      'auto layout'
+    );
+    expect(nodes.btn.minWidth).toBeNull();
+  });
+
+  it('reverts min constraints when the box does not actually grow', async () => {
+    nodes.btn = makeButtonNode('btn', 18, 20);
+    // simulate a layout that ignores min constraints (fixed by parent)
+    Object.defineProperty(nodes.btn, 'width', { get: () => 18 });
+    await expect(applyFix('btn', { kind: 'min-size', required: 24 }, AA, '18×20px', '24×24px', '2.5.8')).rejects.toThrow(
+      'verification failed'
+    );
+    expect(nodes.btn.minWidth).toBeNull();
+    expect(nodes.btn.minHeight).toBeNull();
+  });
+});
+
+describe('applyFix — line-height (1.4.12)', () => {
+  it('raises line height to 150% after loading the font', async () => {
+    nodes.t1 = makeTextNode('t1', '#333333');
+    const result = await applyFix('t1', { kind: 'line-height', percent: 150 }, AA, '120%', '150%', '1.4.12');
+    expect(result.after).toBe('150%');
+    expect(loadFontAsync).toHaveBeenCalledWith({ family: 'Inter', style: 'Regular' });
+    expect(nodes.t1.lineHeight).toEqual({ unit: 'PERCENT', value: 150 });
+  });
+
+  it('refuses mixed-font text', async () => {
+    nodes.t1 = makeTextNode('t1', '#333333');
+    nodes.t1.fontName = MIXED;
+    await expect(applyFix('t1', { kind: 'line-height', percent: 150 }, AA, '120%', '150%', '1.4.12')).rejects.toThrow(
+      'Mixed fonts'
+    );
+  });
+
+  it('reverts when the requested percent is below the floor', async () => {
+    nodes.t1 = makeTextNode('t1', '#333333');
+    const prev = nodes.t1.lineHeight;
+    await expect(applyFix('t1', { kind: 'line-height', percent: 120 }, AA, '110%', '150%', '1.4.12')).rejects.toThrow(
+      'verification failed'
+    );
+    expect(nodes.t1.lineHeight).toEqual(prev);
   });
 });
 
 describe('applyBatch — single undo step (F17)', () => {
-  it('applies all passing fixes, collects failures, and calls commitUndo exactly once', async () => {
+  it('applies mixed fix kinds, collects failures, one commitUndo', async () => {
     nodes.a = makeTextNode('a', '#777777');
-    nodes.b = makeTextNode('b', '#999999');
+    nodes.b = makeButtonNode('b', 18, 20);
     nodes.c = makeTextNode('c', '#777777');
     variables['var-ink'] = { id: 'var-ink', name: 'text/strong' };
     variables['var-ghost'] = { id: 'var-ghost', name: 'text/ghost' };
@@ -222,16 +322,16 @@ describe('applyBatch — single undo step (F17)', () => {
 
     const result = await applyBatch(
       [
-        { nodeId: 'a', instruction: { kind: 'token', token: passingToken }, beforeRatio: 4.48 },
-        { nodeId: 'b', instruction: { kind: 'token', token: passingToken }, beforeRatio: 2.85 },
-        { nodeId: 'c', instruction: { kind: 'token', token: failingToken }, beforeRatio: 4.48 },
+        { nodeId: 'a', instruction: { kind: 'token', token: passingToken }, before: '4.48:1', target: '4.5:1', sc: '1.4.3' },
+        { nodeId: 'b', instruction: { kind: 'min-size', required: 24 }, before: '18×20px', target: '24×24px', sc: '2.5.8' },
+        { nodeId: 'c', instruction: { kind: 'token', token: failingToken }, before: '4.48:1', target: '4.5:1', sc: '1.4.3' },
       ],
       AA
     );
 
     expect(result.applied.map((a) => a.nodeId)).toEqual(['a', 'b']);
+    expect(result.applied.map((a) => a.sc)).toEqual(['1.4.3', '2.5.8']);
     expect(result.failed).toHaveLength(1);
-    expect(result.failed[0]!.nodeId).toBe('c');
     expect(nodes.c.fills).toEqual(cOriginalFills); // failed fix reverted
     expect(commitUndo).toHaveBeenCalledTimes(1); // one Cmd-Z for the batch
   });

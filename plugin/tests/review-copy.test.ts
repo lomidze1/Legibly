@@ -18,6 +18,9 @@ const ALL_REASONS: NeedsReviewReason[] = [
   'non-solid-text-fill',
   'no-text-fill',
   'invisible-text',
+  'maybe-interactive',
+  'line-height-floor',
+  'non-text-judgment',
 ];
 
 describe('REVIEW_COPY', () => {
