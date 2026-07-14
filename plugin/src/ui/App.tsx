@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   AppliedFix,
+  BgFixPlan,
   Finding,
   FixPlan,
   RGBA,
@@ -12,6 +13,9 @@ import { DEFAULT_SETTINGS } from '../shared/types';
 import type { RpcClient } from '../shared/rpc';
 import { planFix, rgbaToHex } from '../shared/fix';
 import { reviewCopy } from '../shared/review-copy';
+import { DEEP_CHECKABLE, deepVerdict, DeepVerdict } from '../shared/deep-check';
+import { buildCsv, csvFileName } from '../shared/report-csv';
+import type { RectLite } from '../shared/figma-lite';
 
 interface Props {
   rpc: RpcClient;
@@ -53,6 +57,8 @@ export function App({ rpc }: Props): React.ReactElement {
   const [failures, setFailures] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const [deep, setDeep] = useState<Record<string, DeepVerdict>>({});
+  const [bgPlans, setBgPlans] = useState<Record<string, BgFixPlan | null>>({});
 
   useEffect(() => {
     rpc.call<Settings>('get-settings').then(setSettings).catch(() => undefined);
@@ -77,6 +83,8 @@ export function App({ rpc }: Props): React.ReactElement {
       setError(null);
       setApplied({});
       setFailures({});
+      setDeep({});
+      setBgPlans({});
       try {
         const [r, t] = await Promise.all([
           rpc.call<ScanReport>('scan', { scope, settings }),
@@ -231,6 +239,97 @@ export function App({ rpc }: Props): React.ReactElement {
     [rpc]
   );
 
+  /** Pixel-true deep check: render the frame without the text, sample real pixels. */
+  const runDeepCheck = useCallback(
+    async (f: Finding) => {
+      const key = keyOf(f);
+      setBusy((b) => ({ ...b, [key]: true }));
+      try {
+        const res = await rpc.call<{
+          png: Uint8Array;
+          rect: RectLite;
+          imageCssWidth: number;
+          fg: RGBA;
+          required: number;
+        }>('deep-check', { nodeId: f.nodeId, settings });
+        const bmp = await createImageBitmap(new Blob([res.png as BlobPart], { type: 'image/png' }));
+        const scale = bmp.width / res.imageCssWidth;
+        const w = Math.max(1, Math.round(res.rect.width * scale));
+        const h = Math.max(1, Math.round(res.rect.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(bmp, -Math.round(res.rect.x * scale), -Math.round(res.rect.y * scale));
+        const img = ctx.getImageData(0, 0, w, h);
+        const verdict = deepVerdict(img.data, w, h, res.fg, res.required);
+        setDeep((d) => ({ ...d, [key]: verdict }));
+      } catch (e) {
+        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
+      } finally {
+        setBusy((b) => ({ ...b, [key]: false }));
+      }
+    },
+    [rpc, settings]
+  );
+
+  /** F13 step 3: for unfixable contrast violations, offer a background re-token. */
+  useEffect(() => {
+    for (const f of violations) {
+      const key = keyOf(f);
+      if (f.sc !== '1.4.3' || !f.fg || f.bgSamples?.length) continue;
+      if (plans[key]?.status !== 'unfixable' || key in bgPlans || applied[key]) continue;
+      setBgPlans((p) => ({ ...p, [key]: null })); // mark in-flight
+      rpc
+        .call<BgFixPlan | null>('plan-bg-fix', {
+          nodeId: f.nodeId,
+          settings,
+          requiredRatio: f.requiredRatio,
+          fg: f.fg,
+        })
+        .then((plan) => setBgPlans((p) => ({ ...p, [key]: plan })))
+        .catch(() => undefined);
+    }
+  }, [violations, plans, bgPlans, applied, rpc, settings]);
+
+  const applyBgFix = useCallback(
+    async (f: Finding, plan: BgFixPlan) => {
+      const key = keyOf(f);
+      setBusy((b) => ({ ...b, [key]: true }));
+      try {
+        const result = await rpc.call<AppliedFix>('apply-bg-fix', {
+          nodeId: f.nodeId,
+          ownerId: plan.ownerId,
+          token: plan.token,
+          settings,
+          before: `${(f.ratio ?? 0).toFixed(2)}:1`,
+          target: `${f.requiredRatio}:1`,
+        });
+        setApplied((a) => ({ ...a, [key]: result }));
+        setFailures(({ [key]: _, ...rest }) => rest);
+      } catch (e) {
+        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
+      } finally {
+        setBusy((b) => ({ ...b, [key]: false }));
+      }
+    },
+    [rpc, settings]
+  );
+
+  /** Compliance report (F19) — CSV download built fully client-side. */
+  const exportCsv = useCallback(async () => {
+    if (!report) return;
+    const fileName = await rpc.call<string>('file-name').catch(() => 'design');
+    const date = new Date().toISOString().slice(0, 10);
+    const csv = buildCsv(report, applied, { fileName, level: settings.level, date });
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = csvFileName({ fileName, level: settings.level, date });
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [report, applied, rpc, settings]);
+
   return (
     <div className="app">
       <div className="toolbar">
@@ -314,9 +413,14 @@ export function App({ rpc }: Props): React.ReactElement {
               onFixAll={() => void applyAll()}
               onToggleStrict={(v) => updateSettings({ ...settings, strictMode: v }, true)}
             />
-            <div className="summary">
-              {report.scannedCount} text layers · {report.targetCount} interactive targets checked
-              against {settings.level} · {report.passCount} text layers look good
+            <div className="summary summary-row">
+              <span>
+                {report.scannedCount} text layers · {report.targetCount} interactive targets checked
+                against {settings.level} · {report.passCount} text layers look good
+              </span>
+              <button className="btn btn-sm" title="Download an audit-ready CSV report" onClick={() => void exportCsv()}>
+                Export CSV
+              </button>
             </div>
 
             {violations.length > 0 && (
@@ -329,12 +433,14 @@ export function App({ rpc }: Props): React.ReactElement {
                     key={keyOf(f)}
                     finding={f}
                     plan={plans[keyOf(f)]}
+                    bgPlan={bgPlans[keyOf(f)] ?? undefined}
                     applied={applied[keyOf(f)]}
                     failure={failures[keyOf(f)]}
                     busy={!!busy[keyOf(f)]}
                     strictMode={settings.strictMode}
                     onSelect={selectNode}
                     onFix={applyOne}
+                    onBgFix={applyBgFix}
                   />
                 ))}
               </>
@@ -352,8 +458,10 @@ export function App({ rpc }: Props): React.ReactElement {
                     applied={applied[keyOf(f)]}
                     failure={failures[keyOf(f)]}
                     busy={!!busy[keyOf(f)]}
+                    deep={deep[keyOf(f)]}
                     onSelect={selectNode}
                     onFix={applyOne}
+                    onDeepCheck={runDeepCheck}
                   />
                 ))}
               </>
@@ -479,12 +587,24 @@ interface ReviewCardProps {
   applied: AppliedFix | undefined;
   failure: string | undefined;
   busy: boolean;
+  deep: DeepVerdict | undefined;
   onSelect: (nodeId: string) => void;
   onFix: (finding: Finding) => Promise<void>;
+  onDeepCheck: (finding: Finding) => Promise<void>;
 }
 
-function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: ReviewCardProps): React.ReactElement {
+function ReviewCard({
+  finding: f,
+  applied,
+  failure,
+  busy,
+  deep,
+  onSelect,
+  onFix,
+  onDeepCheck,
+}: ReviewCardProps): React.ReactElement {
   const copy = reviewCopy(f.reason);
+  const deepable = f.reason !== undefined && DEEP_CHECKABLE.has(f.reason) && !!f.fg;
   return (
     <div className="card">
       <div className="card-head">
@@ -493,6 +613,10 @@ function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: Rev
         </span>
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
+        ) : deep?.kind === 'pass' ? (
+          <span className="badge badge-fixed">PIXEL-CHECKED ✓</span>
+        ) : deep?.kind === 'fail' ? (
+          <span className="badge badge-violation">CONFIRMED ISSUE</span>
         ) : (
           <span className="badge badge-review">{SC_BADGE[f.sc] ?? 'CHECK BY EYE'}</span>
         )}
@@ -502,6 +626,7 @@ function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: Rev
       ) : (
         <>
           <div className="detail">{copy.title}</div>
+          {deep && <div className={deep.kind === 'pass' ? 'diff' : 'detail'}>{deep.detail}</div>}
           {failure && <div className="error-bar">{failure}</div>}
           <details className="review-details">
             <summary>Why, and what to do</summary>
@@ -512,13 +637,23 @@ function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: Rev
             <div className="microtext">Tip: click the layer name above to jump to it on the canvas.</div>
             <div className="microtext">Technical detail: {f.detail}</div>
           </details>
-          {f.lineHeight?.fixable && (
-            <div className="card-actions">
+          <div className="card-actions">
+            {deepable && !deep && (
+              <button
+                className="btn btn-sm"
+                disabled={busy}
+                title="Renders this frame without the text and measures the real pixels behind it — on your device"
+                onClick={() => void onDeepCheck(f)}
+              >
+                {busy ? 'Checking pixels…' : 'Deep check (pixel-true)'}
+              </button>
+            )}
+            {f.lineHeight?.fixable && (
               <button className="btn btn-sm" disabled={busy} onClick={() => void onFix(f)}>
                 {busy ? 'Fixing…' : 'Set line height to 150%'}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>
@@ -528,23 +663,27 @@ function ReviewCard({ finding: f, applied, failure, busy, onSelect, onFix }: Rev
 interface CardProps {
   finding: Finding;
   plan: FixPlan | undefined;
+  bgPlan: BgFixPlan | undefined;
   applied: AppliedFix | undefined;
   failure: string | undefined;
   busy: boolean;
   strictMode: boolean;
   onSelect: (nodeId: string) => void;
   onFix: (finding: Finding) => Promise<void>;
+  onBgFix: (finding: Finding, plan: BgFixPlan) => Promise<void>;
 }
 
 function ViolationCard({
   finding: f,
   plan,
+  bgPlan,
   applied,
   failure,
   busy,
   strictMode,
   onSelect,
   onFix,
+  onBgFix,
 }: CardProps): React.ReactElement {
   return (
     <div className="card">
@@ -607,11 +746,24 @@ function ViolationCard({
                 <span className="microtext">None of your colors passes here — this adds one new token to your file.</span>
               </>
             )}
-            {plan?.status === 'unfixable' && (
+            {plan?.status === 'unfixable' && bgPlan && (
+              <button className="btn btn-primary btn-sm" disabled={busy} onClick={() => void onBgFix(f, bgPlan)}>
+                {busy
+                  ? 'Fixing…'
+                  : `Fix background → ${bgPlan.token.name} (${bgPlan.verifiedRatio.toFixed(2)}:1)`}
+              </button>
+            )}
+            {plan?.status === 'unfixable' && bgPlan && (
+              <span className="microtext">
+                Changes “{bgPlan.ownerName}” behind this text — {bgPlan.checkedCount} other layers
+                on this frame re-verified, none break.
+              </span>
+            )}
+            {plan?.status === 'unfixable' && !bgPlan && (
               <div className="escalation">
-                None of your existing colors reaches {plan.before.requiredRatio}:1 on this background
-                {strictMode ? ' (new colors are off)' : ''}. Try changing the background, or add a
-                darker/lighter color to your styles.
+                None of your existing colors reaches {plan.before.requiredRatio}:1 here — as text
+                color or as background{strictMode ? ' (new colors are off)' : ''}. Add a
+                darker/lighter color to your styles, or change the design.
               </div>
             )}
           </div>

@@ -39,7 +39,7 @@ function describeTopPaint(paints: unknown): string {
   return top.type === 'SOLID' ? rgbaToHex({ ...top.color, a: 1 }) : 'current color';
 }
 
-async function boundVariablePaint(variableId: string, color: RGBA): Promise<SolidPaint> {
+export async function boundVariablePaint(variableId: string, color: RGBA): Promise<SolidPaint> {
   const variable = await figma.variables.getVariableByIdAsync(variableId);
   if (!variable) throw new Error(`Variable ${variableId} not found`);
   // Base color mirrors the variable value so any reader of paint.color —

@@ -150,6 +150,12 @@ Phase 3: Enterprise v1.0 (~12 months)
   - **1.4.11:** მხოლოდ interactive target-ების icons/strokes (meaningful-vs-decorative judgment-ის პატიოსანი შემოფარგვლა); certain target + all-samples-fail → violation, სხვა ყველაფერი needsReview. Fix = იგივე token-snap engine (planFix) paintTarget-ით.
 - **Engine:** applyFix გაფართოვდა min-size/line-height/shape-fill/stroke სახეობებით — თითო fix-ს თავისი verifier-judge აქვს (იგივე ფუნქცია რაც detector-ს, NF1). 178 tests green.
 
+### D13 — 2026-07-14 — v0.2 wave 2: pixel deep-check, CSV report, bg-adjust fix
+- **Deep check (pixel-true):** "check by eye" ქეისებზე (ფოტო/რთული ფონი) — ტექსტი დროებით opacity=0 (visible=false-ის ნაცვლად — reflow-ს არ იწვევს), top-level frame → exportAsync PNG, რეალური პიქსელების sampling. Პიქსელი = ground truth: all pass → verified · all fail → confirmed · mixed → range. Ნახევრად გამჭვირვალე რენდერი → refuse to guess. **AI-ის დეტერმინისტული ალტერნატივა** (detection research §2.1.5) — $0, offline. LLM-vision იარუსი (v0.3) მხოლოდ content-judgment-ისთვის რჩება.
+- **Compliance report (F19):** CSV (Q3: CSV ჯერ) — meta preamble (ფაილი, თარიღი, დონე, coverage + not-checked პატიოსანი სია) + row per finding/fix, RFC 4180. Სრულად client-side, beta-ში უფასო (F20).
+- **Background-adjust fix (F13 step 3 — ხურავს D10-ის deferral-ს):** unfixable ვარდნებზე ვეძებთ bg-owner-ს (ერთადერთი გაუმჭვირვალე solid layer) და ვცდით user-ის ტოკენებს probing-ით. Commit-კრიტერიუმი **frame-wide**: target გადის **და** ფრეიმზე არცერთი მანამდე-გამავალი ტექსტი/icon-probe არ ვარდება; probe ყოველთვის აღადგენს საწყის fill-ს. Strict mode-ს არ ეხება (მხოლოდ არსებული ტოკენები).
+- 202 tests green.
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

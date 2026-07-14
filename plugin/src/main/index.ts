@@ -6,10 +6,16 @@
 import { createRpcServer } from '../shared/rpc';
 import { scanNodes } from '../shared/scan';
 import type { NodeLite } from '../shared/figma-lite';
-import type { ScanReport, Settings } from '../shared/types';
+import type { RGBA, ScanReport, Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
+import { resolveTextColors } from '../shared/background';
+import { isLargeText, requiredRatio } from '../shared/contrast';
+import { findExportRoot, regionInRoot } from '../shared/deep-check';
 import { figmaTokenSource, harvestTokens } from './tokens';
-import { applyBatch, applyFix, FixInstruction } from './apply';
+import { applyBatch, applyFix, boundVariablePaint, FixInstruction } from './apply';
+import { findBgOwner, frameState, noRegression, planBgFix } from './bg-fix';
+import { classifyTextNode } from '../shared/classify';
+import type { TokenCandidate } from '../shared/types';
 
 const SETTINGS_KEY = 'legibly-settings-v1';
 
@@ -79,6 +85,99 @@ const handlers = {
     fixes: { nodeId: string; instruction: FixInstruction; before: string; target: string; sc: string }[];
     settings: Settings;
   }) => applyBatch(payload.fixes, payload.settings),
+  /**
+   * Deep check (pixel-true): make the text transparent (opacity — never
+   * visible=false, which would reflow auto-layout), export its top-level
+   * frame, and let the UI sample the real pixels under the text box.
+   */
+  'deep-check': async (payload: { nodeId: string; settings: Settings }) => {
+    const node = await figma.getNodeByIdAsync(payload.nodeId);
+    if (!node || node.type !== 'TEXT') throw new Error('Deep check applies to text layers');
+    const lite = node as unknown as NodeLite;
+
+    const resolved = resolveTextColors(lite);
+    const fg: RGBA | undefined = resolved.ok ? resolved.fg : resolved.fg;
+    if (!fg) throw new Error('The text color itself could not be determined');
+    if (typeof lite.fontSize !== 'number') throw new Error('Mixed text sizes — check ranges manually');
+    const fontWeight = typeof lite.fontWeight === 'number' ? lite.fontWeight : 400;
+    const required = requiredRatio(isLargeText(lite.fontSize, fontWeight), payload.settings.level);
+
+    const root = findExportRoot(lite);
+    const rect = regionInRoot(lite, root);
+    const rootNode = (await figma.getNodeByIdAsync(root.id)) as SceneNode & ExportMixin;
+    if (!rootNode || !('exportAsync' in rootNode)) throw new Error('Frame cannot be exported');
+
+    const prevOpacity = node.opacity;
+    let png: Uint8Array;
+    try {
+      node.opacity = 0;
+      png = await rootNode.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: 1 } });
+    } finally {
+      node.opacity = prevOpacity;
+    }
+    return { png, rect, imageCssWidth: root.absoluteBoundingBox!.width, fg, required };
+  },
+  'file-name': () => figma.root.name,
+  /** F13 step 3: can this violation be fixed by re-tokening the BACKGROUND? */
+  'plan-bg-fix': async (payload: {
+    nodeId: string;
+    settings: Settings;
+    requiredRatio: number;
+    fg: RGBA;
+  }) => {
+    const node = await figma.getNodeByIdAsync(payload.nodeId);
+    if (!node || node.type !== 'TEXT') return null;
+    const tokens = (await harvestTokens(figmaTokenSource())).tokens;
+    return planBgFix(node as unknown as NodeLite, tokens, payload.settings, payload.requiredRatio, payload.fg);
+  },
+  /** Apply the background token — frame-wide re-verified, reverted on any regression. */
+  'apply-bg-fix': async (payload: {
+    nodeId: string;
+    ownerId: string;
+    token: TokenCandidate;
+    settings: Settings;
+    before: string;
+    target: string;
+  }) => {
+    const text = await figma.getNodeByIdAsync(payload.nodeId);
+    const owner = await figma.getNodeByIdAsync(payload.ownerId);
+    if (!text || text.type !== 'TEXT' || !owner) throw new Error('Layer not found');
+    const textLite = text as unknown as NodeLite;
+    const ownerLite = owner as unknown as NodeLite;
+    if (findBgOwner(textLite)?.id !== owner.id) {
+      throw new Error('The background changed since planning — rescan and retry');
+    }
+    const root = findExportRoot(textLite);
+    const beforeState = frameState(root, payload.settings);
+    const prevFills = [...((ownerLite.fills as readonly Paint[]) ?? [])];
+    const mutable = owner as { fills?: unknown };
+    try {
+      const paint =
+        payload.token.kind === 'variable'
+          ? await boundVariablePaint(payload.token.id, payload.token.color)
+          : ({ type: 'SOLID', color: payload.token.color } as SolidPaint);
+      mutable.fills = [...prevFills.slice(0, -1), paint];
+      const verdict = classifyTextNode(textLite, payload.settings);
+      if (verdict.kind !== 'pass') throw new Error('Post-fix verification failed — fix reverted');
+      const afterState = frameState(root, payload.settings);
+      if (!noRegression(beforeState, afterState)) {
+        throw new Error('Fix would break another layer on this frame — reverted');
+      }
+      figma.commitUndo();
+      return {
+        nodeId: text.id,
+        nodeName: text.name,
+        sc: '1.4.3',
+        before: payload.before,
+        after: `${verdict.ratio.toFixed(2)}:1`,
+        target: payload.target,
+        changeDescription: `background "${owner.name}" → ${payload.token.name}`,
+      };
+    } catch (e) {
+      mutable.fills = prevFills;
+      throw e;
+    }
+  },
   'select-node': async (payload: { nodeId: string }) => {
     const node = await figma.getNodeByIdAsync(payload.nodeId);
     if (node && 'absoluteBoundingBox' in node) {

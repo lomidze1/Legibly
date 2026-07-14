@@ -142,6 +142,16 @@ export interface AppliedFix {
   changeDescription: string;
 }
 
+/** F13 step 3: verified plan to fix a violation by re-tokening its background. */
+export interface BgFixPlan {
+  ownerId: string;
+  ownerName: string;
+  token: TokenCandidate;
+  verifiedRatio: number;
+  /** Layers re-verified across the frame. */
+  checkedCount: number;
+}
+
 export interface Settings {
   level: WcagLevel;
   /** D8/F14: forbid new-token proposals; escalate instead. */
