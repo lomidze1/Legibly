@@ -161,6 +161,11 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Decision:** **BYOK-first** — architecture-ის sanctioned fallback გზა ("BYOK direct: key in memory only, plugin → api.anthropic.com, allowlisted"). Manifest allowedDomains = ["https://api.anthropic.com"] reasoning-ით; privacy story განახლდა პატიოსნად: "ყველა შემოწმება on-device; optional AI assist შენი key-თ მხოლოდ არჩეულ სურათს აგზავნის". Hosted proxy → billing-ის გადაწყვეტისას (v0.4+).
 - **Implementation:** 1.1.1 presence check deterministic-ია (sharedPluginData "legibly" store + decorative flag; <32px images skipped as noise) → ყოველთვის needsReview. AI assist: claude-opus-4-8, forced strict tool (emit_alt_text: decision/altText/confidence/rationale), deterministic validator gate (length/prefix/decorative-empty), **always review-required** — low confidence აიძულებს edit-ს; canvas-ს პირდაპირ ვერასდროს წვდება (research §3 trust discipline). Manual entry + decorative marker AI-ის გარეშეც მუშაობს. 228 tests green.
 
+### D15 — 2026-07-16 — Legibly-ის proposal ტოკენები არ ითვლება user-ის ფერებად
+- **Context:** რეალურ ფაილზე ტესტირებამ (v0.3 field test) აჩვენა: წინა run-ზე შექმნილი `legibly/contrast-fix-*` ვარიაბლები harvest-მა user-ის "existing tokens"-ად დაითვალა და მომდევნო scan-ზე fix-კანდიდატებად შესთავაზა — plugin-ი საკუთარ ნაწარმს საკუთარ ჭეშმარიტებად კითხულობდა. Პლუს, "Legibly" collection-ის არარსებობისას proposal user-ის პირველ collection-ში იწერებოდა.
+- **Decision:** proposal ვარიაბლები ცხოვრობენ **მხოლოდ** dedicated "Legibly" collection-ში (fallback user-ის collection-ზე იკრძალება — collection ყოველთვის იქმნება) და **გამოირიცხებიან token harvest-იდან** — არც fix-კანდიდატებში, არც "Only use my existing colors" strict pool-ში არ ჩანან. System-strict positioning: ჩვენი შემოთავაზება user-ის სისტემა არ არის, სანამ user-მა თავად არ გადაიტანა.
+- **Status:** ჩასაწერი კოდში v0.3 field-test batch fix-თან ერთად (იხ. `docs/test-findings-v03.md`).
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)
