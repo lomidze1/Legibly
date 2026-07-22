@@ -30,6 +30,40 @@ export interface AltData {
   decorative: boolean;
 }
 
+export const ALT_MAX_LENGTH = 150;
+const ALT_FILENAME_RE = /\.(png|jpe?g|gif|svg|webp|bmp|tiff?|heic|avif)$/i;
+const ALT_FILENAME_STEM_RE = /^(img|dsc|dscn|pxl|photo|screen ?shot|image|scan|capture)[-_ ]?\d+$/i;
+const ALT_PREFIX_RE = /^\s*(an?\s+)?(image|picture|photo|photograph|graphic|icon|illustration)\s+(of|showing|depicting)\b/i;
+const ALT_GENERIC = new Set([
+  'image', 'images', 'photo', 'photos', 'picture', 'pic', 'icon', 'graphic',
+  'logo', 'img', 'untitled', 'asset', 'vector', 'placeholder', 'thumbnail',
+  'banner', 'background', 'figure', 'screenshot',
+]);
+
+/**
+ * Deterministic quality gate for a MANUALLY entered alt string (B7). The AI
+ * path already runs an equivalent gate; manual "Save" must clear the same bar
+ * so a filename or "g" can never be recorded as satisfying 1.1.1.
+ */
+export function validateAltText(raw: string): { ok: true } | { ok: false; error: string } {
+  const text = raw.trim();
+  if (text.length < 3) return { ok: false, error: 'Alt text is too short to be useful' };
+  if (text.length > ALT_MAX_LENGTH) {
+    return { ok: false, error: `Alt text exceeds ${ALT_MAX_LENGTH} characters — shorten it` };
+  }
+  if (ALT_FILENAME_RE.test(text) || ALT_FILENAME_STEM_RE.test(text)) {
+    return { ok: false, error: 'That looks like a filename — describe what the image conveys' };
+  }
+  if (ALT_PREFIX_RE.test(text)) {
+    return { ok: false, error: 'Drop the “image of…” prefix — describe the content directly' };
+  }
+  const words = text.toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length <= 2 && words.every((w) => ALT_GENERIC.has(w.replace(/[^a-z]/g, '')))) {
+    return { ok: false, error: 'Too generic — describe what this specific image shows' };
+  }
+  return { ok: true };
+}
+
 export function readAltData(node: NodeLite): AltData {
   const read = node.getSharedPluginData?.bind(node);
   if (!read) return { alt: '', decorative: false };

@@ -20,6 +20,8 @@ import { AltSuggestion, bytesToBase64, requestAltText } from '../shared/ai-clien
 
 interface Props {
   rpc: RpcClient;
+  /** Register for pushed main-thread events (e.g. canvas-changed). */
+  subscribe?: (cb: (type: string) => void) => void;
 }
 
 type BatchResult = { applied: AppliedFix[]; failed: { nodeId: string; error: string }[] };
@@ -94,10 +96,14 @@ function NodeName({ name, onSelect }: { name: string; onSelect: () => void }): R
   );
 }
 
-export function App({ rpc }: Props): React.ReactElement {
+export function App({ rpc, subscribe }: Props): React.ReactElement {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
   const [scanning, setScanning] = useState(false);
+  /** The scope of the last scan, so the stale banner can re-run it. */
+  const [lastScope, setLastScope] = useState<'selection' | 'page' | null>(null);
+  /** B4: the canvas changed outside our own fixes — results may no longer hold. */
+  const [stale, setStale] = useState(false);
   /** Batch fix in flight — kept separate from `scanning` so results stay on screen (F1). */
   const [fixing, setFixing] = useState(false);
   const [report, setReport] = useState<ScanReport | null>(null);
@@ -125,6 +131,12 @@ export function App({ rpc }: Props): React.ReactElement {
     rpc.call<Settings>('get-settings').then(setSettings).catch(() => undefined);
   }, [rpc]);
 
+  useEffect(() => {
+    subscribe?.((type) => {
+      if (type === 'canvas-changed') setStale(true);
+    });
+  }, [subscribe]);
+
   const updateSettings = useCallback(
     (next: Settings, keepResults = false) => {
       setSettings(next);
@@ -146,6 +158,8 @@ export function App({ rpc }: Props): React.ReactElement {
       setFailures({});
       setDeep({});
       setBgPlans({});
+      setStale(false);
+      setLastScope(scope);
       try {
         const [r, t] = await Promise.all([
           rpc.call<ScanReport>('scan', { scope, settings }),
@@ -755,6 +769,18 @@ export function App({ rpc }: Props): React.ReactElement {
         )}
         {report && !scanning && (
           <>
+            {stale && (
+              <div className="banner banner-stale" role="alert">
+                <div className="banner-row">
+                  <span>Canvas changed since this scan — results may be out of date.</span>
+                  {lastScope && (
+                    <button className="btn btn-sm" disabled={scanning} onClick={() => void scan(lastScope)}>
+                      Re-scan
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
             <NextStepBanner
               violations={violations.length}
               fixable={fixableNow.length}

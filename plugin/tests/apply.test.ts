@@ -123,20 +123,24 @@ beforeEach(() => {
         boundVariables: { color: { id: variable.id } },
       }),
       getLocalVariableCollectionsAsync: async () => collections,
+      getLocalVariablesAsync: async () => Object.values(variables),
       createVariableCollection: (name: string) => {
         const col = { id: `col-${collections.length + 1}`, name, defaultModeId: 'mode-1' };
         collections.push(col);
         return col;
       },
       createVariable: (name: string, collection: { id: string }, _type: string) => {
-        const v = {
+        const v: Record<string, unknown> = {
           id: `var-new-${createdVariables.length + 1}`,
           name,
-          setValueForMode: (_mode: string, value: unknown) => {
+          variableCollectionId: collection.id,
+          valuesByMode: {} as Record<string, unknown>,
+          setValueForMode: (mode: string, value: unknown) => {
+            (v.valuesByMode as Record<string, unknown>)[mode] = value;
             createdVariables.push({ name, collection: collection.id, value });
           },
         };
-        variables[v.id] = v;
+        variables[v.id as string] = v as unknown as { id: string; name: string };
         return v;
       },
     },
@@ -207,6 +211,16 @@ describe('applyFix — text fill (1.4.3)', () => {
     await expect(
       applyFix('missing', { kind: 'token', token: passingToken }, AA, '4:1', '4.5:1', '1.4.3')
     ).rejects.toThrow('not found');
+  });
+
+  it('B1: reuses an existing Legibly token of the same color instead of re-creating it', async () => {
+    nodes.t1 = makeTextNode('t1', '#777777');
+    nodes.t2 = makeTextNode('t2', '#777777');
+    // Session A creates the token.
+    await applyFix('t1', { kind: 'proposal', color: hexToRgba('#555555'), tokenName: 'legibly/contrast-fix-1' }, AA, '4.48:1', '4.5:1', '1.4.3');
+    // Session B's counter resets → same name, same color: must reuse, not duplicate-crash.
+    await applyFix('t2', { kind: 'proposal', color: hexToRgba('#555555'), tokenName: 'legibly/contrast-fix-1' }, AA, '4.48:1', '4.5:1', '1.4.3');
+    expect(createdVariables).toHaveLength(1);
   });
 });
 
@@ -308,6 +322,31 @@ describe('applyFix — line-height (1.4.12)', () => {
       'verification failed'
     );
     expect(nodes.t1.lineHeight).toEqual(prev);
+  });
+
+  it('B8: refuses and reverts when 150% would clip a fixed-size text box', async () => {
+    const t = makeTextNode('t1', '#333333');
+    t.textAutoResize = 'NONE';
+    // Fixed box is 20px; natural content height (measured via HEIGHT) is 40px → clips.
+    Object.defineProperty(t, 'height', {
+      configurable: true,
+      get: () => (t.textAutoResize === 'HEIGHT' ? 40 : 20),
+    });
+    nodes.t1 = t;
+    const prev = t.lineHeight;
+    await expect(
+      applyFix('t1', { kind: 'line-height', percent: 150 }, AA, '120%', '150%', '1.4.12')
+    ).rejects.toThrow('clip');
+    expect(t.lineHeight).toEqual(prev); // line height reverted
+    expect(t.textAutoResize).toBe('NONE'); // temporary resize restored
+  });
+
+  it('B8: allows the fix on an auto-height text box (no clipping possible)', async () => {
+    const t = makeTextNode('t1', '#333333');
+    t.textAutoResize = 'HEIGHT';
+    nodes.t1 = t;
+    const result = await applyFix('t1', { kind: 'line-height', percent: 150 }, AA, '120%', '150%', '1.4.12');
+    expect(result.after).toBe('150%');
   });
 });
 

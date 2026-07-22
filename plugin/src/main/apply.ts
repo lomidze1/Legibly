@@ -50,10 +50,36 @@ export async function boundVariablePaint(variableId: string, color: RGBA): Promi
 
 async function createProposalVariable(color: RGBA, tokenName: string): Promise<Variable> {
   const collections = await figma.variables.getLocalVariableCollectionsAsync();
-  let collection = collections.find((c) => c.name === PROPOSAL_COLLECTION) ?? collections[0];
-  if (!collection) collection = figma.variables.createVariableCollection(PROPOSAL_COLLECTION);
-  const variable = figma.variables.createVariable(tokenName, collection, 'COLOR');
-  variable.setValueForMode(collection.defaultModeId, { r: color.r, g: color.g, b: color.b, a: 1 });
+  // Always our own collection — never fall back to the user's first collection (B3).
+  const collection =
+    collections.find((c) => c.name === PROPOSAL_COLLECTION) ??
+    figma.variables.createVariableCollection(PROPOSAL_COLLECTION);
+  const modeId = collection.defaultModeId;
+
+  // Reuse an existing Legibly token of this exact color — one color, one token,
+  // across sessions and batches (B5). This also means the name counter, which
+  // resets to 1 each session, can never collide into a duplicate crash (B1).
+  const locals = (await figma.variables.getLocalVariablesAsync('COLOR')).filter(
+    (v) => v.variableCollectionId === collection.id
+  );
+  const eq = 0.5 / 255;
+  const reuse = locals.find((v) => {
+    const val = v.valuesByMode[modeId] as { r: number; g: number; b: number } | undefined;
+    return (
+      !!val &&
+      Math.abs(val.r - color.r) < eq &&
+      Math.abs(val.g - color.g) < eq &&
+      Math.abs(val.b - color.b) < eq
+    );
+  });
+  if (reuse) return reuse;
+
+  // New color: pick a name no existing token already holds.
+  const taken = new Set(locals.map((v) => v.name));
+  let name = tokenName;
+  for (let n = 2; taken.has(name); n++) name = `${tokenName}-${n}`;
+  const variable = figma.variables.createVariable(name, collection, 'COLOR');
+  variable.setValueForMode(modeId, { r: color.r, g: color.g, b: color.b, a: 1 });
   return variable;
 }
 
@@ -201,15 +227,28 @@ async function applyLineHeight(
   target: string
 ): Promise<AppliedFix> {
   if (node.type !== 'TEXT') throw new Error('Line height fix applies to text only');
+  const text = node as unknown as TextNode;
   const fontName = node.fontName;
   if (fontName === figma.mixed) throw new Error('Mixed fonts — adjust line height manually');
   await figma.loadFontAsync(fontName as FontName);
   const prev = node.lineHeight;
+  const prevResize = text.textAutoResize;
   try {
     node.lineHeight = { unit: 'PERCENT', value: percent } as never;
     const ratio = lineHeightRatio(node as unknown as NodeLite);
     if (ratio === null || ratio < LINE_HEIGHT_FLOOR) {
       throw new Error('Post-fix verification failed — fix reverted');
+    }
+    // B8: on a fixed-size text box, taller line height can clip the text. Measure
+    // the natural content height (temporarily) and refuse the fix if it no longer fits.
+    if (prevResize === 'NONE' || prevResize === 'TRUNCATE') {
+      const boxHeight = text.height;
+      text.textAutoResize = 'HEIGHT';
+      const contentHeight = text.height;
+      text.textAutoResize = prevResize;
+      if (contentHeight > boxHeight + 0.5) {
+        throw new Error('Line height 150% would clip this fixed-size text box — resize it or fix spacing manually');
+      }
     }
     return {
       nodeId: node.id,
@@ -221,6 +260,7 @@ async function applyLineHeight(
       changeDescription: `line height set to ${percent}%`,
     };
   } catch (e) {
+    text.textAutoResize = prevResize;
     node.lineHeight = prev as never;
     throw e;
   }

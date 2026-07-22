@@ -148,6 +148,7 @@ summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 }
 .banner-ok { border-color: color-mix(in srgb, var(--success-text) 40%, transparent); }
 .banner-action { border-color: color-mix(in srgb, var(--brand) 50%, transparent); }
+.banner-stale { background: var(--badge-warning-bg); color: var(--badge-warning-fg); border-color: transparent; }
 .banner-row {
   display: flex;
   align-items: center;

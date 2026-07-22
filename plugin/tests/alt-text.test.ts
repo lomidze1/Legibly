@@ -3,7 +3,7 @@
  * always needsReview (quality is judgment), decorative marker honored.
  */
 import { describe, expect, it } from 'vitest';
-import { checkAltText, hasImageFill, MIN_IMAGE_SIZE, readAltData } from '../src/shared/alt-text';
+import { checkAltText, hasImageFill, MIN_IMAGE_SIZE, readAltData, validateAltText } from '../src/shared/alt-text';
 import type { NodeLite } from '../src/shared/figma-lite';
 import { box, node } from './helpers';
 
@@ -67,5 +67,31 @@ describe('readAltData', () => {
   });
   it('tolerates nodes without plugin-data access', () => {
     expect(readAltData(node({ type: 'RECTANGLE' }))).toEqual({ alt: '', decorative: false });
+  });
+});
+
+describe('validateAltText (B7 — manual save gate)', () => {
+  it('accepts a real description', () => {
+    expect(validateAltText('Team celebrating a product launch')).toEqual({ ok: true });
+  });
+  it('rejects one-character garbage ("g")', () => {
+    expect(validateAltText('g').ok).toBe(false);
+  });
+  it('rejects a filename', () => {
+    expect(validateAltText('hero-banner.png').ok).toBe(false);
+    expect(validateAltText('IMG_2043').ok).toBe(false);
+  });
+  it('rejects a bare generic word', () => {
+    expect(validateAltText('image').ok).toBe(false);
+    expect(validateAltText('logo').ok).toBe(false);
+  });
+  it('rejects the "image of…" prefix', () => {
+    expect(validateAltText('Image of a cat on a sofa').ok).toBe(false);
+  });
+  it('rejects over-long text', () => {
+    expect(validateAltText('a'.repeat(151)).ok).toBe(false);
+  });
+  it('keeps a two-word description where only one word is generic', () => {
+    expect(validateAltText('company logo')).toEqual({ ok: true });
   });
 });

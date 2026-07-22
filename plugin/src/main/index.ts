@@ -5,7 +5,7 @@
  */
 import { createRpcServer } from '../shared/rpc';
 import { collectTextNodes, scanNodes } from '../shared/scan';
-import { ALT_KEY, ALT_NS, DECORATIVE_KEY } from '../shared/alt-text';
+import { ALT_KEY, ALT_NS, DECORATIVE_KEY, validateAltText } from '../shared/alt-text';
 import type { NodeLite } from '../shared/figma-lite';
 import type { RGBA, ScanReport, Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
@@ -21,6 +21,29 @@ import type { TokenCandidate } from '../shared/types';
 const SETTINGS_KEY = 'legibly-settings-v1';
 
 figma.showUI(__html__, { width: 380, height: 560, themeColors: true });
+
+/**
+ * B4 — stale detection. A "FIXED" badge must never outlive a Cmd-Z. We can't
+ * tell a user undo from our own edit at the event level, so we count each of
+ * our mutations and consume one documentchange per count; anything left over is
+ * an external edit (an undo, a manual tweak) → tell the UI its results are stale.
+ * The timeout self-heals a count that never gets its event, so a real edit is
+ * never swallowed indefinitely.
+ */
+let selfEdits = 0;
+function markSelfEdit(): void {
+  selfEdits++;
+  setTimeout(() => {
+    if (selfEdits > 0) selfEdits--;
+  }, 500);
+}
+figma.on('documentchange', () => {
+  if (selfEdits > 0) {
+    selfEdits--;
+    return;
+  }
+  figma.ui.postMessage({ legibly: 'event', type: 'canvas-changed' });
+});
 
 /** Resolve the variable/style name bound to the text's top fill, if any. */
 async function currentTokenName(nodeId: string): Promise<string | undefined> {
@@ -79,13 +102,17 @@ const handlers = {
       payload.target,
       payload.sc
     );
+    markSelfEdit();
     figma.commitUndo();
     return applied;
   },
   'apply-batch': (payload: {
     fixes: { nodeId: string; instruction: FixInstruction; before: string; target: string; sc: string }[];
     settings: Settings;
-  }) => applyBatch(payload.fixes, payload.settings),
+  }) => {
+    markSelfEdit();
+    return applyBatch(payload.fixes, payload.settings);
+  },
   /**
    * Deep check (pixel-true): make the text transparent (opacity — never
    * visible=false, which would reflow auto-layout), export its top-level
@@ -148,9 +175,13 @@ const handlers = {
       scene.setSharedPluginData(ALT_NS, DECORATIVE_KEY, 'true');
       scene.setSharedPluginData(ALT_NS, ALT_KEY, '');
     } else {
-      scene.setSharedPluginData(ALT_NS, ALT_KEY, (payload.altText ?? '').trim());
+      const alt = (payload.altText ?? '').trim();
+      const verdict = validateAltText(alt); // B7: same gate as the AI path — no garbage passes
+      if (!verdict.ok) throw new Error(verdict.error);
+      scene.setSharedPluginData(ALT_NS, ALT_KEY, alt);
       scene.setSharedPluginData(ALT_NS, DECORATIVE_KEY, '');
     }
+    markSelfEdit();
     figma.commitUndo();
     return {
       nodeId: scene.id,
@@ -209,6 +240,7 @@ const handlers = {
       if (!noRegression(beforeState, afterState)) {
         throw new Error('Fix would break another layer on this frame — reverted');
       }
+      markSelfEdit();
       figma.commitUndo();
       return {
         nodeId: text.id,
