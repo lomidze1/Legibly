@@ -224,6 +224,9 @@ const handlers = {
       throw e;
     }
   },
+  'notify': (payload: { message: string; error?: boolean }) => {
+    figma.notify(payload.message, { error: payload.error ?? false });
+  },
   'select-node': async (payload: { nodeId: string }) => {
     const node = await figma.getNodeByIdAsync(payload.nodeId);
     if (node && 'absoluteBoundingBox' in node) {

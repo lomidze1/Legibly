@@ -48,10 +48,58 @@ function keyOf(f: Finding): string {
   return `${f.nodeId}:${f.sc}`;
 }
 
+/** Inline SVGs — emoji glyphs ignore `color` and flip presentation across platforms/themes. */
+function IconClose(): React.ReactElement {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconSettings(): React.ReactElement {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+      <path
+        d="M8 1.5v1.6M8 12.9v1.6M14.5 8h-1.6M3.1 8H1.5M12.6 3.4l-1.1 1.1M4.5 11.5l-1.1 1.1M12.6 12.6l-1.1-1.1M4.5 4.5L3.4 3.4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconChevron({ open }: { open: boolean }): React.ReactElement {
+  return (
+    <svg
+      className={`review-group-chevron${open ? ' open' : ''}`}
+      width="10"
+      height="10"
+      viewBox="0 0 10 10"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path d="M3.5 2l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Layer name that jumps to the node on canvas — a real button so keyboard users can reach it. */
+function NodeName({ name, onSelect }: { name: string; onSelect: () => void }): React.ReactElement {
+  return (
+    <button className="node-name" title="Select this layer on the canvas" onClick={onSelect}>
+      {name}
+    </button>
+  );
+}
+
 export function App({ rpc }: Props): React.ReactElement {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [showSettings, setShowSettings] = useState(false);
   const [scanning, setScanning] = useState(false);
+  /** Batch fix in flight — kept separate from `scanning` so results stay on screen (F1). */
+  const [fixing, setFixing] = useState(false);
   const [report, setReport] = useState<ScanReport | null>(null);
   const [tokens, setTokens] = useState<TokenIndex | null>(null);
   const [applied, setApplied] = useState<Record<string, AppliedFix>>({});
@@ -64,6 +112,14 @@ export function App({ rpc }: Props): React.ReactElement {
   const [aiKey, setAiKey] = useState('');
   const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
   const [altSuggestions, setAltSuggestions] = useState<Record<string, AltSuggestion>>({});
+  /** Which "Check by eye" groups are expanded — all collapsed by default to kill the scroll. */
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  /** A group-wide batch in flight: which kind, and how far along. */
+  const [batchKind, setBatchKind] = useState<null | 'deep' | 'alt' | 'dec' | 'text'>(null);
+  const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
+  /** Contrast group view toggles — apply only after deep-check produces verdicts. */
+  const [sortContrast, setSortContrast] = useState(false);
+  const [hideResolved, setHideResolved] = useState(false);
 
   useEffect(() => {
     rpc.call<Settings>('get-settings').then(setSettings).catch(() => undefined);
@@ -115,6 +171,21 @@ export function App({ rpc }: Props): React.ReactElement {
     () => report?.findings.filter((f) => f.tier === 'needsReview') ?? [],
     [report]
   );
+
+  /** Split "Check by eye" into buckets by what the user can actually DO about each. */
+  const reviewGroups = useMemo(() => {
+    const contrast: Finding[] = []; // uncertain contrast — measurable by deep check
+    const image: Finding[] = []; // image alt text — manual or AI
+    const text: Finding[] = []; // fixable text property (line height) — one-click
+    const other: Finding[] = []; // review only — nothing we can fix for you
+    for (const f of reviews) {
+      if (f.reason === 'missing-alt') image.push(f);
+      else if (f.reason && DEEP_CHECKABLE.has(f.reason)) contrast.push(f);
+      else if (f.lineHeight?.fixable) text.push(f);
+      else other.push(f);
+    }
+    return { contrast, image, text, other };
+  }, [reviews]);
 
   /** Color plans for contrast-based violations (1.4.3, 1.4.11). */
   const plans = useMemo(() => {
@@ -216,7 +287,7 @@ export function App({ rpc }: Props): React.ReactElement {
       })
       .filter((x): x is NonNullable<typeof x> => x !== null);
     if (fixes.length === 0) return;
-    setScanning(true);
+    setFixing(true);
     try {
       const result = await rpc.call<BatchResult>('apply-batch', { fixes, settings });
       setApplied((a) => {
@@ -235,7 +306,7 @@ export function App({ rpc }: Props): React.ReactElement {
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
-      setScanning(false);
+      setFixing(false);
     }
   }, [fixableNow, payloadFor, rpc, settings]);
 
@@ -366,6 +437,78 @@ export function App({ rpc }: Props): React.ReactElement {
     [rpc, aiKey]
   );
 
+  /** Batch "Deep-check all": measures each backdrop in turn — resolves uncertain, never guesses. */
+  const runDeepCheckAll = useCallback(
+    async (items: Finding[]) => {
+      const pending = items.filter((f) => !deep[keyOf(f)] && !applied[keyOf(f)]);
+      if (pending.length === 0) return;
+      setBatchKind('deep');
+      setBatchProgress({ done: 0, total: pending.length });
+      let done = 0;
+      for (const f of pending) {
+        await runDeepCheck(f);
+        setBatchProgress({ done: ++done, total: pending.length });
+      }
+      setBatchKind(null);
+      setBatchProgress(null);
+    },
+    [deep, applied, runDeepCheck]
+  );
+
+  /** Batch "Suggest alt for all": stages an AI draft per image — always left for your review. */
+  const suggestAltAll = useCallback(
+    async (items: Finding[]) => {
+      const pending = items.filter((f) => !altSuggestions[keyOf(f)] && !applied[keyOf(f)]);
+      if (pending.length === 0) return;
+      setBatchKind('alt');
+      setBatchProgress({ done: 0, total: pending.length });
+      let done = 0;
+      for (const f of pending) {
+        await suggestAlt(f);
+        setBatchProgress({ done: ++done, total: pending.length });
+      }
+      setBatchKind(null);
+      setBatchProgress(null);
+    },
+    [altSuggestions, applied, suggestAlt]
+  );
+
+  /** Batch "Mark all decorative": records every pending image as decorative — one undo reverts all. */
+  const markAllDecorative = useCallback(
+    async (items: Finding[]) => {
+      const pending = items.filter((f) => !applied[keyOf(f)]);
+      if (pending.length === 0) return;
+      setBatchKind('dec');
+      setBatchProgress({ done: 0, total: pending.length });
+      let done = 0;
+      for (const f of pending) {
+        await saveAlt(f, { decorative: true });
+        setBatchProgress({ done: ++done, total: pending.length });
+      }
+      setBatchKind(null);
+      setBatchProgress(null);
+    },
+    [applied, saveAlt]
+  );
+
+  /** Batch "Fix all" for the text group: applies each one-click text fix (line height) in turn. */
+  const fixAllText = useCallback(
+    async (items: Finding[]) => {
+      const pending = items.filter((f) => !applied[keyOf(f)]);
+      if (pending.length === 0) return;
+      setBatchKind('text');
+      setBatchProgress({ done: 0, total: pending.length });
+      let done = 0;
+      for (const f of pending) {
+        await applyOne(f);
+        setBatchProgress({ done: ++done, total: pending.length });
+      }
+      setBatchKind(null);
+      setBatchProgress(null);
+    },
+    [applied, applyOne]
+  );
+
   /** Compliance report (F19) — CSV download built fully client-side. */
   const exportCsv = useCallback(async () => {
     if (!report) return;
@@ -380,6 +523,135 @@ export function App({ rpc }: Props): React.ReactElement {
     URL.revokeObjectURL(url);
   }, [report, applied, rpc, settings]);
 
+  const renderReviewCard = (f: Finding): React.ReactElement =>
+    f.reason === 'missing-alt' ? (
+      <AltCard
+        key={keyOf(f)}
+        finding={f}
+        applied={applied[keyOf(f)]}
+        failure={failures[keyOf(f)]}
+        busy={!!busy[keyOf(f)]}
+        draft={altDrafts[keyOf(f)] ?? ''}
+        suggestion={altSuggestions[keyOf(f)]}
+        aiEnabled={aiKey.trim().length > 0}
+        onDraft={(v) => setAltDrafts((d) => ({ ...d, [keyOf(f)]: v }))}
+        onSelect={selectNode}
+        onSave={saveAlt}
+        onSuggest={suggestAlt}
+      />
+    ) : (
+      <ReviewCard
+        key={keyOf(f)}
+        finding={f}
+        applied={applied[keyOf(f)]}
+        failure={failures[keyOf(f)]}
+        busy={!!busy[keyOf(f)]}
+        deep={deep[keyOf(f)]}
+        onSelect={selectNode}
+        onFix={applyOne}
+        onDeepCheck={runDeepCheck}
+      />
+    );
+
+  const toggleGroup = (k: string): void => setOpenGroups((g) => ({ ...g, [k]: !g[k] }));
+  const busyBatch = batchKind !== null;
+
+  // ── Contrast group: deep-check, then optionally sort worst-first and hide the resolved ──
+  const contrastPending = reviewGroups.contrast.filter((f) => !deep[keyOf(f)] && !applied[keyOf(f)]).length;
+  const resolvedCount = reviewGroups.contrast.filter((f) => deep[keyOf(f)]?.kind === 'pass').length;
+  const hasVerdicts = reviewGroups.contrast.some((f) => deep[keyOf(f)]);
+  /** Worst first: confirmed fail → mixed → unresolved → unchecked → passed. */
+  const severityRank = (f: Finding): number => {
+    const v = deep[keyOf(f)];
+    if (!v) return 3;
+    return v.kind === 'fail' ? 0 : v.kind === 'mixed' ? 1 : v.kind === 'unresolved' ? 2 : 4;
+  };
+  let contrastList = reviewGroups.contrast;
+  if (hideResolved) contrastList = contrastList.filter((f) => deep[keyOf(f)]?.kind !== 'pass');
+  if (sortContrast) {
+    contrastList = [...contrastList].sort(
+      (a, b) => severityRank(a) - severityRank(b) || (deep[keyOf(a)]?.min ?? Infinity) - (deep[keyOf(b)]?.min ?? Infinity)
+    );
+  }
+
+  const contrastActions: BatchAction[] = [];
+  if (contrastPending > 0) {
+    contrastActions.push({
+      id: 'deep',
+      label: `Deep-check all (${contrastPending})`,
+      running: 'Checking pixels…',
+      progress: batchKind === 'deep' ? batchProgress : null,
+      disabled: busyBatch,
+      onRun: () => void runDeepCheckAll(reviewGroups.contrast),
+    });
+  }
+  if (hasVerdicts) {
+    contrastActions.push({
+      id: 'sort',
+      label: sortContrast ? 'Original order' : 'Sort worst-first',
+      running: '',
+      progress: null,
+      disabled: busyBatch,
+      onRun: () => setSortContrast((s) => !s),
+    });
+    if (resolvedCount > 0) {
+      contrastActions.push({
+        id: 'clear',
+        label: hideResolved ? `Show passed (${resolvedCount})` : `Hide passed (${resolvedCount})`,
+        running: '',
+        progress: null,
+        disabled: busyBatch,
+        onRun: () => setHideResolved((h) => !h),
+      });
+    }
+  }
+
+  // ── Image group: alt text — AI suggest (staged) or bulk-decorative ──
+  const imageUnsuggested = reviewGroups.image.filter((f) => !altSuggestions[keyOf(f)] && !applied[keyOf(f)]).length;
+  const imageUnresolved = reviewGroups.image.filter((f) => !applied[keyOf(f)]).length;
+  const imageActions: BatchAction[] = [];
+  if (imageUnsuggested > 0) {
+    imageActions.push({
+      id: 'ai',
+      label: `Suggest all with AI (${imageUnsuggested})`,
+      running: 'Asking AI…',
+      progress: batchKind === 'alt' ? batchProgress : null,
+      disabled: busyBatch,
+      // Shown even without a key: clicking without one explains what's missing (Figma toast).
+      onRun: () =>
+        aiKey.trim().length > 0
+          ? void suggestAltAll(reviewGroups.image)
+          : void rpc.call('notify', {
+              message: 'Add your Anthropic API key in Settings to use AI suggestions.',
+              error: true,
+            }),
+    });
+  }
+  if (imageUnresolved > 0) {
+    imageActions.push({
+      id: 'dec',
+      label: `Mark all decorative (${imageUnresolved})`,
+      running: 'Marking…',
+      progress: batchKind === 'dec' ? batchProgress : null,
+      disabled: busyBatch,
+      onRun: () => void markAllDecorative(reviewGroups.image),
+    });
+  }
+
+  // ── Text group: one-click line-height fixes ──
+  const textUnresolved = reviewGroups.text.filter((f) => !applied[keyOf(f)]).length;
+  const textActions: BatchAction[] = [];
+  if (textUnresolved > 0) {
+    textActions.push({
+      id: 'text',
+      label: `Fix all → line height 150% (${textUnresolved})`,
+      running: 'Fixing…',
+      progress: batchKind === 'text' ? batchProgress : null,
+      disabled: busyBatch,
+      onRun: () => void fixAllText(reviewGroups.text),
+    });
+  }
+
   return (
     <div className="app">
       <div className="toolbar">
@@ -389,27 +661,32 @@ export function App({ rpc }: Props): React.ReactElement {
         <button className="btn" disabled={scanning} onClick={() => void scan('page')}>
           Scan full canvas
         </button>
-        {report && (
+        <div className="toolbar-actions">
+          {report && (
+            <button
+              className="btn btn-icon"
+              title="Clear results"
+              aria-label="Clear results"
+              onClick={() => {
+                setReport(null);
+                setApplied({});
+                setFailures({});
+                setError(null);
+              }}
+            >
+              <IconClose />
+            </button>
+          )}
           <button
-            className="btn btn-icon"
-            title="Clear results"
-            onClick={() => {
-              setReport(null);
-              setApplied({});
-              setFailures({});
-              setError(null);
-            }}
+            className={`btn btn-icon${showSettings ? ' btn-active' : ''}`}
+            title="Settings"
+            aria-label="Settings"
+            aria-pressed={showSettings}
+            onClick={() => setShowSettings((s) => !s)}
           >
-            ✕
+            <IconSettings />
           </button>
-        )}
-        <button
-          className={`btn btn-icon${showSettings ? ' btn-active' : ''}`}
-          title="Settings"
-          onClick={() => setShowSettings((s) => !s)}
-        >
-          ⚙
-        </button>
+        </div>
       </div>
 
       {showSettings && (
@@ -446,7 +723,11 @@ export function App({ rpc }: Props): React.ReactElement {
         </div>
       )}
 
-      {error && <div className="error-bar">{error}</div>}
+      {error && (
+        <div className="error-bar" role="alert">
+          {error}
+        </div>
+      )}
 
       <div className="results">
         {!report && !scanning && (
@@ -462,10 +743,16 @@ export function App({ rpc }: Props): React.ReactElement {
               <li>Click Scan</li>
               <li>Fix issues</li>
             </ol>
-            <div className="microtext">Runs on your device. Nothing leaves Figma.</div>
+            <div className="microtext">
+              Runs on your device. Nothing leaves Figma unless you add your own AI key.
+            </div>
           </div>
         )}
-        {scanning && <div className="empty">Scanning…</div>}
+        {scanning && (
+          <div className="empty" role="status">
+            Scanning…
+          </div>
+        )}
         {report && !scanning && (
           <>
             <NextStepBanner
@@ -474,10 +761,11 @@ export function App({ rpc }: Props): React.ReactElement {
               appliedCount={appliedCount}
               reviews={reviews.length}
               strictMode={settings.strictMode}
+              fixing={fixing}
               onFixAll={() => void applyAll()}
               onToggleStrict={(v) => updateSettings({ ...settings, strictMode: v }, true)}
             />
-            <div className="summary summary-row">
+            <div className="summary summary-row" role="status">
               <span>
                 {report.scannedCount} text layers · {report.targetCount} interactive targets checked
                 against {settings.level} · {report.passCount} text layers look good
@@ -515,35 +803,53 @@ export function App({ rpc }: Props): React.ReactElement {
                 <div className="tier-heading">
                   Check by eye <span className="count">{reviews.length}</span>
                 </div>
-                {reviews.map((f) =>
-                  f.reason === 'missing-alt' ? (
-                    <AltCard
-                      key={keyOf(f)}
-                      finding={f}
-                      applied={applied[keyOf(f)]}
-                      failure={failures[keyOf(f)]}
-                      busy={!!busy[keyOf(f)]}
-                      draft={altDrafts[keyOf(f)] ?? ''}
-                      suggestion={altSuggestions[keyOf(f)]}
-                      aiEnabled={aiKey.trim().length > 0}
-                      onDraft={(v) => setAltDrafts((d) => ({ ...d, [keyOf(f)]: v }))}
-                      onSelect={selectNode}
-                      onSave={saveAlt}
-                      onSuggest={suggestAlt}
-                    />
-                  ) : (
-                    <ReviewCard
-                      key={keyOf(f)}
-                      finding={f}
-                      applied={applied[keyOf(f)]}
-                      failure={failures[keyOf(f)]}
-                      busy={!!busy[keyOf(f)]}
-                      deep={deep[keyOf(f)]}
-                      onSelect={selectNode}
-                      onFix={applyOne}
-                      onDeepCheck={runDeepCheck}
-                    />
-                  )
+                {reviewGroups.contrast.length > 0 && (
+                  <ReviewGroup
+                    groupKey="contrast"
+                    title="Contrast — check by eye"
+                    count={reviewGroups.contrast.length}
+                    open={!!openGroups.contrast}
+                    onToggle={() => toggleGroup('contrast')}
+                    actions={contrastActions}
+                  >
+                    {contrastList.map(renderReviewCard)}
+                  </ReviewGroup>
+                )}
+                {reviewGroups.image.length > 0 && (
+                  <ReviewGroup
+                    groupKey="image"
+                    title="Image properties"
+                    count={reviewGroups.image.length}
+                    open={!!openGroups.image}
+                    onToggle={() => toggleGroup('image')}
+                    actions={imageActions}
+                    note="Best accessibility: write real alt text per image and Save. “Mark decorative” hides the image from screen readers — use it only for purely visual images."
+                  >
+                    {reviewGroups.image.map(renderReviewCard)}
+                  </ReviewGroup>
+                )}
+                {reviewGroups.text.length > 0 && (
+                  <ReviewGroup
+                    groupKey="text"
+                    title="Text properties"
+                    count={reviewGroups.text.length}
+                    open={!!openGroups.text}
+                    onToggle={() => toggleGroup('text')}
+                    actions={textActions}
+                  >
+                    {reviewGroups.text.map(renderReviewCard)}
+                  </ReviewGroup>
+                )}
+                {reviewGroups.other.length > 0 && (
+                  <ReviewGroup
+                    groupKey="other"
+                    title="Needs your judgment"
+                    count={reviewGroups.other.length}
+                    open={!!openGroups.other}
+                    onToggle={() => toggleGroup('other')}
+                  >
+                    {reviewGroups.other.map(renderReviewCard)}
+                  </ReviewGroup>
                 )}
               </>
             )}
@@ -580,6 +886,7 @@ interface BannerProps {
   appliedCount: number;
   reviews: number;
   strictMode: boolean;
+  fixing: boolean;
   onFixAll: () => void;
   onToggleStrict: (v: boolean) => void;
 }
@@ -591,6 +898,7 @@ function NextStepBanner({
   appliedCount,
   reviews,
   strictMode,
+  fixing,
   onFixAll,
   onToggleStrict,
 }: BannerProps): React.ReactElement {
@@ -602,7 +910,7 @@ function NextStepBanner({
   } else if (violations === 0) {
     message = `No certain issues. ${reviews} layer${reviews === 1 ? '' : 's'} to check by eye below.`;
   } else if (appliedCount === violations) {
-    message = 'All fixed ✓ — one Cmd-Z undoes everything.';
+    message = 'All fixed ✓ — one undo reverts everything.';
     tone = 'ok';
   } else if (fixable > 0) {
     message = `${violations} issue${violations === 1 ? '' : 's'} found — ${fixable} can be fixed in one click.`;
@@ -617,11 +925,11 @@ function NextStepBanner({
         {violations > 0 && appliedCount < violations && (
           <button
             className="btn btn-primary btn-sm"
-            disabled={fixable === 0}
+            disabled={fixable === 0 || fixing}
             title={fixable === 0 ? 'No automatic fix available — see the options on each card' : undefined}
             onClick={onFixAll}
           >
-            Fix issues{fixable > 0 ? ` (${fixable})` : ''}
+            {fixing ? 'Fixing…' : `Fix issues${fixable > 0 ? ` (${fixable})` : ''}`}
           </button>
         )}
       </div>
@@ -689,9 +997,7 @@ function ReviewCard({
   return (
     <div className="card">
       <div className="card-head">
-        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
-          {f.nodeName}
-        </span>
+        <NodeName name={f.nodeName} onSelect={() => onSelect(f.nodeId)} />
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
         ) : deep?.kind === 'pass' ? (
@@ -775,9 +1081,7 @@ function AltCard({
   return (
     <div className="card">
       <div className="card-head">
-        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
-          {f.nodeName}
-        </span>
+        <NodeName name={f.nodeName} onSelect={() => onSelect(f.nodeId)} />
         {applied ? (
           <span className="badge badge-fixed">{applied.after === 'decorative' ? 'DECORATIVE ✓' : 'ALT RECORDED ✓'}</span>
         ) : (
@@ -804,6 +1108,7 @@ function AltCard({
           <div className="card-actions">
             <input
               type="text"
+              aria-label="Alt text"
               placeholder="Describe what this image conveys…"
               value={draft}
               onChange={(e) => onDraft(e.target.value)}
@@ -825,7 +1130,7 @@ function AltCard({
                 {busy ? 'Asking AI…' : '✨ Suggest with AI'}
               </button>
             ) : (
-              <span className="microtext">Add your Anthropic API key in ⚙ to enable AI suggestions.</span>
+              <span className="microtext">Add your Anthropic API key in Settings to enable AI suggestions.</span>
             )}
           </div>
         </>
@@ -868,9 +1173,7 @@ function ViolationCard({
             <Swatch color={f.bg} />
           </span>
         )}
-        <span className="node-name" title="Click to select this layer on the canvas" onClick={() => onSelect(f.nodeId)}>
-          {f.nodeName}
-        </span>
+        <NodeName name={f.nodeName} onSelect={() => onSelect(f.nodeId)} />
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
         ) : (
@@ -942,6 +1245,71 @@ function ViolationCard({
             )}
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+interface BatchAction {
+  id: string;
+  label: string;
+  running: string;
+  progress: { done: number; total: number } | null;
+  disabled: boolean;
+  onRun: () => void;
+}
+
+interface ReviewGroupProps {
+  groupKey: string;
+  title: string;
+  count: number;
+  open: boolean;
+  onToggle: () => void;
+  actions?: BatchAction[];
+  note?: string;
+  children: React.ReactNode;
+}
+
+/** A collapsible bucket of "check by eye" cards. Batch actions live in a bar atop the open body. */
+function ReviewGroup({
+  groupKey,
+  title,
+  count,
+  open,
+  onToggle,
+  actions,
+  note,
+  children,
+}: ReviewGroupProps): React.ReactElement {
+  const bodyId = `review-group-${groupKey}`;
+  return (
+    <div className="review-group">
+      <div className="review-group-head">
+        <button
+          className="review-group-toggle"
+          aria-expanded={open}
+          aria-controls={bodyId}
+          onClick={onToggle}
+        >
+          <IconChevron open={open} />
+          {title}
+          <span className="count">{count}</span>
+        </button>
+      </div>
+      {open && (
+        <div className="review-group-body" id={bodyId}>
+          {actions && actions.length > 0 && (
+            <div className="review-group-actions">
+              {actions.map((a) => (
+                <button key={a.id} className="btn btn-sm" disabled={a.disabled} onClick={a.onRun}>
+                  {a.progress ? `${a.running} (${a.progress.done}/${a.progress.total})` : a.label}
+                </button>
+              ))}
+            </div>
+          )}
+          {note && <div className="microtext review-group-note">{note}</div>}
+          {children}
+        </div>
       )}
     </div>
   );
