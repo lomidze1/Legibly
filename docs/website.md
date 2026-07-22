@@ -1,6 +1,6 @@
 # website.md — Legibly-ის ვებსაიტის გეგმა
 
-> **სტატუსი:** 🟡 TODO — ვებსაიტი **გასაკეთებელია** (launch-ამდე), მაგრამ ჯერ არ დაწყებულა.
+> **სტატუსი:** 🟢 BUILT (2026-07-22) — საიტი აშენებულია [`website/`](../website/)-ში (Next.js App Router, glinc.io-ს სტრუქტურის მიხედვით). Deploy და domain — user action (იხ. §7).
 > **მთავარი წესი:** ჯერ დაიწერება **მოთხოვნა + დაგეგმარება** (ამ ფაილში, plugin-ზე დაყრდნობით), მერე გაკეთდება.
 
 ---
@@ -79,3 +79,19 @@
 - ⏳ **Brand identity** (logo, colors) — ჯერ არ არსებობს; ვებსაიტამდე საჭიროა
 - ⏳ ვებსაიტი **plugin v0.1-ის შემდეგ** — ჯერ demo asset (before/after) გვჭირდება რეალური პლაგინიდან
 - 📌 **Next step:** როცა v0.1 build-ს დავიწყებთ, პარალელურად ეს ფაილი გადაიზრდება სრულ website-requirements-ად
+
+---
+
+## 7. Build შედეგი (2026-07-22)
+
+საიტი აშენდა `website/`-ში. მიღებული გადაწყვეტილებები (user-თან შეთანხმებული):
+
+- **Stack:** Next.js App Router + TypeScript + CSS Modules — glinc.io-ს repo-ს სტრუქტურის მირორი; hosting: Vercel
+- **Visual identity (პირველად განისაზღვრა):** ღია, მაღალკონტრასტული "legibility-first" — body ტექსტის ყველა წყვილი **AAA (7:1)**, label-ები ≥ AA (4.5:1); ტიპოგრაფია: **Atkinson Hyperlegible** (Braille Institute-ის შრიფტი — ბრენდის არგუმენტი); აქცენტი: `#1e40af` (ლურჯი); verdict ფერები: fail `#b42318` / review `#92400e` / pass `#166534`. ყველა წყვილი unit-ტესტით მოწმდება (`src/lib/contrast.test.ts`) — საიტი თავად აკმაყოფილებს იმას, რასაც ყიდის
+- **Hero demo:** ინტერაქტიული before/after კომპონენტი რეალური WCAG მათემატიკით (`FixDemo`) — მოგვიანებით ჩანაცვლდება/დაემატება რეალური პლაგინის GIF
+- **CTA (launch-ამდე):** waitlist email capture (`/api/waitlist`, Resend + honeypot); `site.ts`-ში `figmaCommunityUrl`-ის შევსებისას CTA გადავა "Install on Figma"-ზე
+- **Pricing:** სამივე tier ჩანს + "Free during public beta" ბანერი
+- **Privacy copy:** პატიოსანი BYOK disclosure — "no network"-ის ნაცვლად "ერთადერთი optional call: alt-text → api.anthropic.com შენი key-თ"
+- **გვერდები:** `/` (10 სექცია), `/privacy`, SEO (sitemap, robots, JSON-LD SoftwareApplication, OG image)
+
+**User actions (pending):** Vercel deploy + `RESEND_API_KEY` env; `legibly.app` domain-ის ყიდვა (Track F); Figma Community URL launch-ისას; რეალური demo GIF.
