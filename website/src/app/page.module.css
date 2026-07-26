@@ -19,6 +19,12 @@
 
 .heroCopy h1 {
   font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+  max-width: 15ch;
+}
+
+/* The form is the conversion unit; it must not shrink-to-fit like the badge. */
+.heroFormWrap {
+  justify-self: stretch;
 }
 
 .heroBadge {
@@ -30,14 +36,10 @@
   border-radius: 999px;
 }
 
-.nowrap {
-  white-space: nowrap;
-}
-
 .heroSub {
   font-size: 1.1875rem;
   color: var(--text-muted);
-  max-width: 44ch;
+  max-width: var(--measure-narrow);
 }
 
 /* ---------- Shared section scaffolding ---------- */
@@ -58,7 +60,7 @@
 
 .sectionLead {
   color: var(--text-muted);
-  max-width: 58ch;
+  max-width: var(--measure-body);
   margin-bottom: 40px;
 }
 
@@ -78,7 +80,7 @@
 .problemBody {
   font-size: 1.1875rem;
   color: var(--text-muted);
-  max-width: 56ch;
+  max-width: var(--measure-body);
 }
 
 /* ---------- How it works ---------- */
@@ -115,7 +117,35 @@
 
 .step p {
   color: var(--text-muted);
-  max-width: 52ch;
+  max-width: var(--measure-narrow);
+}
+
+/*
+ * Motion moment 2: the rail is a sequence, so it reveals in order. One-shot,
+ * driven by IntersectionObserver in page.tsx; the global reduced-motion block
+ * in globals.css already neutralises it.
+ */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Additive, never subtractive: the hidden state lives in the keyframe's `from`,
+ * not in a base rule. If the observer never runs — no JS, a crawler, a
+ * full-page screenshot, a browser without IntersectionObserver — the steps are
+ * simply visible and unanimated. Content on this site does not get to depend
+ * on a script to be perceivable.
+ */
+.stepsSeen .stepReveal {
+  animation: step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0ms);
 }
 
 /* ---------- Verdicts ---------- */
@@ -137,6 +167,7 @@
 
 .verdictRow dd {
   color: var(--text-muted);
+  max-width: var(--measure-body);
 }
 
 .verdictChip {
@@ -190,6 +221,7 @@
 .compareThem p,
 .compareUs p {
   color: var(--text-muted);
+  max-width: var(--measure-body);
 }
 
 .compareUs {
@@ -246,29 +278,40 @@
   color: var(--text-muted);
 }
 
+/* Without this the two full-width cells run to 131 characters per line. */
+.cellWide p:last-child {
+  max-width: var(--measure-wide);
+}
+
 .roadmap {
   margin-top: 28px;
   color: var(--text-muted);
-  max-width: 62ch;
+  max-width: var(--measure-body);
 }
 
 /* ---------- Pricing ---------- */
 
+/*
+ * Accent, not --pass. Verdict colors are semantic-state-only (docs/website.md
+ * §7); a marketing banner is not a passing check. Accent on accent-tint also
+ * measures 7.79:1, so this sentence-length text now clears the AAA floor the
+ * brand claims for body copy — --pass on --pass-tint was 6.65:1.
+ */
 .betaBanner {
   font-weight: 700;
-  background: var(--pass-tint);
-  color: var(--pass);
+  background: var(--accent-tint);
+  color: var(--accent);
   padding: 14px 18px;
   border-radius: var(--radius);
   margin-bottom: 36px;
-  max-width: 640px;
+  max-width: var(--measure-body);
 }
 
 .tiers {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .tier {
@@ -278,6 +321,7 @@
   padding: 28px;
   display: grid;
   gap: 16px;
+  align-content: start;
 }
 
 .tierFeatured {
@@ -292,7 +336,10 @@
   line-height: 1;
 }
 
+/* Own line: "per seat, per / month" was orphaning "month" at tablet widths. */
 .tierPrice span {
+  display: block;
+  margin-top: 6px;
   font-size: 1rem;
   font-weight: 400;
   color: var(--text-muted);
@@ -317,8 +364,9 @@
   top: 0.5em;
   width: 12px;
   height: 7px;
-  border-left: 2.5px solid var(--pass);
-  border-bottom: 2.5px solid var(--pass);
+  /* Accent, not --pass: these are feature markers, not passing verdicts. */
+  border-left: 2.5px solid var(--accent);
+  border-bottom: 2.5px solid var(--accent);
   transform: rotate(-45deg);
 }
 
@@ -345,13 +393,14 @@
 
 /* ---------- FAQ ---------- */
 
-.faqContainer {
-  max-width: 800px;
-}
-
+/*
+ * The cap belongs on the list, not the container: capping the container made
+ * it centre itself, so this heading started 160px right of the other eight.
+ */
 .faqList {
   display: grid;
   margin-top: 24px;
+  max-width: 800px;
 }
 
 .faqItem {
@@ -364,6 +413,31 @@
   font-size: 1.125rem;
   padding: 20px 8px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  list-style: none;
+}
+
+/* Replace the UA triangle with a chevron that belongs to the brand. */
+.faqItem summary::-webkit-details-marker {
+  display: none;
+}
+
+.faqItem summary::after {
+  content: "";
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-right: 2.5px solid var(--accent);
+  border-bottom: 2.5px solid var(--accent);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.faqItem[open] summary::after {
+  transform: translateY(2px) rotate(225deg);
 }
 
 .faqItem summary:hover {
@@ -373,7 +447,7 @@
 .faqItem p {
   color: var(--text-muted);
   padding: 0 8px 24px;
-  max-width: 64ch;
+  max-width: var(--measure-body);
 }
 
 /* ---------- Final CTA ---------- */
@@ -396,15 +470,28 @@
 
 .finalCta p {
   color: var(--text-muted);
-  max-width: 52ch;
+  max-width: var(--measure-narrow);
 }
 
-/* ---------- Mobile collapse ---------- */
+/* ---------- Responsive ---------- */
+
+/*
+ * 861-1120px used to be the weakest zone on the page: three tiers cramped
+ * enough to orphan "month", and the bento still at six columns.
+ */
+@media (max-width: 1024px) {
+  .tiers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bento {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
 
 @media (max-width: 860px) {
   .heroGrid,
   .compare,
-  .tiers,
   .trustGrid {
     grid-template-columns: 1fr;
   }
@@ -413,7 +500,10 @@
     grid-template-columns: 1fr 1fr;
   }
 
-  .cell,
+  .cell {
+    grid-column: span 1;
+  }
+
   .cellWide {
     grid-column: span 2;
   }
@@ -421,5 +511,17 @@
   .verdictRow {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+}
+
+@media (max-width: 620px) {
+  .tiers,
+  .bento {
+    grid-template-columns: 1fr;
+  }
+
+  .cell,
+  .cellWide {
+    grid-column: span 1;
   }
 }

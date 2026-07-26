@@ -56,7 +56,10 @@ export default function RootLayout({
           Skip to content
         </a>
         <SiteNav />
-        <div id="main-content">{children}</div>
+        {/* tabIndex -1 so the skip link actually moves focus, not just scroll. */}
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
         <SiteFooter />
       </body>
     </html>

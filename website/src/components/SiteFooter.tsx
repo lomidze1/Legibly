@@ -52,6 +52,10 @@ export function SiteFooter() {
             </ul>
           </div>
         </nav>
+        <p className={styles.legal}>
+          © {new Date().getFullYear()} Glinc. Legibly is a Glinc product. Figma
+          is a trademark of Figma, Inc., which does not endorse this plugin.
+        </p>
       </div>
     </footer>
   );

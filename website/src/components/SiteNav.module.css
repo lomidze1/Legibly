@@ -58,3 +58,21 @@
     display: none;
   }
 }
+
+/*
+ * Reflow (SC 1.4.10). The CTA is `white-space: nowrap` inside a flex row that
+ * cannot shrink it, so below ~360px it pushed past the gutter and produced
+ * horizontal scroll at 305 CSS px — what Windows Chrome gives you at
+ * 1280 x 400% zoom. Tighten the row instead of letting the page scroll.
+ */
+@media (max-width: 420px) {
+  .nav {
+    gap: 12px;
+    padding-inline: 16px;
+  }
+
+  .cta {
+    padding: 9px 12px;
+    font-size: 0.9375rem;
+  }
+}

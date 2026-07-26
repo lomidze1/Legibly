@@ -1,7 +1,14 @@
+/*
+ * `width` rather than `max-width`: both call sites are grids with
+ * `justify-items: start`, so a max-width form shrink-to-fit to 385px — under
+ * the row's max-content — and the submit button wrapped below the input at
+ * every desktop width. This is the page's primary CTA; it renders inline.
+ */
 .form {
   display: grid;
   gap: 8px;
-  max-width: 460px;
+  justify-self: stretch;
+  width: min(100%, 460px);
 }
 
 .label {
@@ -16,7 +23,9 @@
 }
 
 .input {
-  flex: 1 1 220px;
+  /* 180px, not 220: at 900px the hero's copy column is 404px, and a 220px
+     basis pushed the row 3px past it — enough to wrap the button below. */
+  flex: 1 1 180px;
   font: inherit;
   padding: 12px 14px;
   border-radius: var(--radius);
@@ -33,6 +42,11 @@
   outline: 3px solid var(--accent);
   outline-offset: 1px;
   border-color: var(--accent);
+}
+
+/* Bind the message to the field visually, not just via aria-describedby. */
+.input[aria-invalid="true"] {
+  border-color: var(--fail);
 }
 
 .submit {

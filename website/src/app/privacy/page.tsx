@@ -15,7 +15,7 @@ export default function PrivacyPage() {
     <main>
       <Container className={styles.page}>
         <h1>Privacy</h1>
-        <p className={styles.updated}>Last updated: July 22, 2026</p>
+        <p className={styles.updated}>Last updated: July 26, 2026</p>
 
         <h2>The plugin</h2>
         <p>
@@ -43,13 +43,51 @@ export default function PrivacyPage() {
           The site does not use advertising trackers or third-party analytics
           cookies. If you join the waitlist, we store the email address you
           submit and use it for one purpose: telling you about Legibly&apos;s
-          availability. Ask us to delete it at any time at{" "}
-          <a href={`mailto:${site.email}`}>{site.email}</a>.
+          availability.
+        </p>
+        <ul>
+          <li>
+            <strong>What we collect:</strong> the email address you type into
+            the waitlist form, and nothing else. We do not collect a name, an
+            IP-based profile, or any behavioural data.
+          </li>
+          <li>
+            <strong>Legal basis (GDPR Art. 6):</strong> your consent, given by
+            submitting the form. You can withdraw it at any time, which has no
+            effect on processing carried out before you did.
+          </li>
+          <li>
+            <strong>Processor:</strong> the list is held by Resend
+            (transactional email), acting on our instructions under a data
+            processing agreement.
+          </li>
+          <li>
+            <strong>Retention:</strong> until Legibly launches and we have sent
+            the launch email, or until you ask us to delete it — whichever is
+            sooner. We delete the whole list no later than 12 months after
+            launch.
+          </li>
+        </ul>
+
+        <h2>Your rights</h2>
+        <p>
+          If you are in the EU, EEA, or UK you have the right to access,
+          rectify, erase, restrict, and port your data, and to object to
+          processing. Write to{" "}
+          <a href={`mailto:${site.email}`}>{site.email}</a> and we will answer
+          within 30 days. You also have the right to complain to your national
+          data protection authority.
         </p>
 
         <h2>Contact</h2>
+        {/*
+          TODO before launch: add the controller's registered legal name, legal
+          form and postal address here. GDPR Art. 13(1)(a) requires the
+          controller's identity, and an email address alone does not satisfy it.
+        */}
         <p>
-          Legibly is built by Glinc. Questions about this policy:{" "}
+          Legibly is built by Glinc, which is the data controller for the
+          waitlist. Questions about this policy, or any request above:{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>.
         </p>
       </Container>

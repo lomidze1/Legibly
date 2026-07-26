@@ -21,7 +21,26 @@
 
 .note {
   color: var(--text-muted);
-  max-width: 44ch;
+  max-width: var(--measure-narrow);
+}
+
+/* Body-copy link treatment, declared here since the global rule is scoped to <main>. */
+.note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.note a:hover {
+  color: var(--accent-hover);
+}
+
+.legal {
+  grid-column: 1 / -1;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.9375rem;
 }
 
 .columns {

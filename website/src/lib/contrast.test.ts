@@ -35,8 +35,16 @@ describe("brand token contrast audit", () => {
     ["muted text on tint", tokens.textMuted, tokens.tint],
     ["links (accent) on bg", tokens.accent, tokens.bg],
     ["accent text on accent tint", tokens.accent, tokens.accentTint],
+    // Body copy in .compareUs, .finalCta and .cellTinted sits on the accent
+    // tint. It was missing here while the footer claimed every pair passes.
+    ["muted text on accent tint", tokens.textMuted, tokens.accentTint],
   ];
 
+  /**
+   * Short bold labels and controls, held to AA. The verdict chips live here
+   * on purpose: at 17px/700 they are labels, not body copy, so the AAA floor
+   * the brand claims for prose does not apply to them.
+   */
   const labelPairs: Array<[string, string, string]> = [
     ["button text on accent", tokens.onAccent, tokens.accent],
     ["button text on accent hover", tokens.onAccent, tokens.accentHover],

@@ -4,6 +4,15 @@ import { site } from "@/data/site";
 
 const MAX_EMAIL = 200;
 
+/**
+ * Persist first, notify second.
+ *
+ * This endpoint is the site's only conversion goal, so a signup must survive
+ * a failed email. The address goes into a Resend audience — a durable,
+ * exportable list we can actually mail at launch — and the notification to
+ * ourselves is best-effort on top of that. A request only fails if the
+ * address was not recorded anywhere.
+ */
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
@@ -39,15 +48,47 @@ export async function POST(req: Request) {
   }
 
   const resend = new Resend(apiKey);
-  const { error } = await resend.emails.send({
-    from: "Legibly waitlist <onboarding@resend.dev>",
-    to: site.email,
-    replyTo: email,
-    subject: `Legibly waitlist: ${email}`,
-    text: `New waitlist signup: ${email}`,
-  });
+  const audienceId = process.env.RESEND_AUDIENCE_ID;
+  let stored = false;
 
-  if (error) {
+  if (audienceId) {
+    try {
+      const { error } = await resend.contacts.create({
+        audienceId,
+        email,
+        unsubscribed: false,
+      });
+      // A duplicate is a success from the visitor's point of view.
+      stored = !error;
+      if (error) console.error("waitlist: contacts.create failed", error);
+    } catch (err) {
+      console.error("waitlist: contacts.create threw", err);
+    }
+  } else {
+    console.error(
+      "waitlist: RESEND_AUDIENCE_ID is not set — signups are notification-only",
+    );
+  }
+
+  // Best-effort heads-up. Set WAITLIST_FROM to a verified sender on the real
+  // domain before launch; the Resend sandbox address only delivers to the
+  // account owner.
+  let notified = false;
+  try {
+    const { error } = await resend.emails.send({
+      from: process.env.WAITLIST_FROM ?? "Legibly waitlist <onboarding@resend.dev>",
+      to: site.email,
+      replyTo: email,
+      subject: `Legibly waitlist: ${email}`,
+      text: `New waitlist signup: ${email}${stored ? "" : "\n\nNOT STORED — this address exists only in this email."}`,
+    });
+    notified = !error;
+    if (error) console.error("waitlist: notification email failed", error);
+  } catch (err) {
+    console.error("waitlist: notification email threw", err);
+  }
+
+  if (!stored && !notified) {
     return NextResponse.json(
       { error: "Could not save your signup. Please try again." },
       { status: 502 },

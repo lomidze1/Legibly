@@ -1,5 +1,8 @@
+/*
+ * The container stays at --maxw so this page shares the left axis with the
+ * nav and footer; the measure is capped on the content instead.
+ */
 .page {
-  max-width: 720px;
   padding-block: clamp(48px, 8vw, 96px);
 }
 
@@ -16,8 +19,17 @@
 .page h2 {
   font-size: 1.375rem;
   margin: 36px 0 12px;
+  max-width: var(--measure-body);
 }
 
-.page p {
+.page p,
+.page li {
   color: var(--text-muted);
+  max-width: var(--measure-body);
+}
+
+.page ul {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0 20px;
 }

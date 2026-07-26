@@ -1,6 +1,7 @@
 import { Container } from "@/components/Container";
 import { FixDemo } from "@/components/FixDemo";
 import { JsonLd } from "@/components/JsonLd";
+import { RevealOnView } from "@/components/RevealOnView";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { softwareApplicationSchema } from "@/lib/schema";
 import styles from "./page.module.css";
@@ -32,17 +33,20 @@ function Hero() {
             Coming soon to Figma Community
           </p>
           <h1 className="reveal" style={{ "--d": "60ms" } as React.CSSProperties}>
-            Accessibility <span className={styles.nowrap}>auto-fix</span> for
-            Figma
+            Checkers tell you. Legibly fixes it.
           </h1>
           <p
             className={`${styles.heroSub} reveal`}
             style={{ "--d": "120ms" } as React.CSSProperties}
           >
-            Scan any selection against WCAG 2.2 AA and fix violations in one
-            click, with your own design tokens.
+            Accessibility auto-fix for Figma. Scan any selection against WCAG
+            2.2 AA, then repair every violation in one click with your own
+            design tokens.
           </p>
-          <div className="reveal" style={{ "--d": "180ms" } as React.CSSProperties}>
+          <div
+            className={`${styles.heroFormWrap} reveal`}
+            style={{ "--d": "180ms" } as React.CSSProperties}
+          >
             <WaitlistForm />
           </div>
         </div>
@@ -91,14 +95,22 @@ function HowItWorks() {
     <section id="how-it-works" className={styles.section}>
       <Container>
         <h2 className={styles.sectionTitle}>Scan. Fix. Verify.</h2>
-        <ol className={styles.steps}>
-          {steps.map((step) => (
-            <li key={step.name} className={styles.step}>
+        <RevealOnView
+          as="ol"
+          className={styles.steps}
+          activeClass={styles.stepsSeen}
+        >
+          {steps.map((step, i) => (
+            <li
+              key={step.name}
+              className={`${styles.step} ${styles.stepReveal}`}
+              style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
+            >
               <h3>{step.name}</h3>
               <p>{step.body}</p>
             </li>
           ))}
-        </ol>
+        </RevealOnView>
       </Container>
     </section>
   );
@@ -149,7 +161,7 @@ function WhyLegibly() {
   return (
     <section className={styles.section}>
       <Container>
-        <h2 className={styles.sectionTitle}>Checkers tell you. Legibly fixes it.</h2>
+        <h2 className={styles.sectionTitle}>Flagging is the easy half</h2>
         <div className={styles.compare}>
           <div className={styles.compareThem}>
             <h3>A typical checker</h3>
@@ -360,7 +372,7 @@ const faqs = [
 function Faq() {
   return (
     <section id="faq" className={styles.section}>
-      <Container className={styles.faqContainer}>
+      <Container>
         <h2 className={styles.sectionTitle}>Questions, answered</h2>
         <div className={styles.faqList}>
           {faqs.map((faq) => (

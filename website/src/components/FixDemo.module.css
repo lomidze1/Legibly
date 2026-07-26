@@ -8,27 +8,27 @@
   box-shadow: 0 12px 32px rgba(25, 28, 32, 0.06);
 }
 
+/* Once the hero stacks, the card would stretch the full column width. */
+@media (max-width: 860px) {
+  .frame {
+    max-width: 460px;
+  }
+}
+
 .frameLabel {
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   color: var(--text-muted);
 }
 
+/* Painted, not laid out — see the note in FixDemo.tsx. Scales like a screenshot. */
 .canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 420 / 150;
   border-radius: 10px;
-  padding: 22px;
-  display: grid;
-  gap: 8px;
-}
-
-.cardTitle {
-  font-weight: 700;
-  color: #191c20;
-}
-
-.cardBody {
-  transition: color 0.35s ease;
-  max-width: 34ch;
+  background: #f1f1ee;
 }
 
 .readout {
@@ -44,6 +44,10 @@
   justify-self: start;
   padding: 6px 12px;
   border-radius: 8px;
+  /* Cross-fade at the real 4.5:1 crossing, which the tween drives. */
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .fail {
@@ -66,30 +70,32 @@
   font-size: 0.9375rem;
 }
 
+/*
+ * Secondary on purpose. Filled in --accent this out-weighed the page's actual
+ * conversion button (393px vs 177px, identical blue), so the least important
+ * click on the screen was the most prominent. The border is accent at 60% so
+ * the control boundary still clears 3:1 (SC 1.4.11).
+ */
 .action {
   font: inherit;
   font-weight: 700;
   padding: 12px 22px;
   border-radius: var(--radius);
-  border: none;
-  background: var(--accent);
-  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  background: transparent;
+  color: var(--accent);
   cursor: pointer;
   transition:
     background-color 0.15s ease,
+    border-color 0.15s ease,
     transform 0.1s ease;
 }
 
 .action:hover {
-  background: var(--accent-hover);
+  background: var(--accent-tint);
+  border-color: var(--accent);
 }
 
 .action:active {
   transform: translateY(1px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cardBody {
-    transition: none;
-  }
 }

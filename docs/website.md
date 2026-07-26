@@ -95,3 +95,18 @@
 - **გვერდები:** `/` (10 სექცია), `/privacy`, SEO (sitemap, robots, JSON-LD SoftwareApplication, OG image)
 
 **User actions (pending):** Vercel deploy + `RESEND_API_KEY` env; `legibly.app` domain-ის ყიდვა (Track F); Figma Community URL launch-ისას; რეალური demo GIF.
+
+---
+
+## 8. Design critique pass (2026-07-26)
+
+სრული design review — [`docs/research/website-design-critique.md`](./research/website-design-critique.md) (26 finding, 8 განზომილება). გასწორდა 23; მთავარი ცვლილებები:
+
+- **Waitlist ინახავს** — `/api/waitlist` ჯერ Resend audience-ში წერს (`RESEND_AUDIENCE_ID`), მერე აგზავნის შეტყობინებას; email-ის ჩავარდნა აღარ კარგავს lead-ს
+- **Hero გადაკეთდა conversion unit-ად** — H1 = "Checkers tell you. Legibly fixes it."; ფორმა 460px inline; demo-ს ღილაკი secondary-ზე ჩამოვიდა
+- **FixDemo-ს "before" ნიმუში `<canvas>`-ია** — განზრახ 2.4:1 ტექსტი აღარ არის live DOM text, ე.ი. axe/Lighthouse აღარ ხედავს SC 1.4.3 დარღვევას compliance-პროდუქტის hero-ზე; მათემატიკა კვლავ ცოცხალია, fix კი choreographed (ratio ითვლის, verdict chip რეალურ 4.5:1 გადაკვეთაზე ტრიალდება)
+- **Reflow (SC 1.4.10)** — 305 CSS px-ზე ჰორიზონტალური სქროლი გაქრა
+- **Measure ტოკენები** — `--measure-narrow/body/wide`; `ch` აღარ გამოიყენება (Atkinson-ში `1ch` = 11.02px vs საშუალო სიმბოლო 7.25px, ე.ი. `64ch` → 95 სიმბოლო). ახლა ყველა ბლოკი 48–72 სიმბოლოშია
+- **Verdict ფერები semantic-only** — pricing checkmarks და beta banner accent-ზე გადავიდა (§7-ის წესი)
+
+**გადაუწყვეტელი (user decision):** dark mode (brand identity-ს ცვლის — §7 "ღია, მაღალკონტრასტული"); OG card-ის ტიპოგრაფია (Atkinson woff/ttf binary სჭირდება Satori-სთვის); privacy §Contact-ში controller-ის იურიდიული მისამართი (GDPR Art. 13(1)(a) — კოდში TODO).
