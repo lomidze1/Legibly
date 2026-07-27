@@ -1,5 +1,8 @@
+<!-- The ground, a hairline edge, and the L in accent-700 (6.0:1) — the
+     accent itself would be 3.0:1, too thin a mark to read at 16px. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 22 22">
-  <rect width="22" height="22" rx="5" fill="#1e40af"/>
-  <rect x="6" y="4" width="4" height="13" rx="1.5" fill="#ffffff"/>
-  <rect x="6" y="13" width="11" height="4" rx="1.5" fill="#ffffff"/>
+  <rect width="22" height="22" rx="2" fill="#f3f2f2"/>
+  <rect x="0.5" y="0.5" width="21" height="21" rx="2" fill="none" stroke="#b68235"/>
+  <rect x="6" y="4" width="4" height="13" rx="1" fill="#7d5411"/>
+  <rect x="6" y="13" width="11" height="4" rx="1" fill="#7d5411"/>
 </svg>

@@ -1,45 +1,36 @@
+/* Classical `.btn.btn-primary`: an accent outline, never a fill. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 22px;
-  border-radius: var(--radius);
-  border: 1px solid transparent;
-  font: inherit;
-  font-weight: 700;
+  gap: 6px;
+  min-height: var(--control-h);
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.2;
+  /* Explicit override of the system default, which paints the label
+     --color-accent (3.0:1 — failing at this size). Keep it. */
+  color: var(--color-accent-700);
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.1s ease;
+}
+
+.button:hover {
+  color: var(--color-accent-700);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .button:active {
-  transform: translateY(1px);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 .button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.primary {
-  background: var(--accent);
-  color: #fff;
-}
-
-.primary:hover {
-  background: var(--accent-hover);
-}
-
-.ghost {
-  background: transparent;
-  color: var(--accent);
-  border-color: var(--border);
-}
-
-.ghost:hover {
-  border-color: var(--accent);
+  opacity: 0.45;
+  cursor: not-allowed;
 }

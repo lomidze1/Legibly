@@ -26,24 +26,31 @@ export function formatRatio(ratio: number): string {
 }
 
 /**
- * Brand tokens. globals.css mirrors these values; the unit test audits
- * every pair used on the site. Change a color here and in globals.css
+ * Brand tokens ("Classical"). globals.css mirrors these values; the unit test
+ * audits every pair used on the site. Change a color here and in globals.css
  * together, and the test tells you if the site stopped passing.
  */
 export const tokens = {
-  bg: "#fcfcfc",
-  surface: "#ffffff",
-  tint: "#f2f3f1",
-  text: "#191c20",
-  textMuted: "#4b5158",
-  accent: "#1e40af",
-  accentHover: "#1d4ed8",
-  accentTint: "#eef2fd",
-  fail: "#b42318",
-  failTint: "#fdf1f0",
-  review: "#92400e",
-  reviewTint: "#fdf3e7",
-  pass: "#166534",
-  passTint: "#eefaf1",
-  onAccent: "#ffffff",
+  bg: "#f3f2f2",
+  /** The failing specimen card in the hero panel, and nothing else. */
+  surface: "#eae9e9",
+  /** The hero panel ground. */
+  neutral100: "#f8f4f4",
+  text: "#201f1d",
+  /** Body paragraphs. */
+  neutral800: "#444141",
+  /** Small and secondary text. */
+  neutral700: "#605d5d",
+  /** Retired during design review — 3.85:1. Banned for text; see the test. */
+  neutral600: "#7d7979",
+  /** The intentionally-failing specimen text. Never used for real copy. */
+  neutral500: "#9b9797",
+  /** Rules, borders, focus ring, and text at 24px and above. */
+  accent: "#b68235",
+  /** All accent-colored text below 24px. */
+  accent700: "#7d5411",
+  /** Link hover. The system's own accent-600 (#a06f24) is only 3.9:1. */
+  accent800: "#5a3b0a",
+  /** The 6% accent tint on the "Legibly" comparison card, over --color-bg. */
+  accentTint: "#efebe7",
 } as const;

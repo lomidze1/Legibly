@@ -1,527 +1,583 @@
+/*
+ * The landing page, in the Classical system. Structure is carried by hairline
+ * rules inside the content column; color appears as stroke, never as fill.
+ * The one exception is the "Legibly" comparison card, which takes a 6% accent
+ * tint — the single largest field of accent on the page.
+ */
+
+.rule {
+  height: 1px;
+  border: 0;
+  background: var(--color-divider);
+}
+
+.section {
+  padding: var(--section-y) 0;
+}
+
+/* Two-column editorial split: heading left, argument right. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  gap: 24px 72px;
+  padding: var(--section-y) 0;
+}
+
+.splitStakes {
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+}
+
+/* ---------- Type roles ---------- */
+
+/* Cormorant's side bearings leave the column edge ragged without this. */
+.h1,
+.h2,
+.h2Tight,
+.h2Flush,
+.h2Large,
+.h2Closing {
+  font-family: var(--font-heading);
+  /* The larger the type, the lighter it sets: display sizes take the 400 cut. */
+  font-weight: 400;
+  margin-left: -0.042em;
+}
+
+.h1 {
+  font-size: clamp(46px, 5.6vw, 82px);
+  line-height: 1.06;
+  letter-spacing: -0.012em;
+}
+
+.h1 span {
+  display: block;
+}
+
+.h2,
+.h2Tight,
+.h2Flush {
+  font-size: clamp(30px, 3.2vw, 42px);
+  line-height: 1.12;
+}
+
+.h2 {
+  margin-bottom: 36px;
+}
+
+.h2Tight {
+  margin-bottom: 12px;
+}
+
+.h2Large {
+  font-size: clamp(32px, 3.6vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -0.008em;
+}
+
+.h2Closing {
+  font-size: clamp(34px, 4vw, 54px);
+  line-height: 1.08;
+  margin-bottom: 18px;
+}
+
+.kicker {
+  display: block;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Justified at a comfortable measure, hyphenated — the house rule. */
+.justified {
+  font-size: 15.5px;
+  line-height: 27px;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--color-neutral-800);
+}
+
 /* ---------- Hero ---------- */
 
 .hero {
-  padding-block: clamp(48px, 8vw, 96px);
-}
-
-.heroGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: clamp(32px, 6vw, 72px);
-  align-items: center;
+  grid-template-columns: minmax(0, 6.5fr) minmax(0, 5fr);
+  gap: 56px;
+  align-items: start;
+  padding: 84px 0 70px;
 }
 
-.heroCopy {
-  display: grid;
-  gap: 20px;
-  justify-items: start;
+.hero .kicker {
+  margin-bottom: 22px;
 }
 
-.heroCopy h1 {
-  font-size: clamp(2.25rem, 5.5vw, 3.5rem);
-  max-width: 15ch;
+.heroLead {
+  margin-top: 34px;
+  max-width: 52ch;
+  font-size: 17px;
+  line-height: 28px;
+  color: var(--color-neutral-800);
 }
 
-/* The form is the conversion unit; it must not shrink-to-fit like the badge. */
-.heroFormWrap {
-  justify-self: stretch;
+.heroForm {
+  margin-top: 32px;
 }
 
-.heroBadge {
-  font-weight: 700;
-  font-size: 0.9375rem;
-  color: var(--accent);
-  background: var(--accent-tint);
-  padding: 6px 14px;
-  border-radius: 999px;
+.heroNote {
+  margin-top: 14px;
+  font-size: 13px;
+  line-height: 22px;
+  color: var(--color-neutral-700);
 }
 
-.heroSub {
-  font-size: 1.1875rem;
-  color: var(--text-muted);
-  max-width: var(--measure-narrow);
-}
+/* ---------- Stakes ---------- */
 
-/* ---------- Shared section scaffolding ---------- */
-
-.section {
-  padding-block: var(--section-y);
-}
-
-.band {
-  background: var(--tint);
-  border-block: 1px solid var(--border);
-}
-
-.sectionTitle {
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
-  margin-bottom: 16px;
-}
-
-.sectionLead {
-  color: var(--text-muted);
-  max-width: var(--measure-body);
-  margin-bottom: 40px;
-}
-
-/* ---------- Problem ---------- */
-
-.problem {
-  padding-block: var(--section-y);
-  border-top: 1px solid var(--border);
-}
-
-.problemTitle {
-  font-size: clamp(1.9rem, 4.5vw, 3rem);
-  max-width: 20ch;
-  margin-bottom: 20px;
-}
-
-.problemBody {
-  font-size: 1.1875rem;
-  color: var(--text-muted);
-  max-width: var(--measure-body);
+.stakesBody {
+  max-width: 56ch;
+  font-size: 16.5px;
+  line-height: 28px;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--color-neutral-800);
 }
 
 /* ---------- How it works ---------- */
 
 .steps {
-  list-style: none;
   display: grid;
-  gap: 0;
-  max-width: 640px;
-  margin-top: 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  list-style: none;
+  margin-top: 10px;
 }
 
 .step {
-  position: relative;
-  padding: 28px 0 28px 36px;
-  border-left: 3px solid var(--accent);
-}
-
-.step::before {
-  content: "";
-  position: absolute;
-  left: -8px;
-  top: 36px;
-  width: 13px;
-  height: 13px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.step h3 {
-  font-size: 1.25rem;
-  margin-bottom: 8px;
-}
-
-.step p {
-  color: var(--text-muted);
-  max-width: var(--measure-narrow);
-}
-
-/*
- * Motion moment 2: the rail is a sequence, so it reveals in order. One-shot,
- * driven by IntersectionObserver in page.tsx; the global reduced-motion block
- * in globals.css already neutralises it.
- */
-@keyframes step-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/*
- * Additive, never subtractive: the hidden state lives in the keyframe's `from`,
- * not in a base rule. If the observer never runs — no JS, a crawler, a
- * full-page screenshot, a browser without IntersectionObserver — the steps are
- * simply visible and unanimated. Content on this site does not get to depend
- * on a script to be perceivable.
- */
-.stepsSeen .stepReveal {
-  animation: step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--d, 0ms);
-}
-
-/* ---------- Verdicts ---------- */
-
-.verdictList {
-  display: grid;
-  gap: 20px;
-  max-width: 760px;
-}
-
-.verdictRow {
-  display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
-  gap: 20px;
-  align-items: start;
+  /* Accent rule: the three steps are the page's spine. */
+  border-top: 1px solid var(--color-accent);
   padding-top: 20px;
-  border-top: 1px solid var(--border);
 }
 
-.verdictRow dd {
-  color: var(--text-muted);
-  max-width: var(--measure-body);
+.index {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  letter-spacing: 0.12em;
+  color: var(--color-accent-700);
+  font-feature-settings: "tnum" 1;
 }
 
-.verdictChip {
-  display: inline-block;
-  font-weight: 700;
-  font-size: 0.9375rem;
-  padding: 6px 12px;
-  border-radius: 8px;
-  white-space: nowrap;
+.stepName {
+  margin-bottom: 10px;
+  font-size: 25px;
+  line-height: 28px;
 }
 
-.verdictFail {
-  color: var(--fail);
-  background: var(--fail-tint);
+/* ---------- Three verdicts ---------- */
+
+.splitLead {
+  max-width: 34ch;
+  font-size: 15.5px;
+  line-height: 27px;
+  color: var(--color-neutral-700);
 }
 
-.verdictReview {
-  color: var(--review);
-  background: var(--review-tint);
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15.5px;
 }
 
-.verdictNeutral {
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--border);
+.table th {
+  width: 34%;
+  padding: 18px 20px 18px 0;
+  border-top: 1px solid var(--color-divider);
+  text-align: left;
+  vertical-align: top;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 20px;
 }
 
-/* ---------- Why Legibly ---------- */
+.table td {
+  padding: 18px 0;
+  border-top: 1px solid var(--color-divider);
+  vertical-align: top;
+  line-height: 27px;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--color-neutral-800);
+}
+
+.table tr:last-child th,
+.table tr:last-child td {
+  border-bottom: 1px solid var(--color-divider);
+}
+
+/* ---------- Comparison ---------- */
 
 .compare {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
-  gap: 20px;
-  margin-top: 40px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
 }
 
 .compareThem,
 .compareUs {
-  border-radius: var(--radius);
-  padding: 28px;
-  display: grid;
-  gap: 10px;
-  align-content: start;
-}
-
-.compareThem {
-  background: var(--tint);
-  border: 1px solid var(--border);
-}
-
-.compareThem p,
-.compareUs p {
-  color: var(--text-muted);
-  max-width: var(--measure-body);
+  padding: 28px 30px 30px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: transparent;
 }
 
 .compareUs {
-  background: var(--accent-tint);
-  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-color: var(--color-accent);
+  background: var(--color-accent-tint);
 }
 
-.compareUs h3 {
-  color: var(--accent);
+.cardKicker {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
 }
 
-/* ---------- Features bento ---------- */
+.cardKickerAccent {
+  color: var(--color-accent-700);
+}
 
-.bento {
+/* ---------- Nine checks ---------- */
+
+.checksLead {
+  margin-bottom: 34px;
+  max-width: 54ch;
+  font-size: 16.5px;
+  line-height: 28px;
+  color: var(--color-neutral-800);
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 72px;
   list-style: none;
+}
+
+.check,
+.checkPlus {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 16px;
-  margin-top: 40px;
+  grid-template-columns: auto 1fr;
+  gap: 2px 20px;
+  border-top: 1px solid var(--color-divider);
 }
 
-.cell {
-  grid-column: span 2;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  display: grid;
-  gap: 8px;
-  align-content: start;
+.check {
+  padding: 18px 0;
 }
 
-.cellWide {
-  grid-column: span 6;
+/* 01 is the flagship check, so its rule is accent rather than divider. */
+.checkFlagship {
+  border-top-color: var(--color-accent);
 }
 
-.cellTinted {
-  background: var(--accent-tint);
-  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+.checkLast {
+  border-bottom: 1px solid var(--color-divider);
 }
 
-.cellSc {
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  color: var(--accent);
-  font-weight: 700;
+.checkIndex {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-accent-700);
+  font-feature-settings: "tnum" 1;
 }
 
-.cell h3 {
-  font-size: 1.1875rem;
+.checkName {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  font-size: 23px;
+  line-height: 26px;
 }
 
-.cell p:last-child {
-  color: var(--text-muted);
+.checkSc {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--color-neutral-700);
+  font-feature-settings: "tnum" 1;
 }
 
-/* Without this the two full-width cells run to 131 characters per line. */
-.cellWide p:last-child {
-  max-width: var(--measure-wide);
+.checkBody {
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
+}
+
+.checkPlus {
+  grid-column: 1 / -1;
+  padding-top: 22px;
+}
+
+.checkPlus p {
+  max-width: 68ch;
+  font-size: 15.5px;
+  line-height: 27px;
+  color: var(--color-neutral-800);
 }
 
 .roadmap {
-  margin-top: 28px;
-  color: var(--text-muted);
-  max-width: var(--measure-body);
+  margin-top: 26px;
+  font-size: 14px;
+  line-height: 25px;
+  color: var(--color-neutral-700);
 }
 
 /* ---------- Pricing ---------- */
 
-/*
- * Accent, not --pass. Verdict colors are semantic-state-only (docs/website.md
- * §7); a marketing banner is not a passing check. Accent on accent-tint also
- * measures 7.79:1, so this sentence-length text now clears the AAA floor the
- * brand claims for body copy — --pass on --pass-tint was 6.65:1.
- */
-.betaBanner {
-  font-weight: 700;
-  background: var(--accent-tint);
-  color: var(--accent);
-  padding: 14px 18px;
-  border-radius: var(--radius);
-  margin-bottom: 36px;
-  max-width: var(--measure-body);
+.pricingHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 34px;
+}
+
+.betaNote {
+  max-width: 46ch;
+  padding-left: 16px;
+  border-left: 1px solid var(--color-accent);
+  font-size: 14.5px;
+  line-height: 25px;
+  color: var(--color-accent-700);
 }
 
 .tiers {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
-  align-items: stretch;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
 }
 
 .tier {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 28px;
-  display: grid;
-  gap: 16px;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 30px 30px 34px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
 }
 
 .tierFeatured {
-  border-color: var(--accent);
-  border-width: 2px;
-  box-shadow: 0 12px 32px rgba(30, 64, 175, 0.1);
+  border-color: var(--color-accent);
+}
+
+.tierName {
+  margin-bottom: 8px;
+  font-size: 22px;
 }
 
 .tierPrice {
-  font-size: 2.25rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-/* Own line: "per seat, per / month" was orphaning "month" at tablet widths. */
-.tierPrice span {
-  display: block;
-  margin-top: 6px;
-  font-size: 1rem;
+  font-family: var(--font-heading);
   font-weight: 400;
-  color: var(--text-muted);
+  font-size: 46px;
+  line-height: 1;
+  font-feature-settings: "tnum" 1;
 }
 
-.tier ul {
+/* 46px, so the accent's 3.0:1 is legal here. */
+.tierPriceAccent {
+  color: var(--color-accent);
+}
+
+.tierCadence {
+  margin-top: 10px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+.tierRule {
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.tierItems {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   list-style: none;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
+}
+
+.recommended {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-accent);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+
+/* ---------- Built to be trusted ---------- */
+
+.trust {
   display: grid;
-  gap: 10px;
-  color: var(--text-muted);
-}
-
-.tier li {
-  padding-left: 22px;
-  position: relative;
-}
-
-.tier li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.5em;
-  width: 12px;
-  height: 7px;
-  /* Accent, not --pass: these are feature markers, not passing verdicts. */
-  border-left: 2.5px solid var(--accent);
-  border-bottom: 2.5px solid var(--accent);
-  transform: rotate(-45deg);
-}
-
-/* ---------- Trust ---------- */
-
-.trustGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 40px;
-  margin-top: 40px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 56px;
 }
 
 .trustItem {
-  display: grid;
-  gap: 10px;
-  align-content: start;
+  border-top: 1px solid var(--color-accent);
   padding-top: 20px;
-  border-top: 3px solid var(--accent);
 }
 
-.trustItem p {
-  color: var(--text-muted);
+.trustItem .justified {
+  font-size: 15px;
+}
+
+.trustName {
+  margin-bottom: 10px;
+  font-size: 21px;
+  line-height: 28px;
 }
 
 /* ---------- FAQ ---------- */
 
 /*
- * The cap belongs on the list, not the container: capping the container made
- * it centre itself, so this heading started 160px right of the other eight.
+ * Native <details>/<summary>: keyboard and screen-reader behaviour comes
+ * free. Only the chevron rotation is custom.
  */
-.faqList {
-  display: grid;
-  margin-top: 24px;
-  max-width: 800px;
-}
-
-.faqItem {
-  border-bottom: 1px solid var(--border);
-}
-
-.faqItem summary {
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 1.125rem;
-  padding: 20px 8px;
-  border-radius: 6px;
+.faqSummary {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 20px;
+  padding: 18px 0;
+  border-top: 1px solid var(--color-divider);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 21px;
   list-style: none;
+  cursor: pointer;
 }
 
-/* Replace the UA triangle with a chevron that belongs to the brand. */
-.faqItem summary::-webkit-details-marker {
+.faqSummary::-webkit-details-marker {
   display: none;
 }
 
-.faqItem summary::after {
-  content: "";
-  flex: none;
-  width: 9px;
-  height: 9px;
-  border-right: 2.5px solid var(--accent);
-  border-bottom: 2.5px solid var(--accent);
-  transform: translateY(-2px) rotate(45deg);
-  transition: transform 0.2s ease;
+.faqSummary:hover {
+  color: var(--color-accent-700);
 }
 
-.faqItem[open] summary::after {
-  transform: translateY(2px) rotate(225deg);
+.faqLast .faqSummary {
+  border-bottom: 1px solid var(--color-divider);
 }
 
-.faqItem summary:hover {
-  color: var(--accent);
+.chev {
+  font-size: 14px;
+  color: var(--color-accent);
+  transition: transform 160ms ease;
 }
 
-.faqItem p {
-  color: var(--text-muted);
-  padding: 0 8px 24px;
-  max-width: var(--measure-body);
+.faqItem[open] .chev {
+  transform: rotate(180deg);
 }
 
-/* ---------- Final CTA ---------- */
-
-.finalCta {
-  padding-block: var(--section-y);
-  background: var(--accent-tint);
-  border-top: 1px solid var(--border);
+.faqAnswer {
+  margin-bottom: 20px;
+  max-width: 62ch;
+  font-size: 15.5px;
+  line-height: 27px;
+  text-align: justify;
+  hyphens: auto;
+  color: var(--color-neutral-800);
 }
 
-.finalCtaInner {
-  display: grid;
-  gap: 16px;
-  justify-items: start;
+.faqLast .faqAnswer {
+  margin-top: 20px;
 }
 
-.finalCta h2 {
-  font-size: clamp(1.9rem, 4vw, 2.75rem);
+/* ---------- Closing ---------- */
+
+.closing {
+  padding: var(--section-y) 0 84px;
 }
 
-.finalCta p {
-  color: var(--text-muted);
-  max-width: var(--measure-narrow);
+.closingLead {
+  max-width: 54ch;
+  font-size: 16.5px;
+  line-height: 28px;
+  color: var(--color-neutral-800);
 }
 
-/* ---------- Responsive ---------- */
+.closingForm {
+  margin-top: 28px;
+}
 
-/*
- * 861-1120px used to be the weakest zone on the page: three tiers cramped
- * enough to orphan "month", and the bento still at six columns.
+/* ---------- Responsive ----------
+ * The prototype was desktop-only at 1180px; this is the collapse the handoff
+ * specifies. Type already uses clamp(), so headings scale on their own.
  */
-@media (max-width: 1024px) {
-  .tiers {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+@media (max-width: 900px) {
+  .hero,
+  .split,
+  .splitStakes {
+    grid-template-columns: 1fr;
   }
 
-  .bento {
-    grid-template-columns: repeat(4, 1fr);
+  .hero {
+    gap: 44px;
+    padding: 56px 0 48px;
   }
-}
 
-@media (max-width: 860px) {
-  .heroGrid,
+  .split,
+  .splitStakes {
+    gap: 20px;
+  }
+
+  .steps,
+  .checks,
   .compare,
-  .trustGrid {
+  .tiers,
+  .trust {
     grid-template-columns: 1fr;
   }
 
-  .bento {
-    grid-template-columns: 1fr 1fr;
+  .steps,
+  .trust {
+    gap: 28px;
   }
 
-  .cell {
-    grid-column: span 1;
+  /* The recommended plan leads once the cards stack. */
+  .tierFeatured {
+    order: -1;
   }
 
-  .cellWide {
-    grid-column: span 2;
-  }
-
-  .verdictRow {
-    grid-template-columns: 1fr;
-    gap: 10px;
+  .closing {
+    padding-bottom: 56px;
   }
 }
 
-@media (max-width: 620px) {
-  .tiers,
-  .bento {
-    grid-template-columns: 1fr;
+@media (max-width: 600px) {
+  .table th {
+    width: 38%;
+    padding-right: 16px;
   }
 
-  .cell,
-  .cellWide {
-    grid-column: span 1;
+  .compareThem,
+  .compareUs,
+  .tier {
+    padding: 24px 22px 26px;
   }
 }

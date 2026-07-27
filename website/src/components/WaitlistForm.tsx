@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { Button } from "./Button";
 import styles from "./WaitlistForm.module.css";
 
 type Status = "idle" | "sending" | "ok" | "error";
@@ -96,13 +97,9 @@ export function WaitlistForm() {
           aria-invalid={status === "error" || undefined}
           aria-describedby={status === "error" ? errorId : undefined}
         />
-        <button
-          className={styles.submit}
-          type="submit"
-          disabled={status === "sending"}
-        >
+        <Button type="submit" disabled={status === "sending"}>
           {status === "sending" ? "Joining…" : "Get early access"}
-        </button>
+        </Button>
       </div>
       {/* Honeypot: hidden from real users, bots fill it. */}
       <input

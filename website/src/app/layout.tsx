@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
-import { Atkinson_Hyperlegible } from "next/font/google";
+import { Cormorant_Garamond, Lora } from "next/font/google";
 import { SiteNav } from "@/components/SiteNav";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SITE_URL } from "@/lib/schema";
 import { site } from "@/data/site";
 import "./globals.css";
 
-// One family for everything. Atkinson Hyperlegible was designed by the
-// Braille Institute for maximum legibility — for this brand, the typeface
-// is the argument.
-const sans = Atkinson_Hyperlegible({
-  variable: "--font-sans-src",
+// Classical: Cormorant Garamond headings over Lora body. Self-hosted through
+// next/font — no Google Fonts CDN request at runtime.
+const heading = Cormorant_Garamond({
+  variable: "--font-heading-src",
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const body = Lora({
+  variable: "--font-body-src",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  style: ["normal", "italic"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +58,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={sans.variable}>
+    <html lang="en" className={`${heading.variable} ${body.variable}`}>
       <body>
         <a href="#main-content" className="skip-link">
           Skip to content

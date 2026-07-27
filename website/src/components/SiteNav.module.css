@@ -1,78 +1,101 @@
 .header {
   position: sticky;
   top: 0;
-  z-index: 50;
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border);
+  z-index: 20;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-divider);
 }
 
+/*
+ * Full-bleed bar, contents aligned to the 1180px content column — so the
+ * hairline runs edge to edge while the brand sits on the same axis as the
+ * page's left margin.
+ */
 .nav {
-  max-width: var(--maxw);
-  margin-inline: auto;
-  padding: 0 var(--gutter);
-  height: 64px;
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: var(--space-6);
+  padding: 14px max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
 }
 
 .home {
   margin-right: auto;
+  font-size: 24px;
+  text-decoration: none;
 }
 
 .list {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-6);
   list-style: none;
 }
 
 .link {
-  font-weight: 400;
-  color: var(--text-muted);
-  transition: color 0.15s ease;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .link:hover {
-  color: var(--text);
+  color: var(--color-accent-700);
 }
 
+/* Classical `.btn.btn-primary`, at the nav's 14px. */
 .cta {
-  padding: 9px 16px;
-  border-radius: 10px;
-  background: var(--accent);
-  color: #fff;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h);
+  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-accent-700);
+  text-decoration: none;
   white-space: nowrap;
-  transition: background-color 0.15s ease;
 }
 
 .cta:hover {
-  background: var(--accent-hover);
-}
-
-/* Mobile: keep wordmark + CTA; anchor links hide (all sections are on one page). */
-@media (max-width: 720px) {
-  .list {
-    display: none;
-  }
+  color: var(--color-accent-700);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 /*
- * Reflow (SC 1.4.10). The CTA is `white-space: nowrap` inside a flex row that
- * cannot shrink it, so below ~360px it pushed past the gutter and produced
- * horizontal scroll at 305 CSS px — what Windows Chrome gives you at
- * 1280 x 400% zoom. Tighten the row instead of letting the page scroll.
+ * Five items do not fit a phone. Rather than hide navigation behind a
+ * disclosure widget, the bar wraps: brand and CTA hold the first row, the
+ * section links fall to a second. Nothing becomes unreachable.
  */
-@media (max-width: 420px) {
+@media (max-width: 880px) {
   .nav {
-    gap: 12px;
-    padding-inline: 16px;
+    flex-wrap: wrap;
+    row-gap: 10px;
+    column-gap: var(--space-4);
+  }
+  .home {
+    order: 1;
+  }
+  .cta {
+    order: 2;
+  }
+  .list {
+    order: 3;
+    flex-wrap: wrap;
+    width: 100%;
+    column-gap: var(--space-4);
+    row-gap: 8px;
   }
 
-  .cta {
-    padding: 9px 12px;
-    font-size: 0.9375rem;
+  /*
+   * Once the links can stack, their 18px text boxes sit close enough that
+   * check 03's spacing exception would stop covering them. 24px tall plus an
+   * 8px gap puts 32px between centres, clear of the 24px circles.
+   */
+  .link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
   }
 }

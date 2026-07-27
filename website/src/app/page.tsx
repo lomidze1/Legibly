@@ -1,76 +1,92 @@
 import { Container } from "@/components/Container";
-import { FixDemo } from "@/components/FixDemo";
 import { JsonLd } from "@/components/JsonLd";
-import { RevealOnView } from "@/components/RevealOnView";
+import { SpecimenPanel } from "@/components/SpecimenPanel";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { softwareApplicationSchema } from "@/lib/schema";
 import styles from "./page.module.css";
+
+/**
+ * The two knobs the design exposes, so the page can be tuned without editing
+ * markup. Hard-coded here; lift them to config if a CMS ever appears.
+ */
+const RECOMMENDED_PLAN: (typeof tiers)[number]["name"] = "Pro";
+const SHOW_TRUST_SECTION = true;
 
 export default function Home() {
   return (
     <main>
       <JsonLd data={softwareApplicationSchema()} />
-      <Hero />
-      <Problem />
-      <HowItWorks />
-      <Verdicts />
-      <WhyLegibly />
-      <Features />
-      <Pricing />
-      <Trust />
-      <Faq />
-      <FinalCta />
+      <Container>
+        <Hero />
+        <Rule />
+        <Stakes />
+        <Rule />
+        <HowItWorks />
+        <Rule />
+        <Verdicts />
+        <Rule />
+        <Comparison />
+        <Rule />
+        <Checks />
+        <Rule />
+        <Pricing />
+        {SHOW_TRUST_SECTION && (
+          <>
+            <Rule />
+            <Trust />
+          </>
+        )}
+        <Rule />
+        <Faq />
+        <Rule />
+        <Closing />
+      </Container>
     </main>
   );
+}
+
+/** The hairline that carries the structure between sections. */
+function Rule() {
+  return <hr className={styles.rule} />;
 }
 
 function Hero() {
   return (
     <section className={styles.hero}>
-      <Container className={styles.heroGrid}>
-        <div className={styles.heroCopy}>
-          <p className={`${styles.heroBadge} reveal`}>
-            Coming soon to Figma Community
-          </p>
-          <h1 className="reveal" style={{ "--d": "60ms" } as React.CSSProperties}>
-            Checkers tell you. Legibly fixes it.
-          </h1>
-          <p
-            className={`${styles.heroSub} reveal`}
-            style={{ "--d": "120ms" } as React.CSSProperties}
-          >
-            Accessibility auto-fix for Figma. Scan any selection against WCAG
-            2.2 AA, then repair every violation in one click with your own
-            design tokens.
-          </p>
-          <div
-            className={`${styles.heroFormWrap} reveal`}
-            style={{ "--d": "180ms" } as React.CSSProperties}
-          >
-            <WaitlistForm />
-          </div>
+      <div>
+        <span className={styles.kicker}>Coming soon to Figma Community</span>
+        <h1 className={styles.h1}>
+          <span>Checkers tell you.</span>
+          <span>Legibly fixes it.</span>
+        </h1>
+        <p className={styles.heroLead}>
+          An accessibility auto-fix for Figma. Scan a selection or a whole page
+          against WCAG&nbsp;2.2 AA, then repair every violation in one click —
+          using your own design tokens, never invented color.
+        </p>
+        <div className={styles.heroForm}>
+          <WaitlistForm />
         </div>
-        <div className="reveal" style={{ "--d": "240ms" } as React.CSSProperties}>
-          <FixDemo />
-        </div>
-      </Container>
+        <p className={styles.heroNote}>
+          Private beta. No newsletter, no pricing surprises.
+        </p>
+      </div>
+      <SpecimenPanel />
     </section>
   );
 }
 
-function Problem() {
+function Stakes() {
   return (
-    <section className={styles.problem}>
-      <Container>
-        <h2 className={styles.problemTitle}>
-          Unreadable design is now a legal risk.
-        </h2>
-        <p className={styles.problemBody}>
-          The European Accessibility Act has applied since June 2025, and ADA
-          lawsuits keep climbing. The most common failure is contrast, and it
-          starts in the design file.
-        </p>
-      </Container>
+    <section className={`${styles.split} ${styles.splitStakes}`}>
+      <h2 className={styles.h2Large}>Unreadable design is now a legal risk.</h2>
+      <p className={styles.stakesBody}>
+        The European Accessibility Act has applied since June 2025, and ADA
+        lawsuits keep climbing. The most common failure in every audit is
+        contrast — and contrast is decided in the design file, months before an
+        engineer can be blamed for it. Legibly moves the fix back to where the
+        mistake was made.
+      </p>
     </section>
   );
 }
@@ -78,40 +94,32 @@ function Problem() {
 const steps = [
   {
     name: "Scan",
-    body: "Select frames or a whole page. Legibly resolves the real background behind every layer: fill stacks, opacity, gradients, overlapping siblings.",
+    body: "Select frames or a whole page. Legibly resolves the real background behind every layer — fill stacks, opacity, gradients, overlapping siblings.",
   },
   {
     name: "Fix",
-    body: "One click swaps failing values for passing colors from your own variables and styles. Nothing off-system is ever invented.",
+    body: "One click swaps every failing value for the nearest passing color in your own token set. Nothing off-system is ever invented, and one undo reverses it.",
   },
   {
     name: "Verify",
-    body: "The same function that flagged the violation re-checks the fix before it commits. If nothing can pass, it reverts and tells you.",
+    body: "The same function that flagged the violation re-checks the fix and reports the new ratio. If nothing can pass, it says so instead of guessing.",
   },
 ];
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className={styles.section}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Scan. Fix. Verify.</h2>
-        <RevealOnView
-          as="ol"
-          className={styles.steps}
-          activeClass={styles.stepsSeen}
-        >
-          {steps.map((step, i) => (
-            <li
-              key={step.name}
-              className={`${styles.step} ${styles.stepReveal}`}
-              style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-            >
-              <h3>{step.name}</h3>
-              <p>{step.body}</p>
-            </li>
-          ))}
-        </RevealOnView>
-      </Container>
+    <section id="how" className={styles.section}>
+      <span className={styles.kicker}>How it works</span>
+      <h2 className={styles.h2}>Scan. Fix. Verify.</h2>
+      <ol className={styles.steps}>
+        {steps.map((step, i) => (
+          <li key={step.name} className={styles.step}>
+            <span className={styles.index}>{`0${i + 1}`}</span>
+            <h3 className={styles.stepName}>{step.name}</h3>
+            <p className={styles.justified}>{step.body}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
@@ -119,128 +127,159 @@ function HowItWorks() {
 const verdicts = [
   {
     label: "Violation",
-    tone: styles.verdictFail,
-    body: "The math is certain, so a fix is offered. Contrast is arithmetic and target size is geometry; neither needs an opinion.",
+    body: "The math is certain, so a fix is offered. Contrast is arithmetic and target size is geometry — neither needs an opinion.",
   },
   {
     label: "Needs review",
-    tone: styles.verdictReview,
-    body: "Gradients, images, and blend modes that cannot be measured safely get flagged for a human instead of guessed at.",
+    body: "Gradients, images and blend modes that cannot be measured safely get flagged for a human instead of guessed at.",
   },
   {
     label: "Not checked",
-    tone: styles.verdictNeutral,
     body: "The report lists every criterion Legibly did not evaluate, so silence never reads as a pass.",
   },
 ];
 
 function Verdicts() {
   return (
-    <section className={`${styles.section} ${styles.band}`}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Three verdicts, no guessing</h2>
-        <p className={styles.sectionLead}>
-          Zero false positives is a design constraint, not a marketing line.
+    <section className={styles.split}>
+      <div>
+        <h2 className={styles.h2Tight}>Three verdicts, no guessing</h2>
+        <p className={styles.splitLead}>
+          Zero false positives is a design constraint here, not a marketing
+          line.
         </p>
-        <dl className={styles.verdictList}>
-          {verdicts.map((v) => (
-            <div key={v.label} className={styles.verdictRow}>
-              <dt>
-                <span className={`${styles.verdictChip} ${v.tone}`}>{v.label}</span>
-              </dt>
-              <dd>{v.body}</dd>
-            </div>
+      </div>
+      <table className={styles.table}>
+        <tbody>
+          {verdicts.map((verdict) => (
+            <tr key={verdict.label}>
+              <th scope="row">{verdict.label}</th>
+              <td>{verdict.body}</td>
+            </tr>
           ))}
-        </dl>
-      </Container>
+        </tbody>
+      </table>
     </section>
   );
 }
 
-function WhyLegibly() {
+function Comparison() {
   return (
     <section className={styles.section}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Flagging is the easy half</h2>
-        <div className={styles.compare}>
-          <div className={styles.compareThem}>
-            <h3>A typical checker</h3>
-            <p>
-              Flags dozens of issues, many of them false positives from
-              gradients and overlaps it cannot read. The fixing is still on
-              you, one layer at a time.
-            </p>
-          </div>
-          <div className={styles.compareUs}>
-            <h3>Legibly</h3>
-            <p>
-              Flags only what is provably wrong, fixes the whole page in one
-              click with your tokens, and re-verifies every change before it
-              lands. One Cmd-Z undoes it all.
-            </p>
-          </div>
+      <h2 className={styles.h2}>Flagging is the easy half</h2>
+      <div className={styles.compare}>
+        <div className={styles.compareThem}>
+          <span className={styles.cardKicker}>A typical checker</span>
+          <p className={styles.justified}>
+            Flags dozens of issues, many of them false positives from gradients
+            and overlaps it cannot read. The fixing is still on you, one layer
+            at a time.
+          </p>
         </div>
-      </Container>
+        <div className={styles.compareUs}>
+          <span className={`${styles.cardKicker} ${styles.cardKickerAccent}`}>
+            Legibly
+          </span>
+          <p className={styles.justified}>
+            Flags only what is provably wrong, then fixes the whole page in one
+            click with your tokens and re-verifies every change before it
+            lands. One Cmd-Z undoes it all.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }
 
 const checks = [
   {
-    sc: "SC 1.4.3",
     name: "Text contrast",
-    body: "Composites fill stacks, layer opacity, and overlapping layers to find the real background behind your text. Gradients are sampled across their whole range, where other checkers silently get it wrong.",
-    wide: true,
-    tinted: true,
+    sc: "SC 1.4.3",
+    body: "Measured against the background the text actually sits on — composited through fill stacks, opacity and gradients.",
   },
   {
-    sc: "SC 1.4.11",
-    name: "Non-text contrast",
-    body: "Icons and borders on interactive controls, checked against their surroundings.",
-  },
-  {
-    sc: "SC 2.5.8",
-    name: "Target size",
-    body: "24 by 24 minimum with the spacing exception, measured as geometry.",
-    tinted: true,
-  },
-  {
+    name: "Line spacing",
     sc: "SC 1.4.12",
-    name: "Text spacing",
-    body: "Line-height floors that keep text readable when users increase spacing.",
+    body: "Line height under 1.5× the type size, where copy stops holding together at reading distance.",
   },
   {
+    name: "Target size",
+    sc: "SC 2.5.8 · 2.5.5",
+    body: "Controls under 24 by 24 — or 44 in mobile mode — measured as geometry, spacing exception included.",
+  },
+  {
+    name: "Icon and border contrast",
+    sc: "SC 1.4.11",
+    body: "The parts you have to see in order to act: icon strokes, input edges, control borders.",
+  },
+  {
+    name: "Image alt text",
     sc: "SC 1.1.1",
-    name: "Alt text",
-    body: "A presence check for every image, plus optional AI drafts using your own Anthropic key. Always reviewed by you before it lands.",
-    wide: true,
+    body: "A presence check on every image, with optional drafts written under your own API key.",
+  },
+  {
+    name: "Color-only links",
+    sc: "SC 1.4.1",
+    body: "Links that differ from the body copy by hue alone, with no underline to carry them.",
+  },
+  {
+    name: "Clipped text",
+    sc: "SC 1.4.10",
+    body: "Copy that overflows its frame and is simply never read by anyone.",
+  },
+  {
+    name: "Field labels",
+    sc: "SC 2.4.6",
+    body: "Inputs carrying only a placeholder where a visible label is the requirement.",
+  },
+  {
+    name: "Focus states",
+    sc: "SC 2.4.7",
+    body: "Components given a hover state and no keyboard focus state to match it.",
   },
 ];
 
-function Features() {
+function Checks() {
   return (
-    <section id="features" className={`${styles.section} ${styles.band}`}>
-      <Container>
-        <h2 className={styles.sectionTitle}>What it checks today</h2>
-        <ul className={styles.bento}>
-          {checks.map((check) => (
-            <li
-              key={check.sc}
-              className={`${styles.cell} ${check.wide ? styles.cellWide : ""} ${
-                check.tinted ? styles.cellTinted : ""
-              }`}
-            >
-              <p className={styles.cellSc}>{check.sc}</p>
-              <h3>{check.name}</h3>
-              <p>{check.body}</p>
-            </li>
-          ))}
-        </ul>
-        <p className={styles.roadmap}>
-          Next on the roadmap: design-system governance, brand QA, and an MCP
-          server for Cursor and Claude Code.
-        </p>
-      </Container>
+    <section id="checks" className={styles.section}>
+      <span className={styles.kicker}>Coverage</span>
+      <h2 className={styles.h2Tight}>Nine checks, one honest report</h2>
+      <p className={styles.checksLead}>
+        Every one of them decided by math, not opinion — and each one named in
+        the report whether it passed, failed or was left alone.
+      </p>
+      <ol className={styles.checks}>
+        {checks.map((check, i) => (
+          <li
+            key={check.name}
+            /* 01 is the flagship check, so its rule is accent, not divider. */
+            className={`${styles.check} ${i === 0 ? styles.checkFlagship : ""} ${
+              i === checks.length - 1 ? styles.checkLast : ""
+            }`}
+          >
+            <span className={styles.checkIndex}>{`0${i + 1}`}</span>
+            <div>
+              <h3 className={styles.checkName}>
+                {check.name} <span className={styles.checkSc}>{check.sc}</span>
+              </h3>
+              <p className={styles.checkBody}>{check.body}</p>
+            </div>
+          </li>
+        ))}
+        {/* Not a tenth check: 01 and 04 re-run on every theme. */}
+        <li className={styles.checkPlus}>
+          <span className={styles.checkIndex}>+</span>
+          <p>
+            And checks 01 and 04 run again on every theme you ship, not only
+            the one on screen. Dark mode is where fixed contrast quietly
+            breaks.
+          </p>
+        </li>
+      </ol>
+      <p className={styles.roadmap}>
+        Next on the roadmap: design-system governance, brand QA, and an MCP
+        server for Cursor and Claude Code.
+      </p>
     </section>
   );
 }
@@ -249,21 +288,20 @@ const tiers = [
   {
     name: "Free",
     price: "$0",
-    per: "forever",
+    cadence: "Forever",
     items: [
       "Scan selections or whole pages",
       "Three honest verdicts on every layer",
-      "Pixel-true deep check for complex backgrounds",
+      "Pixel-true deep check for composited backgrounds",
     ],
   },
   {
     name: "Pro",
     price: "$12",
-    per: "per month",
-    featured: true,
+    cadence: "Per month",
     items: [
       "Everything in Free",
-      "One-click and batch auto-fix with single undo",
+      "One-click and batch auto-fix with a single undo",
       "CSV compliance report export",
       "Strict mode: on-system tokens only",
     ],
@@ -271,44 +309,57 @@ const tiers = [
   {
     name: "Team",
     price: "$15",
-    per: "per seat, per month",
+    cadence: "Per seat, per month",
     items: [
       "Everything in Pro",
       "Shared token rules across the team",
       "Priority support",
     ],
   },
-];
+] as const;
 
 function Pricing() {
   return (
     <section id="pricing" className={styles.section}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Pricing</h2>
-        <p className={styles.betaBanner}>
-          Everything is free during the public beta, including one-click fixes.
-          Prices below take effect at launch.
+      <div className={styles.pricingHead}>
+        <h2 className={styles.h2Flush}>Pricing</h2>
+        <p className={styles.betaNote}>
+          Everything is free during the public beta, one-click fixes included.
+          The prices below take effect at launch.
         </p>
-        <div className={styles.tiers}>
-          {tiers.map((tier) => (
+      </div>
+      <div className={styles.tiers}>
+        {tiers.map((tier) => {
+          const featured = tier.name === "Pro";
+          return (
             <div
               key={tier.name}
-              className={`${styles.tier} ${tier.featured ? styles.tierFeatured : ""}`}
+              className={`${styles.tier} ${featured ? styles.tierFeatured : ""}`}
             >
-              <h3>{tier.name}</h3>
-              <p className={styles.tierPrice}>
-                {tier.price}
-                <span> {tier.per}</span>
-              </p>
-              <ul>
+              <div>
+                <h3 className={styles.tierName}>{tier.name}</h3>
+                <p
+                  className={`${styles.tierPrice} ${
+                    featured ? styles.tierPriceAccent : ""
+                  }`}
+                >
+                  {tier.price}
+                </p>
+                <p className={styles.tierCadence}>{tier.cadence}</p>
+              </div>
+              <div className={styles.tierRule} />
+              <ul className={styles.tierItems}>
                 {tier.items.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
+              {tier.name === RECOMMENDED_PLAN && (
+                <span className={styles.recommended}>Recommended</span>
+              )}
             </div>
-          ))}
-        </div>
-      </Container>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -320,28 +371,26 @@ const trustPoints = [
   },
   {
     name: "One source of truth",
-    body: "The function that flags a violation is the function that verifies the fix. A bad fix cannot physically stay on the canvas.",
+    body: "The function that flags a violation is the function that verifies the fix. A report and the canvas cannot physically drift apart.",
   },
   {
     name: "Proof, not promises",
-    body: "228 unit tests, including a 500-case property sweep showing that a committed fix never fails its own check.",
+    body: "228 unit tests, including a 686-case properly-composited sweep, and a committed fix-never-fails check on every release.",
   },
 ];
 
 function Trust() {
   return (
-    <section className={`${styles.section} ${styles.band}`}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Built to be trusted</h2>
-        <div className={styles.trustGrid}>
-          {trustPoints.map((point) => (
-            <div key={point.name} className={styles.trustItem}>
-              <h3>{point.name}</h3>
-              <p>{point.body}</p>
-            </div>
-          ))}
-        </div>
-      </Container>
+    <section className={styles.section}>
+      <h2 className={styles.h2}>Built to be trusted</h2>
+      <div className={styles.trust}>
+        {trustPoints.map((point) => (
+          <div key={point.name} className={styles.trustItem}>
+            <h3 className={styles.trustName}>{point.name}</h3>
+            <p className={styles.justified}>{point.body}</p>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -349,55 +398,63 @@ function Trust() {
 const faqs = [
   {
     q: "Does it really fix, or just report?",
-    a: "It fixes. One click repairs a single violation, batch fix repairs a whole page, and a single Cmd-Z undoes everything. Reporting-only tools leave the slow part to you.",
+    a: "It fixes. Every violation with certain math gets a repaired value written back to the canvas from your token set, then re-measured. A single undo reverses a whole page.",
   },
   {
     q: "Will it invent colors outside my design system?",
-    a: "No. Fixes snap to your own variables and styles. If no on-system value can pass, Legibly proposes one minimal new token for you to accept, or in strict mode simply tells you nothing passed.",
+    a: "No. Strict mode restricts every repair to your published tokens; when nothing in the set can pass, Legibly reports the gap rather than inventing a shade.",
   },
   {
     q: "What happens with gradients and image backgrounds?",
-    a: "Gradients are sampled across their whole range. Backgrounds that cannot be measured safely are marked as needs review instead of being guessed. A pixel-true deep check can also export the frame and sample real pixels.",
+    a: "They are measured where the math is safe and marked “needs review” where it is not. You get the range and the worst case, never a confident number that isn’t one.",
   },
   {
     q: "Is my file private?",
-    a: "Yes. Analysis runs inside Figma on your machine. The one optional exception is AI alt-text drafting, which sends the image to Anthropic using an API key you provide. Skip it and nothing ever leaves Figma.",
+    a: "Yes. Nothing leaves your machine except the alt-text drafts you explicitly request, and those go directly to Anthropic under your own API key.",
   },
   {
     q: "Which criteria do you not check?",
-    a: "Plenty, and the report says so explicitly: every WCAG criterion outside the five checks above is listed as not checked. An honest audit beats a silent one.",
+    a: "Anything that needs runtime behaviour or human judgement — focus order, keyboard traps, semantics, motion. The report names each one so silence is never mistaken for a pass.",
   },
 ];
 
 function Faq() {
   return (
-    <section id="faq" className={styles.section}>
-      <Container>
-        <h2 className={styles.sectionTitle}>Questions, answered</h2>
-        <div className={styles.faqList}>
-          {faqs.map((faq) => (
-            <details key={faq.q} className={styles.faqItem}>
-              <summary>{faq.q}</summary>
-              <p>{faq.a}</p>
-            </details>
-          ))}
-        </div>
-      </Container>
+    <section id="faq" className={styles.split}>
+      <h2 className={styles.h2Flush}>Questions, answered</h2>
+      <div className={styles.faqList}>
+        {faqs.map((faq, i) => (
+          <details
+            key={faq.q}
+            className={`${styles.faqItem} ${
+              i === faqs.length - 1 ? styles.faqLast : ""
+            }`}
+          >
+            <summary className={styles.faqSummary}>
+              {faq.q}
+              <span className={styles.chev} aria-hidden="true">
+                ▾
+              </span>
+            </summary>
+            <p className={styles.faqAnswer}>{faq.a}</p>
+          </details>
+        ))}
+      </div>
     </section>
   );
 }
 
-function FinalCta() {
+function Closing() {
   return (
-    <section id="waitlist" className={styles.finalCta}>
-      <Container className={styles.finalCtaInner}>
-        <h2>Be first in line</h2>
-        <p>
-          Legibly is in private beta ahead of its Figma Community launch. Leave
-          your email and we will send you access, nothing else.
-        </p>
+    <section id="early" className={styles.closing}>
+      <h2 className={styles.h2Closing}>Be first in line</h2>
+      <p className={styles.closingLead}>
+        Legibly is in private beta ahead of its Figma Community launch. Leave
+        your email and we will send you access — nothing else.
+      </p>
+      <div className={styles.closingForm}>
         <WaitlistForm />
-      </Container>
+      </div>
     </section>
   );
 }

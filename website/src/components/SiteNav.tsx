@@ -3,8 +3,8 @@ import { Wordmark } from "./Wordmark";
 import styles from "./SiteNav.module.css";
 
 const items = [
-  { href: "/#how-it-works", label: "How it works" },
-  { href: "/#features", label: "Features" },
+  { href: "/#how", label: "How it works" },
+  { href: "/#checks", label: "What it checks" },
   { href: "/#pricing", label: "Pricing" },
   { href: "/#faq", label: "FAQ" },
 ];
@@ -25,7 +25,7 @@ export function SiteNav() {
             </li>
           ))}
         </ul>
-        <Link className={styles.cta} href="/#waitlist">
+        <Link className={styles.cta} href="/#early">
           Get early access
         </Link>
       </nav>
