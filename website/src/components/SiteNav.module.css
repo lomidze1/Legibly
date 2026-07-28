@@ -25,6 +25,7 @@
   text-decoration: none;
 }
 
+/* The links are the whole bar now — see the note in SiteNav.tsx. */
 .list {
   display: flex;
   align-items: center;
@@ -53,30 +54,6 @@
 }
 
 /*
- * A text link, not a third boxed button. The first viewport held three
- * identical accent outlines — this one, the form's submit, and the specimen's
- * illustration — so nothing said which was the page's action.
- */
-.cta {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
-  font-family: var(--font-heading);
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--color-accent-700);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
-  text-decoration-color: var(--color-accent);
-  white-space: nowrap;
-}
-
-.cta:hover {
-  color: var(--color-accent-800);
-}
-
-/*
  * Five items do not fit a phone. Rather than hide navigation behind a
  * disclosure widget, the bar wraps: brand and CTA hold the first row, the
  * section links fall to a second. Nothing becomes unreachable.
@@ -89,14 +66,7 @@
     padding-top: var(--space-2);
     padding-bottom: var(--space-2);
   }
-  .home {
-    order: 1;
-  }
-  .cta {
-    order: 2;
-  }
   .list {
-    order: 3;
     flex-wrap: wrap;
     width: 100%;
     column-gap: var(--space-4);

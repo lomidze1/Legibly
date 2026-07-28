@@ -22,6 +22,12 @@ export function SiteNav() {
         <Link href="/" className={styles.home} aria-label="Legibly home">
           <Wordmark />
         </Link>
+        {/*
+          No CTA here. "Get early access" appeared three times in the first
+          viewport — nav, hero form, and the specimen's button — and a label
+          repeated that often stops reading as an action. The hero form is
+          200px below this bar and does the same job.
+        */}
         <ul className={styles.list}>
           {items.map((item) => (
             <li key={item.href}>
@@ -35,9 +41,6 @@ export function SiteNav() {
             </li>
           ))}
         </ul>
-        <Link className={styles.cta} href="/#early">
-          Get early access
-        </Link>
       </nav>
     </header>
   );
