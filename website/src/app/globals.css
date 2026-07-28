@@ -9,6 +9,11 @@
  * for borders, icons and text at 24px+, illegal for anything smaller. Small
  * accent text uses --color-accent-700. --color-neutral-600 (3.85:1) is banned
  * for text anywhere on this site.
+ *
+ * Text targets AAA (SC 1.4.6, 7:1), not AA. The product only asks AA of its
+ * users, so the page clearing the stricter bar is the claim: every word here
+ * is 7:1 or better. The accent itself stays at AA — dragging #b68235 to 4.5:1
+ * would turn the gold brown, and large numerals are the only place it sets.
  */
 :root {
   /* The palette is light on purpose — say so, so UA widgets match. */
@@ -22,12 +27,12 @@
   /* Ink */
   --color-text: #201f1d; /* 14.7:1 on the ground */
   --color-neutral-800: #444141; /* body paragraphs — 9.0:1 */
-  --color-neutral-700: #605d5d; /* small / secondary text — 5.8:1 */
+  --color-neutral-700: #504d4d; /* small / secondary text — 7.3:1 (AAA) */
   --color-neutral-500: #9b9797; /* the intentionally-failing specimen only */
 
   /* Accent */
   --color-accent: #b68235; /* rules, borders, focus ring, large numerals */
-  --color-accent-700: #7d5411; /* ALL accent-colored text — 6.0:1 */
+  --color-accent-700: #684607; /* ALL accent-colored text — 7.7:1 (AAA) */
   /*
    * Link hover. The Classical system nominates accent-600 (#a06f24) for the
    * hover step, but that is 3.9:1 on this ground — a text link would fail
@@ -37,6 +42,13 @@
   --color-accent-800: #5a3b0a; /* 9.1:1 */
 
   --color-divider: color-mix(in srgb, #201f1d 16%, transparent);
+  /*
+   * A hairline that separates sections is decoration; the edge of a text field
+   * is the only thing telling you it is a text field, so SC 1.4.11 wants 3:1
+   * there. 16% divider ink is 1.37:1 — check 04 would fail this page. 50% is
+   * 3.15:1.
+   */
+  --color-control-border: color-mix(in srgb, #201f1d 50%, transparent);
   /* The single largest tint on the page: the "Legibly" comparison card. */
   --color-accent-tint: color-mix(in srgb, var(--color-accent) 6%, transparent);
 
@@ -44,17 +56,28 @@
   --font-heading: var(--font-heading-src), "Cormorant Garamond", Georgia, serif;
   --font-body: var(--font-body-src), "Lora", Georgia, serif;
 
-  /* Spacing scale, density 1.15× */
+  /*
+   * Spacing scale, density 1.15× (4px base × 1.15). Every margin, padding and
+   * gap on the site resolves to a step here — the page sells token enforcement,
+   * so a design-system owner opening devtools must not find 40 raw pixel values.
+   */
   --space-1: 4.6px;
   --space-2: 9.2px;
   --space-3: 13.8px;
   --space-4: 18.4px;
+  --space-5: 23px;
   --space-6: 27.6px;
+  --space-7: 32.2px;
   --space-8: 36.8px;
+  --space-9: 41.4px;
+  --space-10: 46px;
+  --space-12: 55.2px;
+  --space-14: 64.4px;
+  --space-16: 73.6px;
+  --space-18: 82.8px;
 
   --radius-sm: 2px;
   --radius-md: 4px;
-  --radius-lg: 7px;
 
   /* Elevation is a whisper. */
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
@@ -96,6 +119,19 @@ body {
   text-wrap: pretty;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /*
+   * Cormorant Garamond ships oldstyle figures by default: "1" sets at x-height
+   * and reads as a small-cap I, "3 5 9" drop below the baseline. On a page
+   * whose two most-read numbers are a price and a contrast ratio, "$12" was
+   * rendering as "$I2" and "2.4:1" as "2.4:I". Lining figures, everywhere.
+   */
+  font-variant-numeric: lining-nums;
+  /*
+   * hyphens: auto with no limits produced two-letter fragments (si-lence,
+   * ma-chine) and three consecutive hyphenated lines. Inherited, so every
+   * hyphenated block on the site picks this up.
+   */
+  hyphenate-limit-chars: 6 3 3;
 }
 
 h1,
@@ -169,11 +205,15 @@ a:hover {
   border: 0;
 }
 
-/* The nav wraps to two rows here (see SiteNav.module.css), so anchor jumps
-   need more clearance. */
+/*
+ * The nav wraps below 880px, so its height varies with viewport width.
+ * SiteNav measures the bar and overwrites --nav-h on the root at runtime;
+ * this is the pre-hydration fallback, set to the tallest wrapped case so an
+ * early anchor jump overshoots rather than landing under the bar.
+ */
 @media (max-width: 880px) {
   :root {
-    --nav-h: 104px;
+    --nav-h: 144px;
   }
 }
 

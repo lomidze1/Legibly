@@ -57,8 +57,13 @@ describe("brand token contrast audit", () => {
     ["the Pro price (46px) on bg", tokens.accent, tokens.bg],
   ];
 
-  it.each(bodyPairs)("%s passes AA (4.5:1)", (_name, fg, bg) => {
-    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(4.5);
+  /*
+   * AAA, not AA. The plugin asks AA of its users; the page that sells it
+   * clears 7:1 on every word so the claim is checkable rather than rhetorical.
+   * The accent is exempt and stays at AA — see largePairs.
+   */
+  it.each(bodyPairs)("%s passes AAA (7:1)", (_name, fg, bg) => {
+    expect(contrastRatio(fg, bg)).toBeGreaterThanOrEqual(7);
   });
 
   it.each(largePairs)("%s passes AA for non-text (3:1)", (_name, fg, bg) => {
@@ -97,5 +102,20 @@ describe("the hero specimen", () => {
 
   it("still fails AA, which is the entire point", () => {
     expect(ratio).toBeLessThan(4.5);
+  });
+
+  /**
+   * The panel now shows the repair as well as the violation, and prints that
+   * ratio too. Same rule as above: if the palette moves, the printed number
+   * has to move with it.
+   */
+  const repaired = contrastRatio(tokens.neutral700, tokens.surface);
+
+  it("repairs to the 6.9:1 the panel prints", () => {
+    expect(Math.floor(repaired * 10) / 10).toBe(6.9);
+  });
+
+  it("repairs to a value that actually passes AA", () => {
+    expect(repaired).toBeGreaterThanOrEqual(4.5);
   });
 });

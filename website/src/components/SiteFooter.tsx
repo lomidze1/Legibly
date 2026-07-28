@@ -17,8 +17,8 @@ export function SiteFooter() {
           </span>
           <p className={styles.note}>
             A <a href={site.links.glinc}>Glinc</a> studio product, built for
-            readers who need the contrast — and every color pair on this page
-            passes the same WCAG math the plugin enforces.
+            readers who need the contrast. Every line of body copy here clears
+            7:1, which is AAA. Legibly only asks AA of you.
           </p>
         </div>
         <nav className={styles.column} aria-label="Product">

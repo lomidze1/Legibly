@@ -14,6 +14,9 @@ type Status = "idle" | "sending" | "ok" | "error";
 const JOINED_KEY = "legibly:waitlist-joined";
 const JOINED_EVENT = "legibly:waitlist-joined";
 
+/** Same test the API applies, so the two cannot disagree about one address. */
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function WaitlistForm() {
   const fieldId = useId();
   const errorId = `${fieldId}-error`;
@@ -25,8 +28,15 @@ export function WaitlistForm() {
 
   // Pick up a join that happened before this instance mounted, or in the other one.
   useEffect(() => {
+    /*
+     * Both directions. The joined state broadcasts to every mounted instance,
+     * and so does un-joining: without the else branch, "Enter another" put the
+     * form the user clicked back to idle and left its sibling stuck on the
+     * confirmation.
+     */
     const sync = () => {
       if (sessionStorage.getItem(JOINED_KEY)) setStatus("ok");
+      else setStatus((current) => (current === "ok" ? "idle" : current));
     };
     sync();
     window.addEventListener(JOINED_EVENT, sync);
@@ -39,10 +49,32 @@ export function WaitlistForm() {
     if (status === "error") inputRef.current?.focus();
   }, [status]);
 
+  function reset() {
+    sessionStorage.removeItem(JOINED_KEY);
+    submittedHere.current = false;
+    setStatus("idle");
+    setError("");
+    window.dispatchEvent(new Event(JOINED_EVENT));
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
+
+    /*
+     * Validate here rather than letting `required` / type="email" raise the
+     * browser's native bubble: that tooltip is unstyled, vanishes on scroll,
+     * and would mean the most common failure on the page never reaches the
+     * error line this form already builds (role="alert", focus returned).
+     */
+    const email = String(data.get("email") ?? "").trim();
+    if (!EMAIL.test(email)) {
+      setStatus("error");
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     setStatus("sending");
     setError("");
     try {
@@ -73,14 +105,26 @@ export function WaitlistForm() {
 
   if (status === "ok") {
     return (
-      <p className={styles.done} role="status" tabIndex={-1} ref={doneRef}>
-        You are on the list. We will email you when Legibly ships.
-      </p>
+      <div>
+        <p className={styles.done} role="status" tabIndex={-1} ref={doneRef}>
+          You are on the list. We will email you once at Figma Community
+          launch, and not before.
+        </p>
+        <p className={styles.doneNext}>
+          Meanwhile, the honest part:{" "}
+          <a href="#faq">which criteria Legibly does not check</a>. Wrong
+          address?{" "}
+          <button type="button" className={styles.reset} onClick={reset}>
+            Enter another
+          </button>
+          .
+        </p>
+      </div>
     );
   }
 
   return (
-    <form className={styles.form} onSubmit={onSubmit} noValidate={false}>
+    <form className={styles.form} onSubmit={onSubmit} noValidate>
       <label className={styles.label} htmlFor={fieldId}>
         Email
       </label>
@@ -97,7 +141,11 @@ export function WaitlistForm() {
           aria-invalid={status === "error" || undefined}
           aria-describedby={status === "error" ? errorId : undefined}
         />
-        <Button type="submit" disabled={status === "sending"}>
+        <Button
+          type="submit"
+          variant="primary"
+          disabled={status === "sending"}
+        >
           {status === "sending" ? "Joining…" : "Get early access"}
         </Button>
       </div>

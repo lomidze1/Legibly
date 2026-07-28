@@ -3,9 +3,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-1);
   min-height: var(--control-h);
-  padding: var(--space-2) calc(var(--space-3) * 1.2);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-accent);
   border-radius: var(--radius-md);
   background: transparent;
@@ -33,4 +33,41 @@
 .button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+/*
+ * The page's single real action. The system rule stands — accent as stroke,
+ * never fill — so the primary is raised within it: a heavier stroke, a 10%
+ * wash, and more height than the secondary buttons around it.
+ */
+.primary {
+  min-height: 48px;
+  padding: var(--space-2) var(--space-5);
+  border-width: 1.5px;
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  /*
+   * The wash darkens the ground to #ede7df, which drops accent-700 to 6.92:1 —
+   * under the 7:1 this page holds itself to. accent-800 is 8.3:1 on it.
+   */
+  color: var(--color-accent-800);
+  /*
+   * "Get early access" → "Joining…" is a ~65px swing on a nowrap button that
+   * shares a flex row with the input. Without a floor the field the user just
+   * typed in jumps sideways at the exact moment they are watching for feedback.
+   */
+  min-width: 11em;
+}
+
+/*
+ * A figure inside the specimen panel, not a control: it must read as part of
+ * the screenshot rather than compete with the real CTA next to it.
+ */
+.quiet {
+  border-color: var(--color-divider);
+  color: var(--color-neutral-700);
+}
+
+.quiet:hover {
+  background: transparent;
+  color: var(--color-neutral-700);
 }

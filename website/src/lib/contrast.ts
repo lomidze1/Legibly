@@ -39,16 +39,19 @@ export const tokens = {
   text: "#201f1d",
   /** Body paragraphs. */
   neutral800: "#444141",
-  /** Small and secondary text. */
-  neutral700: "#605d5d",
+  /** Small and secondary text. Set to clear AAA (7:1), not just AA. */
+  neutral700: "#504d4d",
   /** Retired during design review — 3.85:1. Banned for text; see the test. */
   neutral600: "#7d7979",
   /** The intentionally-failing specimen text. Never used for real copy. */
   neutral500: "#9b9797",
   /** Rules, borders, focus ring, and text at 24px and above. */
   accent: "#b68235",
-  /** All accent-colored text below 24px. */
-  accent700: "#7d5411",
+  /**
+   * All accent-colored text below 24px. Set to clear AAA (7:1) on the tightest
+   * of the three grounds — the 6% accent tint, where it measures 7.18:1.
+   */
+  accent700: "#684607",
   /** Link hover. The system's own accent-600 (#a06f24) is only 3.9:1. */
   accent800: "#5a3b0a",
   /** The 6% accent tint on the "Legibly" comparison card, over --color-bg. */

@@ -3,6 +3,16 @@
  * rules inside the content column; color appears as stroke, never as fill.
  * The one exception is the "Legibly" comparison card, which takes a 6% accent
  * tint — the single largest field of accent on the page.
+ *
+ * Two rules this file used to break, both of them things the product sells:
+ *
+ * 1. Spacing comes from --space-*. There were 40 distinct raw pixel values in
+ *    here on no consistent step, on a page that sells token enforcement.
+ * 2. Measure is set in em, not ch. `ch` is the width of "0", which in Lora is
+ *    ~0.62em — so `52ch` rendered a 70-character line, not a 52-character one.
+ *    ~0.5em per character is the honest conversion.
+ *
+ * Type scale: display 82/54/42, item titles 24/20, body 17/15/13/11.5.
  */
 
 .rule {
@@ -15,16 +25,18 @@
   padding: var(--section-y) 0;
 }
 
-/* Two-column editorial split: heading left, argument right. */
+/*
+ * Two-column editorial split: heading left, argument right.
+ *
+ * One ratio, not two. Stakes used to run 5fr/6fr, which put its second column
+ * 96px inboard of every other section's — and in a system where hairlines carry
+ * the structure, the reader tracks that edge.
+ */
 .split {
   display: grid;
   grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
-  gap: 24px 72px;
+  gap: var(--space-5) var(--space-16);
   padding: var(--section-y) 0;
-}
-
-.splitStakes {
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
 }
 
 /* ---------- Type roles ---------- */
@@ -34,7 +46,6 @@
 .h2,
 .h2Tight,
 .h2Flush,
-.h2Large,
 .h2Closing {
   font-family: var(--font-heading);
   /* The larger the type, the lighter it sets: display sizes take the 400 cut. */
@@ -43,9 +54,11 @@
 }
 
 .h1 {
-  font-size: clamp(46px, 5.6vw, 82px);
+  /* Floor at 40px: at 46px, "Checkers tell you." crowded the edge at 360px. */
+  font-size: clamp(40px, 5.6vw, 82px);
   line-height: 1.06;
   letter-spacing: -0.012em;
+  text-wrap: balance;
 }
 
 .h1 span {
@@ -59,42 +72,44 @@
   line-height: 1.12;
 }
 
+/*
+ * Two gaps, not four. A heading that opens a section stands off its content;
+ * a heading immediately followed by a lead paragraph sits tight to it.
+ * .h2Flush carries no margin at all because it sits in a grid cell where the
+ * gap is the grid's job.
+ */
 .h2 {
-  margin-bottom: 36px;
+  margin-bottom: var(--space-8);
 }
 
-.h2Tight {
-  margin-bottom: 12px;
-}
-
-.h2Large {
-  font-size: clamp(32px, 3.6vw, 46px);
-  line-height: 1.1;
-  letter-spacing: -0.008em;
+.h2Tight,
+.h2Closing {
+  margin-bottom: var(--space-3);
 }
 
 .h2Closing {
   font-size: clamp(34px, 4vw, 54px);
   line-height: 1.08;
-  margin-bottom: 18px;
 }
 
 .kicker {
   display: block;
-  margin-bottom: 18px;
-  font-size: 12.5px;
+  margin-bottom: var(--space-4);
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-accent-700);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
-/* Justified at a comfortable measure, hyphenated — the house rule. */
+/*
+ * The house rule, corrected: justify only where the measure can carry it.
+ * Below ~60 characters justification opens rivers — the three-up columns run
+ * 50, so they set ragged-right and the wide blocks keep the justified setting.
+ */
 .justified {
-  font-size: 15.5px;
+  font-size: 15px;
   line-height: 27px;
-  text-align: justify;
-  hyphens: auto;
   color: var(--color-neutral-800);
 }
 
@@ -103,29 +118,29 @@
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 6.5fr) minmax(0, 5fr);
-  gap: 56px;
+  gap: var(--space-12);
   align-items: start;
-  padding: 84px 0 70px;
+  padding: var(--space-18) 0 var(--space-16);
 }
 
 .hero .kicker {
-  margin-bottom: 22px;
+  margin-bottom: var(--space-5);
 }
 
 .heroLead {
-  margin-top: 34px;
-  max-width: 52ch;
+  margin-top: var(--space-7);
+  max-width: 28em;
   font-size: 17px;
   line-height: 28px;
   color: var(--color-neutral-800);
 }
 
 .heroForm {
-  margin-top: 32px;
+  margin-top: var(--space-7);
 }
 
 .heroNote {
-  margin-top: 14px;
+  margin-top: var(--space-3);
   font-size: 13px;
   line-height: 22px;
   color: var(--color-neutral-700);
@@ -134,8 +149,8 @@
 /* ---------- Stakes ---------- */
 
 .stakesBody {
-  max-width: 56ch;
-  font-size: 16.5px;
+  max-width: 30em;
+  font-size: 17px;
   line-height: 28px;
   text-align: justify;
   hyphens: auto;
@@ -147,38 +162,38 @@
 .steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+  gap: var(--space-9);
   list-style: none;
-  margin-top: 10px;
+  margin-top: var(--space-2);
 }
 
 .step {
   /* Accent rule: the three steps are the page's spine. */
   border-top: 1px solid var(--color-accent);
-  padding-top: 20px;
+  padding-top: var(--space-4);
 }
 
 .index {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
   font-family: var(--font-heading);
   font-size: 15px;
   letter-spacing: 0.12em;
   color: var(--color-accent-700);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .stepName {
-  margin-bottom: 10px;
-  font-size: 25px;
+  margin-bottom: var(--space-2);
+  font-size: 24px;
   line-height: 28px;
 }
 
 /* ---------- Three verdicts ---------- */
 
 .splitLead {
-  max-width: 34ch;
-  font-size: 15.5px;
+  max-width: 19em;
+  font-size: 15px;
   line-height: 27px;
   color: var(--color-neutral-700);
 }
@@ -186,12 +201,12 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15.5px;
+  font-size: 15px;
 }
 
 .table th {
   width: 34%;
-  padding: 18px 20px 18px 0;
+  padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-top: 1px solid var(--color-divider);
   text-align: left;
   vertical-align: top;
@@ -201,7 +216,7 @@
 }
 
 .table td {
-  padding: 18px 0;
+  padding: var(--space-4) 0;
   border-top: 1px solid var(--color-divider);
   vertical-align: top;
   line-height: 27px;
@@ -220,12 +235,12 @@
 .compare {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  gap: var(--space-6);
 }
 
 .compareThem,
 .compareUs {
-  padding: 28px 30px 30px;
+  padding: var(--space-6);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   background: transparent;
@@ -236,10 +251,17 @@
   background: var(--color-accent-tint);
 }
 
+/* Bordered cards run 66 characters, so these keep the justified setting. */
+.compareThem .justified,
+.compareUs .justified {
+  text-align: justify;
+  hyphens: auto;
+}
+
 .cardKicker {
   display: block;
-  margin-bottom: 12px;
-  font-size: 12px;
+  margin-bottom: var(--space-3);
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-neutral-700);
@@ -252,17 +274,24 @@
 /* ---------- Nine checks ---------- */
 
 .checksLead {
-  margin-bottom: 34px;
-  max-width: 54ch;
-  font-size: 16.5px;
+  margin-bottom: var(--space-7);
+  max-width: 29em;
+  font-size: 17px;
   line-height: 28px;
   color: var(--color-neutral-800);
 }
 
+/*
+ * Column flow, not row flow. With nine items reading across, the left column
+ * showed 01, 03, 05, 07, 09 and item 09 was orphaned beside an empty cell.
+ * Five rows down the left, four down the right, each column sequential.
+ */
 .checks {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  column-gap: 72px;
+  grid-template-rows: repeat(5, auto);
+  grid-auto-flow: column;
+  column-gap: var(--space-16);
   list-style: none;
 }
 
@@ -270,38 +299,58 @@
 .checkPlus {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2px 20px;
+  gap: 2px var(--space-4);
   border-top: 1px solid var(--color-divider);
 }
 
 .check {
-  padding: 18px 0;
+  padding: var(--space-4) 0;
 }
 
-/* 01 is the flagship check, so its rule is accent rather than divider. */
+/*
+ * No closing rule on any item: .checkPlus draws one full-width rule under the
+ * whole list. An item border here would land on exactly the same y and stack
+ * into a 2px hairline under one column and 1px under the other.
+ */
+
+/*
+ * 01 is the flagship check. An accent half-rule beside a grey half-rule at the
+ * same y read as a rendering slip, so the emphasis is named as well as drawn.
+ */
 .checkFlagship {
   border-top-color: var(--color-accent);
 }
 
-.checkLast {
-  border-bottom: 1px solid var(--color-divider);
+.checkFlagshipLabel {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
 }
+
+/*
+ * No .checkLast: .checkPlus already draws a full-width rule under the list.
+ * The two together stacked a 2px hairline under the left column and 1px under
+ * the right.
+ */
 
 .checkIndex {
   font-family: var(--font-heading);
   font-size: 15px;
   line-height: 26px;
   color: var(--color-accent-700);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .checkName {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: 6px;
-  font-size: 23px;
+  margin-bottom: var(--space-1);
+  font-size: 24px;
   line-height: 26px;
 }
 
@@ -311,7 +360,7 @@
   font-size: 11.5px;
   letter-spacing: 0.08em;
   color: var(--color-neutral-700);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .checkBody {
@@ -321,22 +370,46 @@
 }
 
 .checkPlus {
-  grid-column: 1 / -1;
-  padding-top: 22px;
+  padding-top: var(--space-5);
 }
 
 .checkPlus p {
-  max-width: 68ch;
-  font-size: 15.5px;
+  max-width: 34em;
+  font-size: 15px;
   line-height: 27px;
   color: var(--color-neutral-800);
 }
 
+/* ---------- Roadmap ---------- */
+
+/*
+ * Promoted out of a 14px grey footnote: buying into the trajectory is a reason
+ * to join the list now, so it sets as a named block rather than a whisper.
+ */
 .roadmap {
-  margin-top: 26px;
-  font-size: 14px;
-  line-height: 25px;
-  color: var(--color-neutral-700);
+  margin-top: var(--space-8);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-divider);
+}
+
+.roadmapName {
+  margin-bottom: var(--space-3);
+  font-size: 20px;
+}
+
+.roadmapList {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3) var(--space-9);
+  list-style: none;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
+}
+
+.roadmapList li {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-divider);
 }
 
 /* ---------- Pricing ---------- */
@@ -345,16 +418,16 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 24px;
+  gap: var(--space-5);
   flex-wrap: wrap;
-  margin-bottom: 34px;
+  margin-bottom: var(--space-7);
 }
 
 .betaNote {
-  max-width: 46ch;
-  padding-left: 16px;
+  max-width: 24em;
+  padding-left: var(--space-4);
   border-left: 1px solid var(--color-accent);
-  font-size: 14.5px;
+  font-size: 15px;
   line-height: 25px;
   color: var(--color-accent-700);
 }
@@ -362,14 +435,15 @@
 .tiers {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  gap: var(--space-6);
 }
 
+/* Same component role as the comparison cards, so the same padding. */
 .tier {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 30px 30px 34px;
+  gap: var(--space-4);
+  padding: var(--space-6);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
 }
@@ -378,9 +452,24 @@
   border-color: var(--color-accent);
 }
 
+/*
+ * Recommendation is a scanning aid, so it sits above the name rather than
+ * stranded under the feature list where it used to be.
+ */
+.recommended {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+
 .tierName {
-  margin-bottom: 8px;
-  font-size: 22px;
+  margin-bottom: var(--space-2);
+  font-size: 20px;
 }
 
 .tierPrice {
@@ -388,7 +477,7 @@
   font-weight: 400;
   font-size: 46px;
   line-height: 1;
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* 46px, so the accent's 3.0:1 is legal here. */
@@ -397,7 +486,7 @@
 }
 
 .tierCadence {
-  margin-top: 10px;
+  margin-top: var(--space-2);
   font-size: 13px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -412,20 +501,20 @@
 .tierItems {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
   list-style: none;
   font-size: 15px;
   line-height: 26px;
   color: var(--color-neutral-800);
 }
 
-.recommended {
-  padding-top: 12px;
-  border-top: 1px solid var(--color-accent);
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-accent-700);
+/*
+ * margin-top: auto pins the action to the card's foot, so the shorter card
+ * stops carrying 140px of dead space under its list.
+ */
+.tierAction {
+  margin-top: auto;
+  padding-top: var(--space-2);
 }
 
 /* ---------- Built to be trusted ---------- */
@@ -433,22 +522,24 @@
 .trust {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 56px;
+  gap: var(--space-12);
 }
 
 .trustItem {
   border-top: 1px solid var(--color-accent);
-  padding-top: 20px;
-}
-
-.trustItem .justified {
-  font-size: 15px;
+  padding-top: var(--space-4);
 }
 
 .trustName {
-  margin-bottom: 10px;
-  font-size: 21px;
-  line-height: 28px;
+  margin-bottom: var(--space-2);
+  font-size: 20px;
+}
+
+.trustMaker {
+  margin-top: var(--space-8);
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
 }
 
 /* ---------- FAQ ---------- */
@@ -461,12 +552,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 18px 0;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
   border-top: 1px solid var(--color-divider);
   font-family: var(--font-heading);
   font-weight: 500;
-  font-size: 21px;
+  font-size: 20px;
   list-style: none;
   cursor: pointer;
 }
@@ -483,9 +574,14 @@
   border-bottom: 1px solid var(--color-divider);
 }
 
+/*
+ * An SVG, not "▾". The text glyph rendered at a different weight and baseline
+ * on every platform, and set in accent it was the loudest mark in the quietest
+ * section.
+ */
 .chev {
-  font-size: 14px;
-  color: var(--color-accent);
+  flex: none;
+  color: var(--color-neutral-700);
   transition: transform 160ms ease;
 }
 
@@ -494,9 +590,9 @@
 }
 
 .faqAnswer {
-  margin-bottom: 20px;
-  max-width: 62ch;
-  font-size: 15.5px;
+  margin-bottom: var(--space-4);
+  max-width: 32em;
+  font-size: 15px;
   line-height: 27px;
   text-align: justify;
   hyphens: auto;
@@ -504,24 +600,41 @@
 }
 
 .faqLast .faqAnswer {
-  margin-top: 20px;
+  margin-top: var(--space-4);
+}
+
+/* The left column of the FAQ split was a heading against 340px of nothing. */
+.faqAside {
+  margin-top: var(--space-4);
+  padding-left: var(--space-4);
+  border-left: 1px solid var(--color-accent);
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
 }
 
 /* ---------- Closing ---------- */
 
+/*
+ * A split, so the form lands on the same optical axis as the heading instead
+ * of leaving the entire right half blank at the final conversion moment.
+ */
 .closing {
-  padding: var(--section-y) 0 84px;
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  gap: var(--space-5) var(--space-16);
+  padding: var(--section-y) 0 var(--space-18);
 }
 
 .closingLead {
-  max-width: 54ch;
-  font-size: 16.5px;
+  max-width: 29em;
+  font-size: 17px;
   line-height: 28px;
   color: var(--color-neutral-800);
 }
 
 .closingForm {
-  margin-top: 28px;
+  margin-top: var(--space-6);
 }
 
 /* ---------- Responsive ----------
@@ -532,52 +645,71 @@
 @media (max-width: 900px) {
   .hero,
   .split,
-  .splitStakes {
+  .closing {
     grid-template-columns: 1fr;
   }
 
   .hero {
-    gap: 44px;
-    padding: 56px 0 48px;
+    gap: var(--space-9);
+    padding: var(--space-12) 0 var(--space-10);
   }
 
   .split,
-  .splitStakes {
-    gap: 20px;
+  .closing {
+    gap: var(--space-4);
   }
 
   .steps,
-  .checks,
   .compare,
   .tiers,
-  .trust {
+  .trust,
+  .roadmapList {
     grid-template-columns: 1fr;
   }
 
+  /* Row flow again once there is only one column to flow down. */
+  .checks {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-flow: row;
+  }
+
+
   .steps,
   .trust {
-    gap: 28px;
+    gap: var(--space-6);
   }
 
   /* The recommended plan leads once the cards stack. */
   .tierFeatured {
     order: -1;
   }
+}
 
-  .closing {
-    padding-bottom: 56px;
+@media (max-width: 900px) {
+  /*
+   * Every measure narrows past the point justification can carry, so the whole
+   * page sets ragged-right and stops hyphenating.
+   */
+  .stakesBody,
+  .table td,
+  .faqAnswer,
+  .compareThem .justified,
+  .compareUs .justified {
+    text-align: left;
+    hyphens: manual;
   }
 }
 
 @media (max-width: 600px) {
   .table th {
     width: 38%;
-    padding-right: 16px;
+    padding-right: var(--space-3);
   }
 
   .compareThem,
   .compareUs,
   .tier {
-    padding: 24px 22px 26px;
+    padding: var(--space-5);
   }
 }

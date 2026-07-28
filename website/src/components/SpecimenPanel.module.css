@@ -9,8 +9,8 @@
 .header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--color-divider);
   font-size: 11.5px;
   letter-spacing: 0.09em;
@@ -28,13 +28,13 @@
 .body {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 22px 24px 24px;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-5);
 }
 
 .sampleCaption {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-2);
   font-size: 11px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -42,14 +42,14 @@
 }
 
 .sample {
-  padding: 16px 18px;
+  padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
 }
 
 .sampleTitle {
-  margin-bottom: 6px;
+  margin-bottom: var(--space-1);
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 19px;
@@ -62,10 +62,37 @@
   color: var(--color-neutral-500);
 }
 
+/* The same line after the repair: 6.9:1 on the same ground. */
+.sampleBodyFixed {
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--color-neutral-700);
+}
+
+/* The hairline "one click" that separates the violation from the repair. */
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stepRule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.stepLabel {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
 .verdict {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 4px 14px;
+  gap: var(--space-1) var(--space-3);
   align-items: baseline;
 }
 
@@ -76,14 +103,40 @@
   font-size: 34px;
   line-height: 1;
   color: var(--color-accent);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
-.verdictLabel {
+/* The repaired number is ink, not accent: the fix is the calm state. */
+.ratioPass {
+  color: var(--color-text);
+}
+
+.verdictLabel,
+.verdictLabelPass {
   font-size: 13px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-accent-700);
+}
+
+.verdictLabelPass {
+  color: var(--color-neutral-800);
+}
+
+/* The token name, carrying the swatch it resolved to. */
+.token {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  color: var(--color-neutral-800);
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--color-neutral-700);
 }
 
 .verdictNote {
@@ -101,18 +154,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: var(--space-3);
 }
 
 .count {
   font-size: 12.5px;
   color: var(--color-neutral-700);
-  font-feature-settings: "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 @media (max-width: 460px) {
   .footer {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  /*
+   * The note used to stay in the 1fr of an "auto 1fr" grid at 375px, starting
+   * at x≈127 with dead space beside it and wrapping to three lines.
+   */
+  .verdict {
+    grid-template-columns: 1fr;
   }
 }

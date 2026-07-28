@@ -15,7 +15,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-6);
-  padding: 14px max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
+  padding: var(--space-3)
+    max(var(--gutter), calc((100% - var(--content-max)) / 2 + var(--gutter)));
 }
 
 .home {
@@ -32,6 +33,9 @@
 }
 
 .link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
   font-size: 14px;
   color: var(--color-neutral-700);
   text-decoration: none;
@@ -42,25 +46,34 @@
   color: var(--color-accent-700);
 }
 
-/* Classical `.btn.btn-primary`, at the nav's 14px. */
+/* Scrollspy: the section you are actually in, marked on its own axis. */
+.link[aria-current="true"] {
+  color: var(--color-text);
+  box-shadow: inset 0 -1px 0 var(--color-accent);
+}
+
+/*
+ * A text link, not a third boxed button. The first viewport held three
+ * identical accent outlines — this one, the form's submit, and the specimen's
+ * illustration — so nothing said which was the page's action.
+ */
 .cta {
   display: inline-flex;
   align-items: center;
-  min-height: var(--control-h);
-  padding: var(--space-2) calc(var(--space-3) * 1.2);
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-md);
+  min-height: 40px;
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 14px;
   color: var(--color-accent-700);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+  text-decoration-color: var(--color-accent);
   white-space: nowrap;
 }
 
 .cta:hover {
-  color: var(--color-accent-700);
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  color: var(--color-accent-800);
 }
 
 /*
@@ -71,8 +84,10 @@
 @media (max-width: 880px) {
   .nav {
     flex-wrap: wrap;
-    row-gap: 10px;
+    row-gap: var(--space-1);
     column-gap: var(--space-4);
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
   }
   .home {
     order: 1;
@@ -85,17 +100,15 @@
     flex-wrap: wrap;
     width: 100%;
     column-gap: var(--space-4);
-    row-gap: 8px;
+    row-gap: 0;
   }
 
   /*
-   * Once the links can stack, their 18px text boxes sit close enough that
-   * check 03's spacing exception would stop covering them. 24px tall plus an
-   * 8px gap puts 32px between centres, clear of the 24px circles.
+   * 40px, not the 24px that check 03's spacing exception technically allows.
+   * A page selling target-size checking is the last place to ship the legal
+   * minimum, and the extra height costs one row of padding.
    */
   .link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 24px;
+    min-height: 40px;
   }
 }

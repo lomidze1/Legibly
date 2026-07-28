@@ -6,6 +6,11 @@ type ButtonProps = {
   href?: string;
   type?: "button" | "submit";
   disabled?: boolean;
+  /**
+   * "primary" is the page's one real action (the waitlist submit); "quiet"
+   * demotes a button that is illustration rather than control.
+   */
+  variant?: "default" | "primary" | "quiet";
 };
 
 /**
@@ -13,13 +18,27 @@ type ButtonProps = {
  * filled. The label is --color-accent-700 rather than the accent itself,
  * which is only 3.0:1 on the ground and would fail at this size.
  */
-export function Button({ children, href, type = "button", disabled }: ButtonProps) {
+export function Button({
+  children,
+  href,
+  type = "button",
+  disabled,
+  variant = "default",
+}: ButtonProps) {
+  const className = [
+    styles.button,
+    variant === "primary" ? styles.primary : "",
+    variant === "quiet" ? styles.quiet : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   if (href) {
     const external = href.startsWith("http");
     if (external) {
       return (
         <a
-          className={styles.button}
+          className={className}
           href={href}
           target="_blank"
           rel="noopener noreferrer"
@@ -29,13 +48,13 @@ export function Button({ children, href, type = "button", disabled }: ButtonProp
       );
     }
     return (
-      <Link className={styles.button} href={href}>
+      <Link className={className} href={href}>
         {children}
       </Link>
     );
   }
   return (
-    <button className={styles.button} type={type} disabled={disabled}>
+    <button className={className} type={type} disabled={disabled}>
       {children}
     </button>
   );

@@ -1,17 +1,19 @@
+import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { JsonLd } from "@/components/JsonLd";
 import { SpecimenPanel } from "@/components/SpecimenPanel";
 import { WaitlistForm } from "@/components/WaitlistForm";
+import { site } from "@/data/site";
 import { softwareApplicationSchema } from "@/lib/schema";
 import styles from "./page.module.css";
 
 /**
- * The two knobs the design exposes, so the page can be tuned without editing
- * markup. Hard-coded here; lift them to config if a CMS ever appears.
+ * Section order answers a skeptical designer in the order they ask.
+ *
+ * Trust now precedes Pricing: "is my file safe?" is the first objection for a
+ * plugin with write access to a production library, and it used to sit at 78%
+ * scroll depth, after the price.
  */
-const RECOMMENDED_PLAN: (typeof tiers)[number]["name"] = "Pro";
-const SHOW_TRUST_SECTION = true;
-
 export default function Home() {
   return (
     <main>
@@ -29,13 +31,9 @@ export default function Home() {
         <Rule />
         <Checks />
         <Rule />
+        <Trust />
+        <Rule />
         <Pricing />
-        {SHOW_TRUST_SECTION && (
-          <>
-            <Rule />
-            <Trust />
-          </>
-        )}
         <Rule />
         <Faq />
         <Rule />
@@ -54,21 +52,22 @@ function Hero() {
   return (
     <section className={styles.hero}>
       <div>
-        <span className={styles.kicker}>Coming soon to Figma Community</span>
+        <span className={styles.kicker}>Private beta</span>
         <h1 className={styles.h1}>
           <span>Checkers tell you.</span>
           <span>Legibly fixes it.</span>
         </h1>
         <p className={styles.heroLead}>
           An accessibility auto-fix for Figma. Scan a selection or a whole page
-          against WCAG&nbsp;2.2 AA, then repair every violation in one click —
-          using your own design tokens, never invented color.
+          against WCAG&nbsp;2.2 AA, then repair every violation in one click,
+          using your own design tokens and never an invented color.
         </p>
         <div className={styles.heroForm}>
           <WaitlistForm />
         </div>
         <p className={styles.heroNote}>
-          Private beta. No newsletter, no pricing surprises.
+          Ahead of the Figma Community launch. No newsletter, no pricing
+          surprises.
         </p>
       </div>
       <SpecimenPanel />
@@ -78,12 +77,12 @@ function Hero() {
 
 function Stakes() {
   return (
-    <section className={`${styles.split} ${styles.splitStakes}`}>
-      <h2 className={styles.h2Large}>Unreadable design is now a legal risk.</h2>
+    <section className={styles.split}>
+      <h2 className={styles.h2Flush}>Unreadable design is now a legal risk.</h2>
       <p className={styles.stakesBody}>
         The European Accessibility Act has applied since June 2025, and ADA
         lawsuits keep climbing. The most common failure in every audit is
-        contrast — and contrast is decided in the design file, months before an
+        contrast, and contrast is decided in the design file, months before an
         engineer can be blamed for it. Legibly moves the fix back to where the
         mistake was made.
       </p>
@@ -94,7 +93,7 @@ function Stakes() {
 const steps = [
   {
     name: "Scan",
-    body: "Select frames or a whole page. Legibly resolves the real background behind every layer — fill stacks, opacity, gradients, overlapping siblings.",
+    body: "Select frames or a whole page. Legibly resolves the real background behind every layer: fill stacks, opacity, gradients, overlapping siblings.",
   },
   {
     name: "Fix",
@@ -127,7 +126,7 @@ function HowItWorks() {
 const verdicts = [
   {
     label: "Violation",
-    body: "The math is certain, so a fix is offered. Contrast is arithmetic and target size is geometry — neither needs an opinion.",
+    body: "The math is certain, so a fix is offered. Contrast is arithmetic and target size is geometry; neither needs an opinion.",
   },
   {
     label: "Needs review",
@@ -195,7 +194,7 @@ const checks = [
   {
     name: "Text contrast",
     sc: "SC 1.4.3",
-    body: "Measured against the background the text actually sits on — composited through fill stacks, opacity and gradients.",
+    body: "Measured against the background the text actually sits on, composited through fill stacks, opacity and gradients.",
   },
   {
     name: "Line spacing",
@@ -205,7 +204,7 @@ const checks = [
   {
     name: "Target size",
     sc: "SC 2.5.8 · 2.5.5",
-    body: "Controls under 24 by 24 — or 44 in mobile mode — measured as geometry, spacing exception included.",
+    body: "Controls under 24 by 24, or 44 in mobile mode, measured as geometry with the spacing exception included.",
   },
   {
     name: "Icon and border contrast",
@@ -239,26 +238,34 @@ const checks = [
   },
 ];
 
+const roadmap = [
+  "Design-system governance",
+  "Brand QA",
+  "An MCP server for Cursor and Claude Code",
+];
+
 function Checks() {
   return (
     <section id="checks" className={styles.section}>
       <span className={styles.kicker}>Coverage</span>
-      <h2 className={styles.h2Tight}>Nine checks, one honest report</h2>
+      <h2 className={styles.h2Tight}>Nine checks, one report</h2>
       <p className={styles.checksLead}>
-        Every one of them decided by math, not opinion — and each one named in
-        the report whether it passed, failed or was left alone.
+        Every one of them decided by math rather than opinion, and each one
+        named in the report whether it passed, failed or was left alone.
       </p>
       <ol className={styles.checks}>
         {checks.map((check, i) => (
           <li
             key={check.name}
-            /* 01 is the flagship check, so its rule is accent, not divider. */
-            className={`${styles.check} ${i === 0 ? styles.checkFlagship : ""} ${
-              i === checks.length - 1 ? styles.checkLast : ""
-            }`}
+            className={`${styles.check} ${i === 0 ? styles.checkFlagship : ""}`}
           >
             <span className={styles.checkIndex}>{`0${i + 1}`}</span>
             <div>
+              {i === 0 && (
+                <span className={styles.checkFlagshipLabel}>
+                  The most common failure in every audit
+                </span>
+              )}
               <h3 className={styles.checkName}>
                 {check.name} <span className={styles.checkSc}>{check.sc}</span>
               </h3>
@@ -266,23 +273,32 @@ function Checks() {
             </div>
           </li>
         ))}
-        {/* Not a tenth check: 01 and 04 re-run on every theme. */}
-        <li className={styles.checkPlus}>
-          <span className={styles.checkIndex}>+</span>
-          <p>
-            And checks 01 and 04 run again on every theme you ship, not only
-            the one on screen. Dark mode is where fixed contrast quietly
-            breaks.
-          </p>
-        </li>
       </ol>
-      <p className={styles.roadmap}>
-        Next on the roadmap: design-system governance, brand QA, and an MCP
-        server for Cursor and Claude Code.
-      </p>
+      {/*
+        Outside the list: it is not a tenth check, and an item spanning both
+        columns cannot be auto-placed inside a column-flow grid.
+      */}
+      <div className={styles.checkPlus}>
+        <span className={styles.checkIndex}>+</span>
+        <p>
+          And checks 01 and 04 run again on every theme you ship, not only the
+          one on screen. Dark mode is where fixed contrast quietly breaks.
+        </p>
+      </div>
+      <div className={styles.roadmap}>
+        <h3 className={styles.roadmapName}>Next on the roadmap</h3>
+        <ul className={styles.roadmapList}>
+          {roadmap.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
+
+/** One source of truth for the badge and the card's accent treatment. */
+const RECOMMENDED_PLAN = "Pro";
 
 const tiers = [
   {
@@ -314,18 +330,21 @@ function Pricing() {
       <div className={styles.pricingHead}>
         <h2 className={styles.h2Flush}>Pricing</h2>
         <p className={styles.betaNote}>
-          Everything is free during the public beta, one-click fixes included.
-          The prices below take effect at launch.
+          Everything is free during the beta, one-click fixes included. The
+          prices below take effect at Community launch.
         </p>
       </div>
       <div className={styles.tiers}>
         {tiers.map((tier) => {
-          const featured = tier.name === "Pro";
+          const featured = tier.name === RECOMMENDED_PLAN;
           return (
             <div
               key={tier.name}
               className={`${styles.tier} ${featured ? styles.tierFeatured : ""}`}
             >
+              {featured && (
+                <span className={styles.recommended}>Recommended</span>
+              )}
               <div>
                 <h3 className={styles.tierName}>{tier.name}</h3>
                 <p
@@ -343,9 +362,10 @@ function Pricing() {
                   <li key={item}>{item}</li>
                 ))}
               </ul>
-              {tier.name === RECOMMENDED_PLAN && (
-                <span className={styles.recommended}>Recommended</span>
-              )}
+              {/* A reader who picks a tier had nowhere to click before this. */}
+              <div className={styles.tierAction}>
+                <Button href="/#early">Join the waitlist</Button>
+              </div>
             </div>
           );
         })}
@@ -381,6 +401,12 @@ function Trust() {
           </div>
         ))}
       </div>
+      <p className={styles.trustMaker}>
+        Legibly is made by <a href={site.links.glinc}>Glinc</a>. If you want to
+        know who is writing to your file before you install it, write to{" "}
+        <a href={`mailto:${site.email}`}>{site.email}</a> and you will get a
+        person, not a form.
+      </p>
     </section>
   );
 }
@@ -404,27 +430,51 @@ const faqs = [
   },
   {
     q: "Which criteria do you not check?",
-    a: "Anything that needs runtime behaviour or human judgement — focus order, keyboard traps, semantics, motion. The report names each one so silence is never mistaken for a pass.",
+    a: "Anything that needs runtime behaviour or human judgement: focus order, keyboard traps, semantics, motion. The report names each one so silence is never mistaken for a pass.",
   },
 ];
+
+/** 10×6 at stroke 1 — the same hairline language as every rule on the page. */
+function Chevron() {
+  return (
+    <svg
+      className={styles.chev}
+      width="10"
+      height="6"
+      viewBox="0 0 10 6"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      aria-hidden="true"
+    >
+      <path d="M1 1l4 4 4-4" />
+    </svg>
+  );
+}
 
 function Faq() {
   return (
     <section id="faq" className={styles.split}>
-      <h2 className={styles.h2Flush}>Questions, answered</h2>
+      <div>
+        <h2 className={styles.h2Flush}>Questions, answered</h2>
+        <p className={styles.faqAside}>
+          Anything else, ask a person:{" "}
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+        </p>
+      </div>
       <div className={styles.faqList}>
         {faqs.map((faq, i) => (
           <details
             key={faq.q}
+            /* The first answer opens, so the section shows what one looks like. */
+            open={i === 0}
             className={`${styles.faqItem} ${
               i === faqs.length - 1 ? styles.faqLast : ""
             }`}
           >
             <summary className={styles.faqSummary}>
               {faq.q}
-              <span className={styles.chev} aria-hidden="true">
-                ▾
-              </span>
+              <Chevron />
             </summary>
             <p className={styles.faqAnswer}>{faq.a}</p>
           </details>
@@ -438,12 +488,14 @@ function Closing() {
   return (
     <section id="early" className={styles.closing}>
       <h2 className={styles.h2Closing}>Be first in line</h2>
-      <p className={styles.closingLead}>
-        Legibly is in private beta ahead of its Figma Community launch. Leave
-        your email and we will send you access — nothing else.
-      </p>
-      <div className={styles.closingForm}>
-        <WaitlistForm />
+      <div>
+        <p className={styles.closingLead}>
+          Legibly is in private beta ahead of its Figma Community launch. Leave
+          your email and we will send you access, and nothing else.
+        </p>
+        <div className={styles.closingForm}>
+          <WaitlistForm />
+        </div>
       </div>
     </section>
   );
