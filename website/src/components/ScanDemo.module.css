@@ -1,0 +1,272 @@
+/*
+ * Same material language as the hero specimen: hairlines, one accent stroke,
+ * no fills. This one is wider because it is a table of findings rather than a
+ * single card, so it spans the content column.
+ */
+.panel {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-100);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 11.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+}
+
+.scope {
+  margin-left: auto;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+.empty {
+  max-width: 34em;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-700);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  /*
+   * A fixed floor so the panel does not grow row by row during the scan and
+   * shove the rest of the page down as it goes. Six rows plus the empty line
+   * it replaces.
+   */
+  min-height: 282px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 5fr) minmax(0, 7fr) auto;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-divider);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .row {
+    animation: settle 260ms ease-out;
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.index {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--color-accent-700);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.name {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 17px;
+}
+
+.sc {
+  /* The serif name and the tracked-out code need air between them. */
+  margin-left: var(--space-1);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  color: var(--color-neutral-700);
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.detail {
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--color-neutral-800);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/*
+ * Every verdict is a word first. The palette here is mono by design and check
+ * 06 on this very list is about meaning carried by hue alone — so the mark is
+ * readable with the color stripped out.
+ */
+.verdict {
+  justify-self: end;
+  padding: 2px var(--space-2);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-neutral-700);
+}
+
+.violation {
+  border-color: var(--color-accent);
+  color: var(--color-accent-700);
+}
+
+.review {
+  border-style: dashed;
+}
+
+.notChecked {
+  border-color: transparent;
+}
+
+.fixedMark {
+  border-color: var(--color-control-border);
+  color: var(--color-text);
+}
+
+.rule {
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.count {
+  font-size: 13px;
+  color: var(--color-neutral-700);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.action,
+.quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  min-width: 9em;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-accent-700);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.action:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.action:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.quiet {
+  border-color: var(--color-divider);
+  color: var(--color-neutral-700);
+  min-width: 0;
+}
+
+.quiet:hover {
+  border-color: var(--color-control-border);
+  color: var(--color-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  /*
+   * Two tracked-out uppercase labels do not share a 340px line: both wrapped
+   * mid-phrase and left the status dot stranded. The scope drops to its own.
+   */
+  .header {
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+
+  .scope {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  /* The four-column row cannot survive a phone; it becomes a stacked card. */
+  .row {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .detail {
+    grid-column: 2;
+  }
+
+  .verdict {
+    grid-column: 2;
+    justify-self: start;
+    margin-top: var(--space-1);
+  }
+
+  .list {
+    min-height: 0;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action,
+  .quiet {
+    width: 100%;
+  }
+}

@@ -1,6 +1,7 @@
 import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { JsonLd } from "@/components/JsonLd";
+import { ScanDemo } from "@/components/ScanDemo";
 import { SpecimenPanel } from "@/components/SpecimenPanel";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { site } from "@/data/site";
@@ -24,8 +25,6 @@ export default function Home() {
         <Stakes />
         <Rule />
         <HowItWorks />
-        <Rule />
-        <Verdicts />
         <Rule />
         <Comparison />
         <Rule />
@@ -121,45 +120,6 @@ function HowItWorks() {
           </li>
         ))}
       </ol>
-    </section>
-  );
-}
-
-const verdicts = [
-  {
-    label: "Violation",
-    body: "The math is certain, so a fix is offered. Contrast is arithmetic and target size is geometry; neither needs an opinion.",
-  },
-  {
-    label: "Needs review",
-    body: "Gradients, images and blend modes that cannot be measured safely get flagged for a human instead of guessed at.",
-  },
-  {
-    label: "Not checked",
-    body: "The report lists every criterion Legibly did not evaluate, so silence never reads as a pass.",
-  },
-];
-
-function Verdicts() {
-  return (
-    <section className={styles.split}>
-      <div>
-        <h2 className={styles.h2Tight}>Three verdicts, no guessing</h2>
-        <p className={styles.splitLead}>
-          Zero false positives is a design constraint here, not a marketing
-          line.
-        </p>
-      </div>
-      <table className={styles.table}>
-        <tbody>
-          {verdicts.map((verdict) => (
-            <tr key={verdict.label}>
-              <th scope="row">{verdict.label}</th>
-              <td>{verdict.body}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </section>
   );
 }
@@ -286,6 +246,24 @@ function Checks() {
           And checks 01 and 04 run again on every theme you ship, not only the
           one on screen. Dark mode is where fixed contrast quietly breaks.
         </p>
+      </div>
+
+      {/*
+        The list says what the nine are; this says what they do together. It
+        also carries the three verdicts, which used to be a static table in a
+        section of their own — two of the six findings here are deliberately
+        left standing after "Fix all", which is the entire argument.
+      */}
+      <div className={styles.demo}>
+        {/* Not "Nine checks, one pass": the h2 above is "Nine checks, one
+            report" and the pair read as a stutter. */}
+        <h3 className={styles.demoName}>Run all nine at once</h3>
+        <p className={styles.demoLead}>
+          Zero false positives is a design constraint here, not a marketing
+          line. Run it and watch two findings survive the fix: one the math
+          cannot read safely, one Legibly never claims to check.
+        </p>
+        <ScanDemo />
       </div>
       <div className={styles.roadmap}>
         <h3 className={styles.roadmapName}>Next on the roadmap</h3>
