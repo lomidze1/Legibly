@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contrastRatio, formatRatio, tokens } from "./contrast";
+import { contrastRatio, formatRatio, specimen, tokens } from "./contrast";
 
 describe("contrastRatio", () => {
   it("matches the WCAG reference values", () => {
@@ -93,29 +93,53 @@ describe("brand token contrast audit", () => {
  * and the panel prints its ratio as "2.4:1" in copy. If the palette moves,
  * the printed number has to move with it, so pin the measurement here.
  */
+/**
+ * The hero specimen prints four ratios and the panel runs live, so all four
+ * are pinned here. If the palette moves, the printed numbers have to move
+ * with it — the panel reads them from the same module this test does.
+ */
 describe("the hero specimen", () => {
-  const ratio = contrastRatio(tokens.neutral500, tokens.surface);
+  const measured = (theme: "light" | "dark", state: "failing" | "fixed") =>
+    contrastRatio(specimen[theme][state], specimen[theme].ground);
 
-  it("still measures the 2.4:1 the panel prints", () => {
-    expect(Math.round(ratio * 10) / 10).toBe(2.4);
+  /*
+   * The panel formats these with formatRatio at render time rather than
+   * printing a literal, so these expectations are the readout itself. The
+   * light failure reads 2.3, not 2.4: formatRatio truncates the way the
+   * plugin does, and the copy used to round it up.
+   */
+  it.each([
+    ["light", "failing", "2.3:1"],
+    ["light", "fixed", "6.9:1"],
+    ["dark", "failing", "1.7:1"],
+    ["dark", "fixed", "7.2:1"],
+  ] as const)("%s / %s reads %s in the panel", (theme, state, expected) => {
+    expect(formatRatio(measured(theme, state))).toBe(expected);
   });
 
-  it("still fails AA, which is the entire point", () => {
-    expect(ratio).toBeLessThan(4.5);
+  it.each(["light", "dark"] as const)(
+    "%s starts below AA, which is the entire point",
+    (theme) => {
+      expect(measured(theme, "failing")).toBeLessThan(4.5);
+    },
+  );
+
+  it.each(["light", "dark"] as const)("%s repairs to a passing value", (theme) => {
+    expect(measured(theme, "fixed")).toBeGreaterThanOrEqual(4.5);
   });
 
   /**
-   * The panel now shows the repair as well as the violation, and prints that
-   * ratio too. Same rule as above: if the palette moves, the printed number
-   * has to move with it.
+   * The demonstration only lands if the dark failure is the *same token* that
+   * passed in light. That is the Coverage section's claim about check 01
+   * re-running per theme, so assert the setup rather than trusting the hexes.
    */
-  const repaired = contrastRatio(tokens.neutral700, tokens.surface);
-
-  it("repairs to the 6.9:1 the panel prints", () => {
-    expect(Math.floor(repaired * 10) / 10).toBe(6.9);
+  it("fails dark with the token that passed light", () => {
+    expect(specimen.dark.failing).toBe(specimen.light.fixed);
   });
 
-  it("repairs to a value that actually passes AA", () => {
-    expect(repaired).toBeGreaterThanOrEqual(4.5);
+  it("keeps the light specimen on the documented brand tokens", () => {
+    expect(specimen.light.failing).toBe(tokens.neutral500);
+    expect(specimen.light.fixed).toBe(tokens.neutral700);
+    expect(specimen.light.ground).toBe(tokens.surface);
   });
 });

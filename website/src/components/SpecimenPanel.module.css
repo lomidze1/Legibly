@@ -18,6 +18,36 @@
   color: var(--color-neutral-700);
 }
 
+/* The artboard's theme, not the site's — the panel chrome stays light. */
+.themes {
+  display: flex;
+  margin-left: auto;
+  gap: var(--space-1);
+}
+
+.theme {
+  min-height: 24px;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+  cursor: pointer;
+}
+
+.theme:hover {
+  color: var(--color-text);
+}
+
+.theme[aria-pressed="true"] {
+  border-color: var(--color-accent);
+  color: var(--color-accent-700);
+}
+
 .dot {
   width: 6px;
   height: 6px;
@@ -41,31 +71,36 @@
   color: var(--color-neutral-700);
 }
 
+/*
+ * An SVG, not a div of text. See the note in SpecimenPanel.tsx: the sample is
+ * a deliberate contrast failure, and as DOM text axe reports it against this
+ * site. The fill transitions so the repair is visible rather than instant.
+ */
 .sample {
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.sampleTitle {
-  margin-bottom: var(--space-1);
+.sample text {
+  transition: fill 700ms ease;
+}
+
+.svgTitle {
   font-family: var(--font-heading);
   font-weight: 500;
   font-size: 19px;
 }
 
-/* Deliberately 2.4:1. See the note in SpecimenPanel.tsx. */
-.sampleBody {
+.svgBody {
+  font-family: var(--font-body);
   font-size: 14px;
-  line-height: 24px;
-  color: var(--color-neutral-500);
-  transition: color 700ms ease;
 }
 
-/* The same line after the repair: 6.9:1 on the same ground. */
-.sampleBodyFixed {
-  color: var(--color-neutral-700);
+@media (prefers-reduced-motion: reduce) {
+  .sample text {
+    transition: none;
+  }
 }
 
 .verdict {

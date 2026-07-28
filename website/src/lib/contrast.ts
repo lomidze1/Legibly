@@ -57,3 +57,34 @@ export const tokens = {
   /** The 6% accent tint on the "Legibly" comparison card, over --color-bg. */
   accentTint: "#efebe7",
 } as const;
+
+/**
+ * The hero specimen's two artboards.
+ *
+ * The panel chrome stays light — the site is light, and this is the plugin's
+ * UI. What switches is the *sample*, because that stands for the user's own
+ * artboard, and the point being made is check 01 re-running on a second theme.
+ *
+ * The narrative is the one the Coverage section claims: `text/secondary` is a
+ * perfectly good token that passes in light and quietly collapses in dark.
+ */
+export const specimen = {
+  light: {
+    ground: "#eae9e9",
+    title: "#201f1d",
+    /** Fails at 2.4:1 — the thing the plugin catches. */
+    failing: "#9b9797",
+    /** Repaired to 6.9:1 from the user's own set. */
+    fixed: "#504d4d",
+    fixedToken: "text/secondary",
+  },
+  dark: {
+    ground: "#2a2827",
+    title: "#f0eeec",
+    /** The same token that passes on the light ground: 1.7:1 here. */
+    failing: "#504d4d",
+    /** Repaired to 7.2:1. */
+    fixed: "#b9b6b4",
+    fixedToken: "text/secondary-dark",
+  },
+} as const;
