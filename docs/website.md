@@ -90,7 +90,7 @@
 - **Visual identity (პირველად განისაზღვრა):** ღია, მაღალკონტრასტული "legibility-first" — body ტექსტის ყველა წყვილი **AAA (7:1)**, label-ები ≥ AA (4.5:1); ტიპოგრაფია: **Atkinson Hyperlegible** (Braille Institute-ის შრიფტი — ბრენდის არგუმენტი); აქცენტი: `#1e40af` (ლურჯი); verdict ფერები: fail `#b42318` / review `#92400e` / pass `#166534`. ყველა წყვილი unit-ტესტით მოწმდება (`src/lib/contrast.test.ts`) — საიტი თავად აკმაყოფილებს იმას, რასაც ყიდის
 - **Hero demo:** ინტერაქტიული before/after კომპონენტი რეალური WCAG მათემატიკით (`FixDemo`) — მოგვიანებით ჩანაცვლდება/დაემატება რეალური პლაგინის GIF
 - **CTA (launch-ამდე):** waitlist email capture (`/api/waitlist`, Resend + honeypot); `site.ts`-ში `figmaCommunityUrl`-ის შევსებისას CTA გადავა "Install on Figma"-ზე
-- **Pricing:** სამივე tier ჩანს + "Free during public beta" ბანერი
+- **Pricing:** ~~სამივე~~ **ორი** tier ჩანს (Free + Pro $12 — D20) + "Free during public beta" ბანერი
 - **Privacy copy:** პატიოსანი BYOK disclosure — "no network"-ის ნაცვლად "ერთადერთი optional call: alt-text → api.anthropic.com შენი key-თ"
 - **გვერდები:** `/` (10 სექცია), `/privacy`, SEO (sitemap, robots, JSON-LD SoftwareApplication, OG image)
 

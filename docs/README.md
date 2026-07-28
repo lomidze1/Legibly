@@ -19,7 +19,9 @@
 | 7 | [`research-roadmap.md`](./research-roadmap.md) | რა უნდა გამოვიკვლიოთ — tools, plugins, libraries, generators | planning phase-ში |
 | 8 | [`glossary.md`](./glossary.md) | ტერმინების ლექსიკონი | როცა term-ი არ გესმის |
 | 9 | [`website.md`](./website.md) | ვებსაიტის გეგმა (TODO — plugin-ზე დაფუძნებული) | launch-ის მომზადებისას |
-| 10 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
+| 10 | [`pre-launch-checklist.md`](./pre-launch-checklist.md) | 🔴 **გამოქვეყნებამდე დარჩენილი საქმეები** — ერთადერთი to-do სია | launch-ზე მუშაობისას — ყოველთვის |
+| 11 | [`launch-stack.md`](./launch-stack.md) | ვენდორები/ინფრასტრუქტურა (დომენი, hosting, email, payments) | როცა checklist-ის პუნქტს ასრულებ |
+| 12 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
 
 ---
 
