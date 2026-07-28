@@ -54,7 +54,7 @@
 | 4 | **Before/After demo** 🔑 | *money shot* — gif/video: არასწორი კონტრასტი → გასწორებული, on-system, 1 კლიკში |
 | 5 | **Why Legibly** | სხვები მხოლოდ *აჩვენებენ*; ჩვენ *ვასწორებთ* + correctness-by-construction (no bad-AI) |
 | 6 | **Features** | contrast (now) → target size, spacing, alt-text, design-system, brand-QA (roadmap) |
-| 7 | **Pricing** | Free (detect) · Pro $12/mo (fix + report) · Team $15/seat |
+| 7 | **Pricing** | Free (detect) · Pro $12/mo (fix + report) — ორი tier, Team მოხსნილია (D20) |
 | 8 | **Social proof / trust** | reviews, install count, "WCAG 2.2 AA" badges (როცა გვექნება) |
 | 9 | **FAQ** | "მართლა ასწორებს?", "ჩემს token-ებს იყენებს?", "privacy?" (offline, no data leaves) |
 | 10 | **Footer CTA** | "Install on Figma" + docs/support links |
@@ -66,7 +66,7 @@
 - [ ] გვერდები (landing / pricing / docs / privacy)
 - [ ] თითო სექციის **ზუსტი copy** (EN)
 - [ ] Before/after **demo asset** (რა ვაჩვენოთ, video თუ interactive)
-- [ ] Pricing display (Free/Pro/Team, annual toggle?)
+- [ ] Pricing display (Free/Pro, annual toggle?)
 - [ ] CTA targets (Figma Community listing link)
 - [ ] SEO keywords ("figma accessibility", "WCAG checker figma", "contrast fixer")
 - [ ] Tech/hosting (static site — Vercel/Cloudflare Pages), domain lock

@@ -26,7 +26,7 @@ It detects problems like unreadable text contrast, then **fixes them in one clic
 | **What** | Accessibility-first correctness layer — detect & auto-fix |
 | **MVP v0.1** | "Contrast, fixed right" (deterministic, no backend/AI) |
 | **Roadmap** | contrast → target-size/spacing → alt-text (AI) → design-system enforcement → brand-QA |
-| **Money** | Free = detect · Pro $12/mo = fix + report · Team $15/seat |
+| **Money** | Free = detect · Pro $12/mo = fix + report (two tiers only — D20) |
 | **Why us** | Nobody does reliable a11y *auto-fix* (competitors only flag) |
 
 See [`docs/goal.md §0`](./docs/goal.md) for the locked north-star.

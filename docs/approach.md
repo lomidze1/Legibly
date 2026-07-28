@@ -166,6 +166,64 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Decision:** proposal ვარიაბლები ცხოვრობენ **მხოლოდ** dedicated "Legibly" collection-ში (fallback user-ის collection-ზე იკრძალება — collection ყოველთვის იქმნება) და **გამოირიცხებიან token harvest-იდან** — არც fix-კანდიდატებში, არც "Only use my existing colors" strict pool-ში არ ჩანან. System-strict positioning: ჩვენი შემოთავაზება user-ის სისტემა არ არის, სანამ user-მა თავად არ გადაიტანა.
 - **Status:** ჩასაწერი კოდში v0.3 field-test batch fix-თან ერთად (იხ. `docs/test-findings-v03.md`).
 
+### D16 — 2026-07-26 — Wave 1: variable-mode sweep (dark mode) + platform tap-target floor
+- **Context:** v0.1–v0.3-ის ყველა დაგეგმილი SC ჩაბარდა ([checks-expansion.md §1](./checks-expansion.md)) — შემდეგი ნაბიჯი აღარ იყო roadmap-ში. კვლევამ ორი რამ აჩვენა: (1) `resolveVariableColor` მხოლოდ `collection.defaultModeId`-ს კითხულობდა, ანუ mode-ებიან ფაილში **მხოლოდ ერთ თემას ვამოწმებდით**; (2) იგივე ხარვეზი fix-ის მხარესაც არსებობდა — token-ის rebind Light-ს ასწორებდა და Dark-ს ჩუმად ტეხდა (NF3-ის ლატენტური დარღვევა, ჩვენი დეტექციისგან დამოუკიდებლადაც).
+- **Alternatives:** (a) mode-ის დროებით გადართვა დოკუმენტზე და ხელახლა წაკითხვა — უარყოფილია, canvas-ის მუტაცია undo-history-სა და user-ის ხედვას ბინძურებს; (b) mode findings-ის auto-fix — გადავადებულია, იხ. ქვემოთ.
+- **Decision — detection:** ცალკე `ModeProjection` — ყოველი mode-ისთვის variable-ები resolve-დება alias-ების გავლით (per-collection mode override), და იქმნება ხის **read-only mirror** (`shared/project.ts`), სადაც variable-ზე მიბმული solid paint-ები იმ mode-ის ფერით იცვლება. **ახალი judgment არ ჩნდება — მხოლოდ მეტი sample**, ზუსტად გრადიენტის კონტრაქტის ანალოგიით. მოწმდება მხოლოდ ფერზე დამოკიდებული SC — 1.4.3 და 1.4.11.
+- **Zero-FP დაცვა:** subtree, რომელსაც `explicitVariableModes`-ით სხვა mode აქვს მიმაგრებული, mirror-ში **invisible-ად ინიშნება და არ სკანირდება** — ის canvas-ზე თავის mode-ს რენდერავს (base scan-მა უკვე გასამართლა), სხვა mode-ის პროექცია მასზე ისეთ ჩავარდნას გამოიგონებდა, რომელსაც user ვერასდროს ნახავს (F8).
+- **Decision — fix safety (`ModeGuard`):** ფერის fix-ი commit-ის წინ ხელახლა იზომება **ყველა დანარჩენ mode-ში**; თუ რომელიმეში certain violation-ია — fix უარყოფილია და fill აღდგება (იგივე try/finally, რაც არსებულ commit-time verification-ს). Guard-ი მხოლოდ node-ის top-level frame-ს პროექცირებს (+ page-ის shallow mirror) — მთელი გვერდის პროექცია batch-ზე NF4-ს დაარღვევდა.
+- **Deliberate deferral:** mode-ში ნაპოვნი finding-ი **არ არის one-click fixable** — fix engine ეკრანზე მოცემულ თემას ამოწმებს, ანუ იქ "დაფიქსირებული" შედეგი მეორე თემაზე გარანტიას არ იძლევა. ბარათი პატიოსნად ხსნის რა ვნახეთ და რა გააკეთოს user-მა. Mode-aware კანდიდატების გენერაცია (token-ის per-mode მნიშვნელობებით) — მომდევნო wave.
+- **Also:** tap-target floor გახდა პარამეტრი — 24px = **SC 2.5.8** (AA, spacing exception ძალაშია), 44px = **SC 2.5.5** (AAA, ასევე iOS HIG; exception არ აქვს). რეპორტში SC ყოველთვის იმ წესს ემთხვევა, რომელიც რეალურად გამოვიყენეთ. Android-ის 48px არ დაემატა — ის WCAG კრიტერიუმი არ არის და "violation" tier-ს პატიოსნად ვერ დაიკავებდა.
+- **Verify:** 257 tests green (ახალი: `project.test.ts` 10, `modes.test.ts` 5, target-floor 4), typecheck + build სუფთა.
+
+### D17 — 2026-07-26 — Wave 2: SC 1.4.1 (use of colour) + clipped text
+- **1.4.1 Use of Color (Level A, აქამდე 0% დაფარვა):** ვამოწმებთ **მხოლოდ ერთი text layer-ის შიგნით** — run, რომელიც ირგვლივ მდებარე body-სგან განსხვავდება და მას სხვა cue არ აქვს. ხმაურის ოთხი ფილტრი: underline/strikethrough · სხვა weight · სხვა size · italic — თითოეული ჩუმდება, რადგან non-colour cue არსებობს; **პლუს** candidate, რომელიც body-ს ფერის იმავე hue-ოჯახშია (±30°, fix engine-ის იგივე ტოლერანტობა) იგნორირდება — ეს tonal variant-ია (muted caption, emphasis), არა semantic ფერი (link-blue, error-red). Standalone label-ები, icon-ები, chart key-ები **საერთოდ არ სამართლდება** — მათი მნიშვნელობა ფაილში არ წერია (footer-ში).
+- **Tier:** ყოველთვის `needsReview` — detection research §2.4-ის პირდაპირი შესრულება ("1.4.1 never hard-fail"). Precedent: 1.4.12-იც needsReview-ია და one-click fix მაინც აქვს.
+- **Fix:** ერთი კლიკი — underline არჩეულ range-ებზე; verify = Figma-ში რეალურად ჩაწერილი decoration-ის ხელახლა წაკითხვა, ჩავარდნაზე revert (NF1). ერთი finding ერთ layer-ზე, თუნდაც რამდენიმე run იყოს — ერთი გადაწყვეტილება, არა ხუთი ბარათი.
+- **Perf:** `getStyledTextSegments` per-node API call-ია, ამიტომ pre-filter — თუ layer-ის `fills` არ არის `figma.mixed`, ფერადი run ვერ იარსებებს და call საერთოდ არ ხდება (NF4).
+- **Clipped text:** ტექსტი, რომელიც clip-ის მქონე ancestor-ის საზღვარს სცდება — სუფთა გეომეტრია, 2px sub-pixel დაშვებით. **Auto-fix შეგნებულად არ აქვს:** container-ის გაფართოება ან copy-ის შემოკლება layout-ის გადაწყვეტილებაა, ჩვენი გამოსაცნობი არა — ვაჩვენებთ რა იმალება და არჩევანს user-ს ვუტოვებთ.
+- **SC labeling (პატიოსნება):** clipped text იწერება `1.4.10`-ზე, მაგრამ footer ცალსახად ამბობს — "we flag text clipped by its own container; real reflow behaviour at 320px cannot be tested from a static file". ეს ზუსტად ის ფორმულირებაა, რასაც detection research §1 გვირჩევდა 1.4.10-ზე; conformance verdict-ს არ ვაცხადებთ.
+- **Coverage:** 5 → **8 SC** (1.4.3 · 1.4.12 · 1.4.11 · 1.1.1 · 2.5.8/2.5.5 · 1.4.1 · 1.4.10), + 1.4.3/1.4.11 ყველა variable mode-ზე (D16).
+- **Verify:** 284 tests green (ახალი: `use-of-color.test.ts` 16, `clipped-text.test.ts` 9, scan integration 2), typecheck + build სუფთა.
+
+### D18 — 2026-07-26 — Wave 3: მესამე tier (`advisory`) + 2.4.6 label presence + 2.4.7 focus capability
+- **Advisory tier (არქიტექტურული ნაწილი):** `Tier` გახდა `violation | needsReview | advisory`. `advisory` **საერთოდ არ არის WCAG verdict** — ეს ჩვენი რჩევაა იქ, სადაც კრიტერიუმი არ არსებობს. რატომ ცალკე tier და არა უბრალოდ needsReview: detection research §1-ის მთავარი გაფრთხილება ზუსტად ესაა — best practice-ის conformance-ად გასაღება a11y-მარკეტინგის სტანდარტული არაპატიოსნებაა. Advisory finding-ს `sc` ველში კრიტერიუმის ნომრის ნაცვლად `"Best practice"` უწერია, CSV-ში result = **"Advisory (not WCAG)"**, UI-ში ცალკე სექცია "Legibly recommends" და **issue count-ებში არ ითვლება**.
+- **A1 small text (advisory):** < 12px. WCAG-ს ფონტის მინიმუმი არ აქვს — 8px ტექსტი 1.4.3-ს გადის, თუ კონტრასტი უჭერს. ეს რეალური ხარვეზია "conformant"-სა და "legible"-ს შორის, და პროდუქტს Legibly ჰქვია.
+- **A2 line length (1.4.8 AAA) — უარვყავი:** სტრიქონის სიგრძე Figma-დან მხოლოდ შეფასებით იზომება (box width ÷ fontSize × შრიფტზე დამოკიდებული 0.45–0.6 კოეფიციენტი) — 80-სიმბოლოიან ზღვართან ეს ±20% ცდომილებაა, ანუ ~64–100 რეალურ სიმბოლოს დავაფლაგებდით. მიახლოებითი advisory, რომელიც არასწორად ირთვება, უარესია ვიდრე მისი არარსებობა.
+- **S5 — SC 2.4.6 label presence (needsReview):** placeholder-as-label. Field-ს ვცნობთ **მხოლოდ სახელით** (იგივე პატიოსნების იარუსი, რაც 2.5.8-ს აქვს), label-ს — ტექსტით, რომელიც უშუალოდ ზემოთ ან მარცხნივ დგას (≤40px, ორი ancestor-ის სიღრმეზე). Field-ის შიგნით მდებარე ტექსტი label-ად **არ ითვლება** — სწორედ ისაა ბაგი. Footer-ში 2.4.6 "not checked"-იდან გადავიდა "ნაწილობრივ" — presence ვამოწმებთ, wording-ის აღწერითობას არა.
+- **S6 — SC 2.4.7 focus capability (needsReview):** component set, რომელსაც state-ღერძი აქვს (hover/pressed/…), მაგრამ focus ვარიანტი არა. Noise-ის საწინააღმდეგოდ: ღერძი state-ად ითვლება მხოლოდ თუ მისი მნიშვნელობების **უმრავლესობა** state-სიტყვაა — "Type=Default|Danger|Ghost|Primary" ერთი დამთხვევის გამო არ ჩაითვლება. Size/icon-ღერძები საერთოდ არ სამართლდება. Runtime-focus რომ არ გვიმოწმებია — footer-ში წერია.
+- **Coverage:** 8 → **10 SC** + advisory tier. Auto-fix არცერთს არ აქვს შეგნებულად: label-ის ტექსტი, focus-ring-ის დიზაინი და ფონტის ზომა შინაარსობრივი/დიზაინის გადაწყვეტილებებია, არა deterministic snap — "fix" აქ გამოცნობა იქნებოდა (D7-ის #1 წესი).
+- **Verify:** 310 tests green (ახალი: form-label 12, focus-state 9, advisory 4, scan tier-order 1), typecheck + build სუფთა.
+
+### D19 — 2026-07-27 — ვალის დახურვა + interactive scope + mode-aware fix
+თანმიმდევრობა user-ის არჩევანით: ჯერ ბაგები, მერე ღირებულება.
+
+**1. Wave 0 ვალი დაიხურა.**
+- **B2/D15:** `harvestTokens` ახლა გამორიცხავს "Legibly" collection-ის ვარიაბლებს. კონსტანტა `PROPOSAL_COLLECTION` გადავიდა `tokens.ts`-ში და `apply.ts` იქიდან იღებს — ორივე მხარე ერთ წყაროზეა, drift შეუძლებელია. ამის გარეშე plugin საკუთარ ნაწარმს მომდევნო scan-ზე user-ის სისტემად კითხულობდა და "only use my existing colors" ჩუმად კარგავდა აზრს.
+- **B6:** bg-fix-ის ხილვადობა — ბარათზე owner-ის სახელი clickable გახდა (select/zoom canvas-ზე) + before→after swatch-ები hex-ებით; applied-record-ის `changeDescription`-ში დაემატა `(#FFFFFF → #F1F1F1)`. Background-ის ცვლილება იმ ბარათზე, საიდანაც გაუშვი, უხილავია — ჩანაწერმა უნდა თქვას რა რად იქცა.
+
+**2. Interactive scope გაფართოვდა (2.5.8 + 1.4.11 ერთდროულად).** ორივე check `collectTargets`-ზე დგას, ანუ scope ერთი ადგილიდან იმართება. `certain` უცვლელია (მხოლოდ prototype reaction). Suspect-ს დაემატა:
+- **State VARIANT ღერძი** instance-ზე — კომპონენტი აშენებულია რეაქციისთვის. `Status` **განზრახ არ ითვლება** (badge-ის კონვენციაა: Status=Success).
+- **form-field სახელები** (`FIELD_HINT`, გაზიარებული 2.4.6-თან) — input-ის ჩარჩო UI component boundary-ია და 1.4.11 სწორედ ამას ზომავს.
+- **⚠️ შეგნებულად არ დავამატე** სტრუქტურული "ღილაკს ჰგავს" ევრისტიკა (fill+radius+ტექსტი+ზომის ჭერი). Imported ფაილებზე (`div`/`span` სახელები, reaction-ების გარეშე) სწორედ ის იმუშავებდა, მაგრამ ის დაფუძნებულია გამოცნობაზე და badge/tag/card-ებზე ხმაურს დაბადებდა. საჭიროა ჯერ რეალურ ფაილზე გაზომვა, მერე გადაწყვეტა — არა პირიქით.
+
+**3. Mode-aware auto-fix (D16-ის deferral დაიხურა).** ადრე dark mode-ის finding მხოლოდ ჩანდა; ახლა სწორდება.
+- **მოდელი:** verification განზოგადდა **კონტექსტებზე** — `FixContext = { mode, bgs }`. გრადიენტი ერთ კონტექსტში რამდენიმე sample-ია, თემა — ცალკე კონტექსტი. კანდიდატის ვერდიქტი = **worst ratio ყველა კონტექსტზე**.
+- **მონაცემები:** `TokenCandidate.colorsByMode` (ტოკენის მნიშვნელობა თითო თემაზე, `attachModeColors`) + `Finding.bgByMode` (ფონი თითო თემაზე; `''` = ეკრანზე მოცემული). bgByMode ივსება scan-ის დროს, თითო mode-ის mirror-ის **ერთი** id-ინდექსით — O(findings), არა O(nodes × findings).
+- **Proposal-ის განსხვავება:** ახალი ფერი ერთი ლიტერალია, ყველა თემაზე იგივე — ამიტომ ის ყველა კონტექსტის ფონების **გაერთიანებას** უნდა გაუძლოს.
+- **ორმაგი დაცვა:** planFix ირჩევს კანდიდატს, რომელიც ყველა თემას გადის; commit-ის წინ `ModeGuard` (D16) იმავეს ხელახლა ამოწმებს რეალურ canvas-ზე. Planner ცდება — guard მაინც აბრუნებს.
+- **Verify:** ტესტი, რომელიც ყველაზე მეტს იცავს: near-black ტოკენი, რომელიც Light-ზე 18:1-ია და Dark-ზე 1.1:1 — **არ უნდა შემოთავაზდეს**. `fix-modes.test.ts` 12 ტესტი.
+
+**Verify:** 328 tests green, typecheck + build სუფთა.
+
+### D20 — 2026-07-28 — Team tier მოხსნილია launch-იდან; ორი tier (Free / Pro $12) — user-approved
+- **Context:** საიტი სამ სვეტს აჩვენებდა, მაგრამ Team-ის ორივე bullet ("Shared token rules across the team", "Priority support") არაფერს არ ეყრდნობოდა — არც კოდი, არც backend, არც support-პროცესი. Plugin-ის PlansPanel უკვე მხოლოდ Free/Pro-ს აჩვენებდა, ანუ საიტი და პროდუქტი ერთმანეთს ეწინააღმდეგებოდა.
+- **Alternatives:** (b) Team-ს რეალური seat-value მიეცეს ახლა — უარყოფილია: shared policy / audit trail backend-ს ითხოვს (Q1/Q5 ჯერ ღიაა), ანუ launch-ს გადაავადებდა.
+- **Decision:** launch = **ორი tier — Free (detect) და Pro $12/mo (fix + batch + CSV report + strict mode)**. Team ბრუნდება მაშინ და მხოლოდ მაშინ, როცა seat-ს რეალური ღირებულება ექნება: org-დონეზე ჩაკეტილი strict mode, project-level audit trail, sanctioned token allow-list. მაშინ ფასი $19–24/seat უნდა იყოს, არა $15 — governance-ის მყიდველი (design lead / compliance owner) სხვა budget-ია, და $12→$15 delta seat-motion-ს არ ამართლებდა.
+- **Why $12 რჩება (და არა $9 ან $15):** Stark-ის Pro anchor-ია ზუსტად $12 ([a11y-competitor-teardown §pricing](./research/a11y-competitor-teardown.md)) — ზემოთ Team-ის გარეშე $15 გვხდის კატეგორიის ყველაზე ძვირად კომოდიტიზებულ ბაზარზე; $9 კი "იაფი checker"-ის სიგნალია მაშინ, როცა ჩვენი Pro მკაცრად მეტს აკეთებს (fix + verify + report vs detect + suggestion), და ფასის მერე აწევა ადრეულ subscriber-ებთან trust-ს ჭამს. $12 ასევე უკვე ჩაწერილია plugin-ის PlansPanel-ში — ცვლილება ნულოვანია.
+- **#1 quality rule-თან კავშირი:** ცარიელი სვეტი იგივე კლასის არაპატიოსნებაა, რაც best-practice-ის conformance-ად გასაღება (D18) — ვყიდით მხოლოდ იმას, რაც არსებობს.
+- **Outcome:** `website/src/app/page.tsx` (tiers 3→2), `page.module.css` (`.tiers` grid 3→2 სვეტი), README, `docs/website.md`, `docs/requirements.md` F19, Open-questions checklist. Plugin ცვლილებას არ საჭიროებდა — უკვე Free/Pro $12 ეწერა.
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)
@@ -189,7 +247,7 @@ Phase 3: Enterprise v1.0 (~12 months)
 - [ ] **Backend hosting choice** — Cloudflare Workers ან Fly ან Vercel? (research) — *note: MVP v0.1 (deterministic contrast) needs no backend; defer to v0.3*
 - [ ] **Auth strategy** — Clerk / Auth.js / custom JWT?
 - [ ] **Telemetry vendor** — PostHog / Plausible / custom?
-- [x] **Pricing tier numbers** — ✅ Pro $12/mo, Team $15/seat (D8, Stark-anchored); free = detect-only.
+- [x] **Pricing tier numbers** — ✅ Pro $12/mo (D8, Stark-anchored); free = detect-only. Team tier launch-იდან **მოხსნილია** (D20).
 - [ ] **MCP server hosting** — same as backend or separate?
 - [ ] **Claude Design plugin integration** — what do we leverage? (`research/claude-design-plugin.md`)
 - [ ] **Anthropic billing** — BYO key from day 1 or our hosted only?

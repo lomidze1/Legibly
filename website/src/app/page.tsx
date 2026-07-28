@@ -306,16 +306,6 @@ const tiers = [
       "Strict mode: on-system tokens only",
     ],
   },
-  {
-    name: "Team",
-    price: "$15",
-    cadence: "Per seat, per month",
-    items: [
-      "Everything in Pro",
-      "Shared token rules across the team",
-      "Priority support",
-    ],
-  },
 ] as const;
 
 function Pricing() {
