@@ -225,6 +225,15 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Outcome:** `website/src/app/page.tsx` (tiers 3→2), `page.module.css` (`.tiers` grid 3→2 სვეტი), README, `docs/website.md`, `docs/requirements.md` F19, Open-questions checklist. Plugin ცვლილებას არ საჭიროებდა — უკვე Free/Pro $12 ეწერა.
 - **Follow-up (user-approved, იმავე დღეს):** Team ამოღებულია **რედიზაინის handoff-იდანაც** (`website-new-design/` — `.dc.html` ბარათი + `recommendedPlan` enum + `teamMarked` binding + README spec; zip ხელახლა აეწყო, რომ სტალე spec-მა ვერ იაღორძინოს), და **ARR-ის მიზნიდანაც** ("team seats → $1M+" წაიშალა `goal.md`/`approach.md`-ში). მიზეზი: სამომავლო seat-upside-ის დღეს ჩაწერა იმავე ცარიელი დაპირების კლასია — მომავლის მიზნები მაშინ დაიწერება, როცა მათი საფუძველი გაჩნდება.
 
+### D21 — 2026-07-29 — Billing = Paddle (MoR); Figma Payments გამორიცხულია; license binding OAuth-ის გარეშე — user-approved
+- **Context:** "ვინ იხდის?" კითხვამ ორი დამოუკიდებელი საკითხი გააერთიანა — (ა) ვინ ამუშავებს ფულს, (ბ) plugin-მა როგორ იცის ვინ გადაიხადა. `launch-stack.md` Q1 ჯერ ღია იყო.
+- **გადამწყვეტი ფაქტი:** Figma Community-ზე paid resource-ის გამოქვეყნება **მოითხოვს აქტიურ Stripe account-ს** ([Figma Help](https://help.figma.com/hc/en-us/articles/360042293394-Publish-plugins-to-the-Figma-Community)), Stripe კი საქართველოს merchant country-ად **არ უჭერს მხარს** (46 supported country, GEL არ არსებობს). გამყიდველი = **ქართველი ინდ. მეწარმე პირადი სახელით/ID-ით** (user-confirmed) ⇒ **`figma.payments` (launch-stack ვარიანტი A) გამორიცხულია.**
+- **Alternatives:** (b) **Flitt** — უარყოფილია v1-სთვის: PSP და არა Merchant of Record, ე.ი. EU B2C digital services-ის VAT პირველივე ევროდან ჩვენზეა (OSS რეგისტრაცია + 27 იურისდიქცია), + უცხოელი დიზაინერისთვის უცნობი checkout = conversion-ის დანაკარგი. web2wireframe-ისთვის ლოგიკურია (ლოკალური აუდიტორია), Legibly-ის target გლობალურია. (c) **LemonSqueezy** — უარყოფილია: Stripe-ის შვილობილია, იგივე GE-ის ბლოკი.
+- **Decision:** **Paddle (MoR)** — GE = supported seller country, payout wire/Payoneer, VAT/sales tax სრულად მათი ვალდებულებაა. ~5% + $0.50 fee = ცნობიერად გადახდილი ფასი იმისთვის, რომ $12/mo პროდუქტმა 27 ქვეყნის tax compliance არ იტვირთოს. Flitt რჩება როგორც შესაძლო **ლოკალური** არხი მოგვიანებით, არა v1.
+- **License binding — Figma OAuth არ ვაშენებთ:** `figma.currentUser.id` (manifest `permissions: ["currentuser"]`) აძლევს სტაბილურ Figma user ID-ს პლაგინის შიგნიდან, OAuth-ის გარეშე. ნაკადი: Paddle checkout → webhook → license key → Resend email → user აწერს key-ს Settings-ში → `POST /activate {key, figmaUserId}` → seat binding (max 2) → signed token → `figma.clientStorage` cache + offline grace. `currentUser` შეიძლება იყოს `null` ⇒ fallback: key მარტო email-ზე იბმება.
+- **რატომ ჰყოფნის:** `currentUser.id` client-reported-ია, ე.ი. spoof-ადი — მაგრამ $12-იან პლაგინზე მიზანი anti-piracy არაა, არის key-ის უაზრო გაზიარების შეჩერება; ამისთვის seat-limit საკმარისია და OAuth-ის სირთულე რისკს არაპროპორციულია. **Figma OAuth ბრუნდება მაშინ, როცა** website-ზე account portal ("Sign in with Figma") ან cross-device sync გვინდა — post-v1.
+- **Outcome:** `launch-stack.md` §4/§5/§8 (Q1, Q3 დახურულია), `requirements.md` F20. **F20-ის "no server" ნაწილი ძალადაკარგულია** — Paddle-ს LemonSqueezy-ს მსგავსი built-in license API არ აქვს, ე.ი. მინიმალური backend სავალდებულოა; სამაგიეროდ Render Web Service ($7/თვე) არ გვჭირდება — webhook + `/activate` = Vercel serverless + KV free tier, ანუ website და API ერთ hosting-ზე (Q3 → **Vercel**).
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)
@@ -245,8 +254,8 @@ Phase 3: Enterprise v1.0 (~12 months)
 ## 5. რა გადასაწყვეტი დარჩა (planning phase-ის ბოლომდე)
 
 - [x] **Brand name final** — ✅ **Legibly** (D9, 2026-06-14). Formal trademark/domain clearance = Track F before launch.
-- [ ] **Backend hosting choice** — Cloudflare Workers ან Fly ან Vercel? (research) — *note: MVP v0.1 (deterministic contrast) needs no backend; defer to v0.3*
-- [ ] **Auth strategy** — Clerk / Auth.js / custom JWT?
+- [x] **Backend hosting choice** — ✅ **Vercel serverless** (D21) — website + Paddle webhook + `/activate` ერთ hosting-ზე; long-running service v1-ს არ სჭირდება.
+- [x] **Auth strategy** — ✅ **auth vendor არ გვჭირდება** (D21): license key + `figma.currentUser.id` seat binding + signed token. Clerk/Auth.js არარელევანტურია; Figma OAuth = post-v1.
 - [ ] **Telemetry vendor** — PostHog / Plausible / custom?
 - [x] **Pricing tier numbers** — ✅ Pro $12/mo (D8, Stark-anchored); free = detect-only. Team tier launch-იდან **მოხსნილია** (D20).
 - [ ] **MCP server hosting** — same as backend or separate?

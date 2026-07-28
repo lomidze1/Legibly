@@ -45,7 +45,7 @@
 ### 1.4 Free vs Paid (money model — D7)
 - **F18.** **FREE:** unlimited detection (F5–F10) — the funnel/viral hook.
 - **F19.** **PAID ($12/mo Pro):** one-click fix (F11), batch fix (F17), **compliance report export** (CSV/PDF: findings + before/after + SC). ✏️ **D20:** seat-based Team tier მოხსნილია — ბრუნდება მხოლოდ რეალური seat-value-ს (shared policy / audit trail) არსებობისას.
-- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys (LemonSqueezy/Gumroad, client-validated, **no server**). *(იხ. Open Q1.)*
+- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys. *(იხ. Open Q1.)* ✏️ **D21:** vendor = **Paddle (MoR)**, არა LemonSqueezy/Gumroad (Stripe-ის GE ბლოკი), და **"no server" ძალადაკარგულია** — Paddle-ს built-in license API არ აქვს, ე.ი. მინიმალური `/activate` endpoint + seat store სავალდებულოა (Vercel serverless + KV). Binding = `figma.currentUser.id`, **Figma OAuth არ გვჭირდება**.
 
 ### 1.5 Settings
 - **F21.** Strict mode (F14) on/off.
