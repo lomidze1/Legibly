@@ -111,8 +111,14 @@
 
 ## 7. 🟠 კონტენტი, რომელიც აკლია
 
-- [ ] 🎬 **Before/after demo asset** — [`website.md`](./website.md)-ის "money shot".
-      დღეს არ არსებობს; landing-ის ყველაზე დიდი კონვერსიის ხვრელი
+- [x] 🎬 **Before/after demo** — ✅ გაკეთდა 2026-07-29 (`0bf7fb1`, `5941c2d`). hero-ს პანელი
+      ინტერაქტიულია: "Fix with my tokens" → ტექსტი ფერს იცვლის, კოეფიციენტი ითვლის, Undo აბრუნებს.
+      light/dark artboard toggle-ითაც — `text/secondary` light-ზე 6.9:1, dark-ზე 1.7:1
+- [ ] 📸 **რეალური Figma screenshot** — ზემოთა demo სინთეზურია (SVG specimen). გვერდზე ჯერ
+      არც ერთი კადრი არაა Figma-ში ნამდვილად მომუშავე პლაგინის. ეს დარჩა კონვერსიის ხვრელად
+- [ ] 🔗 **Footer-ის ლინკები** — changelog, GitHub, X/Twitter ჯერ არ არსებობს. როცა გაჩნდება →
+      `SiteFooter.tsx`-ის Company სვეტი
+- [ ] 👥 **Social proof** — 0. waitlist counter ან testimonial launch-ის შემდეგ
 - [ ] 🤖 `/docs` — რა შედის v1-ში? (getting started, რას ვამოწმებთ, strict mode, BYOK setup)
 - [ ] 👤 launch თარიღი: `site.ts` ამბობს **September 2026**; შიდა გეგმა — ყველაფერი გარდა
       გადახდებისა 15 აგვისტოსთვის. თუ ეს ცურავს, საიტის ტექსტიც უნდა ცურავდეს
@@ -123,6 +129,9 @@
 
 - [ ] **რედიზაინი** — `website-new-design/` handoff მზადაა (Free + Pro, 2 სვეტი).
       გავუშვათ launch-მდე თუ ახლანდელი დიზაინით წავიდეთ? *ორივე მუშაობს — ეს scope-ის არჩევანია*
+      ⚠️ 2026-07-29-ის review pass ახლანდელ დიზაინზე გაკეთდა. რედიზაინზე გადასვლისას **გადადის**
+      ტოკენები, კონტრასტი (AAA), lining figures, SVG specimen, contrast.test.ts; **არ გადადის**
+      layout-ზე მიბმული ფიქსები (checks-ის სვეტების flow, split-ის ღერძი, nav-ის გაზომვადი სიმაღლე)
 - [ ] **AI alt-text**: BYOK-ს ვტოვებთ უფასოდ + Pro-ს ვუმატებთ quota-ს ჩვენი key-ით?
       (launch-stack §6 — საჭიროებს backend-ს, ე.ი. §5-ის შემდეგ)
 - [ ] **main branch** — dev main-ზე **36 commit-ით წინაა**. გაშვებამდე merge საჭიროა
@@ -135,6 +144,9 @@
 - ✅ Plugin engine: 10 WCAG SC + advisory tier, 328 tests green, typecheck + build სუფთა
 - ✅ ფასების სტრუქტურა და მისი თანმიმდევრობა plugin ↔ website ↔ docs (D20)
 - ✅ Landing page — AAA-audited, privacy გვერდით, waitlist form-ით (კოდი მზადაა, key აკლია)
+- ✅ ორმაგი design review (55 finding, გასწორდა 44) — [`website.md §9`](./website.md).
+      body copy 7:1 (AAA), oldstyle-ციფრების ბაგი გასწორდა, spacing/type ტოკენიზებულია,
+      axe: **0 violations**
 - ✅ Brand name locked (D9) — იურიდიული clearance კი ჯერ არა (§1)
 - ✅ Privacy story: ყველა შემოწმება on-device; მხოლოდ optional BYOK alt-text გადის გარეთ
 

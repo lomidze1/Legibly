@@ -50,6 +50,7 @@ ARCHITECTURE.md უკვე გვაძლევს არქიტექტ�
 
 | საკითხი | რა გვინდა ვიცოდეთ | სტატუსი | ფაილი |
 |---------|--------------------|---------|-------|
+| Figma plugin UI conventions (UI3) | `--figma-color-*` set, sizing/resize, Inter 11px, native icons + Legibly audit | ✅ DONE (2026-07-16) | `research/figma-plugin-ui-conventions.md` |
 | Figma Plugin Store review process | რა triggers რცა, რა approval timeline | TODO | `research/figma-plugin-review.md` |
 | `create-figma-plugin` scaffold | რა boilerplate ხდის work-around | TODO | `research/create-figma-plugin.md` |
 | Figma MCP rate limits per plan | Starter 6/mo vs Enterprise 600/day — fallback strategy | TODO | `research/figma-mcp-limits.md` |

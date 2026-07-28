@@ -10,11 +10,11 @@ fix-ები ერთ batch-ად შესრულდება ტესტ
 | # | ბაგი | Root cause | Fix |
 |---|------|-----------|-----|
 | B1 | `in createVariable: duplicate variable name` — new-color accept ვარდება მეორე session-ზე | `proposalCounter` in-memory-ა (App.tsx), ყოველ გახსნაზე 0-დან იწყება; `createProposalVariable` არსებობას არ ამოწმებს | Duplicate-check: იმავე სახელის/ფერის ვარიაბლის reuse; counter ფაილში არსებული max-იდან გაგრძელდეს |
-| B2 | წინა run-ის `legibly/contrast-fix-*` ტოკენები fix-კანდიდატებად ბრუნდება | `harvestTokens` ყველა local ვარიაბლს კრეფს ფილტრის გარეშე | **D15**: "Legibly" collection-ის ვარიაბლები harvest-იდან გამოირიცხოს |
+| B2 ✅ | წინა run-ის `legibly/contrast-fix-*` ტოკენები fix-კანდიდატებად ბრუნდება | `harvestTokens` ყველა local ვარიაბლს კრეფს ფილტრის გარეშე | **D15** — ✅ დახურულია 2026-07-27 ([D19](./approach.md)): "Legibly" collection გამოირიცხა harvest-იდან |
 | B3 | proposal user-ის collection-ში შეიძლება ჩაიწეროს | `apply.ts`: `collections.find(...) ?? collections[0]` fallback | Fallback მოიხსნას — "Legibly" collection ყოველთვის შეიქმნას |
 | B4 | Cmd+Z-ის შემდეგ ბარათი FIXED/მწვანე რჩება | არცერთი `figma.on('documentchange')` listener არ არსებობს | documentchange → applied state invalidation (ან re-verify) |
 | B5 | Batch fix identical ფერებზეც ცალ-ცალკე ტოკენებს შექმნის | `payloadFor` ყოველ finding-ზე `nextProposalName()`-ს ეძახის | Სესიაში ფერით dedup — ერთი ფერი = ერთი ტოკენი |
-| B6 | Fix background უხილავია — user ვერ ხვდება რა შეიცვალა | `apply-bg-fix` owner node-ს არ აჩვენებს; changeDescription მხოლოდ token name-ს წერს | Owner select/zoom + before→after hex swatches ბარათზე |
+| B6 ✅ | Fix background უხილავია — user ვერ ხვდება რა შეიცვალა | `apply-bg-fix` owner node-ს არ აჩვენებს; changeDescription მხოლოდ token name-ს წერს | ✅ დახურულია 2026-07-27 ([D19](./approach.md)): owner clickable (select/zoom) + before→after swatch/hex ბარათზე და changeDescription-ში |
 | B7 | Manual alt save ნებისმიერ ნაგავს იღებს ("g" → მწვანე) | Validator gate მხოლოდ AI path-ზეა; manual save-ზე არაფერი | იგივე deterministic validator manual save-ზეც (min length, filename-pattern, generic-word block) |
 | B8 | Line-height fix overflow-ს არ ამოწმებს | Verify მხოლოდ ratio-ს ზომავს; 140→150% შეიძლება ტექსტი frame-იდან გაიტანოს/დაclip-ოს | Post-fix bounds check: overflow/clip → revert + "needs manual" (font-size ალტერნატივა არა — 1.4.12 spacing-ზეა, დიზაინს მეტად შლის) |
 
