@@ -32,7 +32,7 @@
 | **Compliance/audit report** (export) | ❌ | ✅ 🔑 |
 | Batch fix · system-strict enforcement · brand-QA (v2) | ❌ | ✅ |
 
-Detection *აჩვენებs* ტკივილს (უფასო, viral) → Fix + Report *შლის* ტკივილს (paid). **Target: $300K–$1M ARR 2 კაცზე, team seats-ით $1M+.**
+Detection *აჩვენებs* ტკივილს (უფასო, viral) → Fix + Report *შლის* ტკივილს (paid). **Target: $300K–$1M ARR 2 კაცზე.**
 
 ### რა რჩება უცვლელი ძველი vision-იდან
 5 wedge (system-strict, in-loop WCAG 2.2 AA, selection-based regen, multi-screen state-machine, brand-QA vision) — ❗ ისევ ძალაშია, ოღონდ **repackaged "generator"-დან "correctness suite"-ად.** MCP-first portable core, backend proxy, 2-model strategy — უცვლელი.
