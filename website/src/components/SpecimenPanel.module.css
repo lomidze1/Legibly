@@ -60,32 +60,11 @@
   font-size: 14px;
   line-height: 24px;
   color: var(--color-neutral-500);
+  transition: color 700ms ease;
 }
 
 /* The same line after the repair: 6.9:1 on the same ground. */
 .sampleBodyFixed {
-  font-size: 14px;
-  line-height: 24px;
-  color: var(--color-neutral-700);
-}
-
-/* The hairline "one click" that separates the violation from the repair. */
-.step {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.stepRule {
-  flex: 1;
-  height: 1px;
-  background: var(--color-divider);
-}
-
-.stepLabel {
-  font-size: 11px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
   color: var(--color-neutral-700);
 }
 
@@ -161,6 +140,64 @@
   font-size: 12.5px;
   color: var(--color-neutral-700);
   font-variant-numeric: lining-nums tabular-nums;
+}
+
+/*
+ * The panel's own control. It is the one place the product runs on this page,
+ * so unlike the page's other buttons it is not a link dressed as one — and it
+ * stays quieter than the waitlist submit, which is still the page's action.
+ */
+.fix,
+.undo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--color-accent-700);
+  white-space: nowrap;
+  cursor: pointer;
+  /* The label swaps to "Fixing…", which is ~60px narrower. */
+  min-width: 10.5em;
+}
+
+.fix:hover,
+.undo:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.fix:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+/* Once the repair has landed, undo is the quiet way back. */
+.undo {
+  border-color: var(--color-divider);
+  color: var(--color-neutral-700);
+  min-width: 0;
+}
+
+.undo:hover {
+  background: transparent;
+  color: var(--color-text);
+  border-color: var(--color-control-border);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 @media (max-width: 460px) {

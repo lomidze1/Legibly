@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { site } from "@/data/site";
 import { Button } from "./Button";
 import styles from "./WaitlistForm.module.css";
 
@@ -107,8 +108,8 @@ export function WaitlistForm() {
     return (
       <div>
         <p className={styles.done} role="status" tabIndex={-1} ref={doneRef}>
-          You are on the list. We will email you once at Figma Community
-          launch, and not before.
+          You are on the list. We will email you once, at the {site.launch}{" "}
+          Figma Community launch, and not before.
         </p>
         <p className={styles.doneNext}>
           Meanwhile, the honest part:{" "}

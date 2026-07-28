@@ -52,7 +52,9 @@ function Hero() {
   return (
     <section className={styles.hero}>
       <div>
-        <span className={styles.kicker}>Private beta</span>
+        <span className={styles.kicker}>
+          Private beta · Figma Community, {site.launch}
+        </span>
         <h1 className={styles.h1}>
           <span>Checkers tell you.</span>
           <span>Legibly fixes it.</span>
@@ -331,7 +333,7 @@ function Pricing() {
         <h2 className={styles.h2Flush}>Pricing</h2>
         <p className={styles.betaNote}>
           Everything is free during the beta, one-click fixes included. The
-          prices below take effect at Community launch.
+          prices below take effect at the {site.launch} Community launch.
         </p>
       </div>
       <div className={styles.tiers}>
@@ -490,8 +492,9 @@ function Closing() {
       <h2 className={styles.h2Closing}>Be first in line</h2>
       <div>
         <p className={styles.closingLead}>
-          Legibly is in private beta ahead of its Figma Community launch. Leave
-          your email and we will send you access, and nothing else.
+          Legibly is in private beta ahead of its {site.launch} Figma Community
+          launch. Leave your email and we will send you access, and nothing
+          else.
         </p>
         <div className={styles.closingForm}>
           <WaitlistForm />

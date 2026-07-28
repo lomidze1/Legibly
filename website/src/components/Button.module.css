@@ -58,16 +58,3 @@
   min-width: 11em;
 }
 
-/*
- * A figure inside the specimen panel, not a control: it must read as part of
- * the screenshot rather than compete with the real CTA next to it.
- */
-.quiet {
-  border-color: var(--color-divider);
-  color: var(--color-neutral-700);
-}
-
-.quiet:hover {
-  background: transparent;
-  color: var(--color-neutral-700);
-}

@@ -6,11 +6,8 @@ type ButtonProps = {
   href?: string;
   type?: "button" | "submit";
   disabled?: boolean;
-  /**
-   * "primary" is the page's one real action (the waitlist submit); "quiet"
-   * demotes a button that is illustration rather than control.
-   */
-  variant?: "default" | "primary" | "quiet";
+  /** "primary" is the page's one real action: the waitlist submit. */
+  variant?: "default" | "primary";
 };
 
 /**
@@ -25,11 +22,7 @@ export function Button({
   disabled,
   variant = "default",
 }: ButtonProps) {
-  const className = [
-    styles.button,
-    variant === "primary" ? styles.primary : "",
-    variant === "quiet" ? styles.quiet : "",
-  ]
+  const className = [styles.button, variant === "primary" ? styles.primary : ""]
     .filter(Boolean)
     .join(" ");
 
