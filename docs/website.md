@@ -110,3 +110,48 @@
 - **Verdict ფერები semantic-only** — pricing checkmarks და beta banner accent-ზე გადავიდა (§7-ის წესი)
 
 **გადაუწყვეტელი (user decision):** dark mode (brand identity-ს ცვლის — §7 "ღია, მაღალკონტრასტული"); OG card-ის ტიპოგრაფია (Atkinson woff/ttf binary სჭირდება Satori-სთვის); privacy §Contact-ში controller-ის იურიდიული მისამართი (GDPR Art. 13(1)(a) — კოდში TODO).
+
+---
+
+## 9. ორმაგი design review pass (2026-07-29)
+
+ორი დამოუკიდებელი აგენტი — design-critique (ტიპოგრაფია/craft) და ui-ux-pro-max
+(კონვერსია/IA). სულ **55 finding, გასწორდა 44.** commit-ები: `e98e6b1`, `0bf7fb1`.
+
+### მთავარი აღმოჩენა — oldstyle figures
+
+Cormorant Garamond-ის ნაგულისხმევი ციფრები text figures-ია: `1` x-სიმაღლეზე ზის
+(glyph ascent 77.2 vs cap 125), `3 5 9` ბაზისქვეშ ეშვება. `tnum`-თან ერთად `$12`
+რენდერდებოდა როგორც **`$I2`**, hero-ს `2.4:1` კი როგორც **`2.4:I`** — გვერდის ორი
+ყველაზე წაკითხვადი რიცხვი. ფიქსი: `font-variant-numeric: lining-nums tabular-nums`.
+
+### კონტრასტი → AAA
+
+Body copy ახლა 7:1-ზეა (SC 1.4.6), არა 4.5:1. `--color-neutral-700` `#605d5d`→`#504d4d`,
+`--color-accent-700` `#7d5411`→`#684607`. ოქრო (`#b68235`, 3.0:1) **განზრახ რჩება AA-ზე** —
+4.5:1-მდე დაბნელება ბრენდის ფერს ყავისფრად აქცევს და ის მხოლოდ display ზომებზე ზის.
+გაზომვა: 140 page-copy კვანძი, 0 AA ჩავარდნა, 0 AAA ჩავარდნა.
+
+`contrast.test.ts` ახლა AAA-ს ითხოვს bodyPairs-ისთვის — ტოკენის შეცვლა ტესტს ჩააგდებს.
+
+### გადაწყვეტილებები
+
+- **Warm ground არ იცვლება** (`#f3f2f2` რჩება) — user decision, 2026-07-29
+- **Glinc ყველგან, პიროვნული byline არა** — user decision, 2026-07-29
+- **Launch: September 2026** — ერთ ადგილას, `site.launch`. შიდა გეგმა: 15 აგვისტო ყველაფერი
+  გადახდის გარდა, 30 აგვისტო გადახდა. სექტემბერი მეორე ნახევრის ცურვასაც უძლებს
+
+### გადაუწყვეტელი
+
+- **Dark mode** — §8-იდან გადმოყოლილი. საიტი light-only-ია, პროდუქტი კი dark-mode-ის
+  შემოწმებას ყიდის ("Dark mode is where fixed contrast quietly breaks")
+- **Hero specimen vs axe** — განზრახი 2.4:1 კვლავ live DOM text-ია, ამიტომ axe აჩვენებს
+  1 violation-ს compliance-პროდუქტის საიტზე. `aria-hidden` მას **არ** აჩერებს (ემპირიულად
+  შემოწმდა axe-core 4.x-ით). §8-ის `<canvas>` მიდგომა ზუსტად ამას აგვარებდა და Classical-ზე
+  გადაწერისას დაიკარგა. ალტერნატივა: inline SVG `<text>` — axe მას არ ამოწმებს
+- **Footer-ის ლინკები არ არსებობს** — changelog, GitHub, X/Twitter. როცა გაჩნდება,
+  `SiteFooter.tsx`-ის Company სვეტში ან მესამე სვეტად
+- **რეალური პლაგინის screenshot** — გვერდზე არც ერთი კადრი არაა Figma-ში მომუშავე პლაგინის
+- **Social proof** — 0. waitlist counter ან testimonial launch-ის შემდეგ
+- **Verdicts + Comparison შერწყმა** — ორივე აგენტი ამბობს, რომ ერთსა და იმავეს ამტკიცებენ
+  (accuracy / no false positives). რედაქციული გადაწყვეტილება, არ შესრულებულა
