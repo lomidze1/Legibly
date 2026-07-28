@@ -143,15 +143,34 @@ Body copy ახლა 7:1-ზეა (SC 1.4.6), არა 4.5:1. `--color-neutr
 
 ### გადაუწყვეტელი
 
-- **Dark mode** — §8-იდან გადმოყოლილი. საიტი light-only-ია, პროდუქტი კი dark-mode-ის
-  შემოწმებას ყიდის ("Dark mode is where fixed contrast quietly breaks")
-- **Hero specimen vs axe** — განზრახი 2.4:1 კვლავ live DOM text-ია, ამიტომ axe აჩვენებს
-  1 violation-ს compliance-პროდუქტის საიტზე. `aria-hidden` მას **არ** აჩერებს (ემპირიულად
-  შემოწმდა axe-core 4.x-ით). §8-ის `<canvas>` მიდგომა ზუსტად ამას აგვარებდა და Classical-ზე
-  გადაწერისას დაიკარგა. ალტერნატივა: inline SVG `<text>` — axe მას არ ამოწმებს
+- **Verdicts + Comparison შერწყმა** — ორივე აგენტი ამბობს, რომ ერთსა და იმავეს ამტკიცებენ
+  (accuracy / no false positives). რედაქციული გადაწყვეტილება, არ შესრულებულა
 - **Footer-ის ლინკები არ არსებობს** — changelog, GitHub, X/Twitter. როცა გაჩნდება,
   `SiteFooter.tsx`-ის Company სვეტში ან მესამე სვეტად
 - **რეალური პლაგინის screenshot** — გვერდზე არც ერთი კადრი არაა Figma-ში მომუშავე პლაგინის
 - **Social proof** — 0. waitlist counter ან testimonial launch-ის შემდეგ
 - **Verdicts + Comparison შერწყმა** — ორივე აგენტი ამბობს, რომ ერთსა და იმავეს ამტკიცებენ
   (accuracy / no false positives). რედაქციული გადაწყვეტილება, არ შესრულებულა
+
+### გადაწყდა და გაკეთდა (2026-07-29, მეორე ნახევარი)
+
+- **Hero specimen ინტერაქტიულია** (`0bf7fb1`) — მომხმარებელი აჭერს "Fix with my tokens"-ს და
+  ხედავს შეკეთებას: ტექსტი ფერს იცვლის, კოეფიციენტი ითვლის, verdict ტრიალდება, Undo აბრუნებს.
+  §8-ის choreographed demo, რომელიც Classical-ზე გადაწერისას დაიკარგა, დაბრუნებულია
+- **Dark mode — მხოლოდ specimen-ს toggle** (`5941c2d`), არა მთელ საიტს. მიზეზი: Coverage-ის
+  განაცხადს ("checks 01 და 04 ყოველ თემაზე ხელახლა გადის") არაფერი ამტკიცებდა. ახლა ჩანს, რომ
+  `text/secondary`, რომელმაც light-ზე 6.9:1 გაიარა, dark-ზე 1.7:1-ია. საიტის palette არ შეხებია
+- **SVG specimen** (`5941c2d`) — axe: 1 violation → **0**. დარჩა 3 "incomplete" (needs review),
+  რაც პატიოსანი შედეგია: სკანერს background ვერ დაუდგენია და ადამიანს გადასცემს
+- **`formatRatio` drift** — პანელი ოთხივე ციფრს render-ზე ითვლის, არა literal-ად. ამან ძველი
+  შეცდომა გამოააშკარავა: light-ის ჩავარდნა 2.38-ია, ე.ი. პლაგინი `2.3:1`-ს დაბეჭდავდა,
+  გვერდი კი ყოველთვის `2.4:1`-ს წერდა
+
+### კვლავ გადაუწყვეტელი
+
+- **Footer-ის ლინკები არ არსებობს** — changelog, GitHub, X/Twitter. როცა გაჩნდება,
+  `SiteFooter.tsx`-ის Company სვეტში ან მესამე სვეტად
+- **რეალური პლაგინის screenshot** — გვერდზე არც ერთი კადრი არაა Figma-ში მომუშავე პლაგინის
+- **Social proof** — 0. waitlist counter ან testimonial launch-ის შემდეგ
+- **სრული dark mode მთელ საიტზე** — შეგნებულად გადადებული; specimen-ის toggle ფარავს
+  message-ის ნაწილს ბრენდის palette-ის შეხების გარეშე
