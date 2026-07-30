@@ -45,7 +45,7 @@
 ### 1.4 Free vs Paid (money model — D7)
 - **F18.** **FREE:** unlimited detection (F5–F10) — the funnel/viral hook.
 - **F19.** **PAID ($12/mo Pro):** one-click fix (F11), batch fix (F17), **compliance report export** (CSV/PDF: findings + before/after + SC). ✏️ **D20:** seat-based Team tier მოხსნილია — ბრუნდება მხოლოდ რეალური seat-value-ს (shared policy / audit trail) არსებობისას.
-- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys. *(იხ. Open Q1.)* ✏️ **D21:** vendor = **Paddle (MoR)**, არა LemonSqueezy/Gumroad (Stripe-ის GE ბლოკი), და **"no server" ძალადაკარგულია** — Paddle-ს built-in license API არ აქვს, ე.ი. მინიმალური `/activate` endpoint + seat store სავალდებულოა (Vercel serverless + KV). Binding = `figma.currentUser.id`, **Figma OAuth არ გვჭირდება**.
+- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys. *(იხ. Open Q1.)* ✏️ **D21:** LemonSqueezy/Gumroad **აღარ ვარიანტია** (Stripe-ის GE ბლოკი); vendor ჯერ **ღიაა** — Flitt / Paddle / Dodo. **"no server" ნაწილი ძალადაკარგულია** — license state-ს store სჭირდება, ე.ი. მინიმალური backend სავალდებულოა (serverless ჰყოფნის). Identity = **Figma OAuth** (`current_user:read`) → HMAC token, **რეგისტრაციის გარეშე**; შიშველი `figma.currentUser.id` არასაკმარისია — იმპერსონაციის ვექტორია.
 
 ### 1.5 Settings
 - **F21.** Strict mode (F14) on/off.
@@ -129,7 +129,7 @@
 | Q2 | **Effective-background empirical spike** — fill-stack/gradient resolution fidelity real files-ზე; `node.reactions` reliability target-size-ისთვის (v0.2) | pre-build spike → `research/` |
 | Q3 | Compliance report format — CSV ჯერ, PDF მოგვიანებით? | v0.2 design |
 | Q4 | ~~`create-figma-plugin` vs raw scaffold~~ | ✅ Resolved — raw Vite dual-bundle ([approach.md D10](./approach.md)) |
-| Q5 | License vendor — LemonSqueezy vs Gumroad vs Paddle (EU VAT) | `research/billing-providers.md` (Track D) |
+| Q5 | License vendor — ✏️ **D21:** LemonSqueezy/Gumroad გამოირიცხა (Stripe GE ბლოკი). დარჩა **Flitt vs Paddle vs Dodo** | [`launch-stack.md §4`](./launch-stack.md) |
 
 ---
 

@@ -88,9 +88,12 @@
 
 ## 5. 🔴 გადახდები — Pro-ს ყიდვა შეუძლებელია
 
-- [ ] 👤 **Q1 (უპირველესი): Figma Payments API** — ხელმისაწვდომია? commission %? საქართველოში payout?
-      **დადებითი პასუხი მთლიანად შლის Flitt-სა და OAuth-ს** ([`launch-stack.md §4`](./launch-stack.md))
-- [ ] 👤 თუ არა → LemonSqueezy/Paddle (MoR, VAT მათი პრობლემაა) vs Flitt (PSP, VAT ჩვენი)
+- [x] ~~**Q1: Figma Payments API**~~ — ✅ **გამორიცხულია** (D21): მოითხოვს Stripe-ს, Stripe საქართველოს
+      merchant-ად არ უჭერს მხარს. listing რჩება **Free**-დ, ფასი plugin-ში/საიტზე; Figma 0% იჭერს.
+- [ ] 👤 **vendor-ის ემპირიული შემოწმება** ([`launch-stack.md §4`](./launch-stack.md)):
+      Paddle sign-up → საქართველო არჩევადია? · Dodo sign-up (merchant list-ში #63 GE) + საერთაშორისო განაკვეთი
+      · Flitt — recurring **უარყოფილია** სანამ გაყიდვები არ დაფიქსირდება (2026-07-30)
+- [ ] 👤 ფასის სტრუქტურა: $12/თვე vs $120/წელი — fixed fee ($0.40–0.50) ყოველთვიურ $12-ს 3–4%-ს ჭამს
 - [ ] 🤖 paywall-ის ჩართვა — დღეს fix **უფასოა beta-ში** (F20). ეს განზრახაა, მაგრამ
       `Plans` modal-ში ასე წერია და ორივე ერთდროულად უნდა შეიცვალოს
 - [x] ~~ფასების სტრუქტურა~~ — ✅ **Free + Pro $12/mo** (D20, 2026-07-28). Team მოხსნილია

@@ -14,10 +14,10 @@
 | 1 | დომენი | Namecheap | ❌ არ გვაქვს | **ყველაფერს** — plugin-ის ყველა ლინკს |
 | 2 | Hosting | Render | ❌ არ არის | website + (თუ დაგვჭირდა) API |
 | 3 | Email | Resend | ❌ არ არის | Subscribe, feedback autoreply |
-| 4 | გადახდები | **Paddle (MoR)** — D21 | ❌ არ არის | Pro tier-ის ჩართვა |
-| 5 | Auth | ~~Figma OAuth~~ → license key + `figma.currentUser.id` | ✅ გადაწყვეტილია (D21) | — |
+| 4 | გადახდები | ⏳ **ღიაა** — Flitt / Paddle / Dodo (D21) | ❌ არ არის | Pro tier-ის ჩართვა |
+| 5 | Auth | **Figma OAuth** (`current_user:read`) — რეგისტრაციის გარეშე | ✅ მიდგომა გადაწყვეტილია (D21) | license binding |
 
-**კრიტიკული თანმიმდევრობა:** დომენი → hosting → email → გადახდები (Paddle account + webhook).
+**კრიტიკული თანმიმდევრობა:** დომენი → hosting → email → **vendor-ის ემპირიული შემოწმება** → გადახდები.
 დომენის გარეშე Resend-ის domain verification შეუძლებელია, OAuth redirect URI-ს ვერ დაარეგისტრირებ,
 და plugin-ის footer-ის ხუთივე ლინკი 404-ია.
 
@@ -56,9 +56,11 @@ HTTPS-only by design; ჩვენთვის უპრობლემოა). 
 
 **ღირებულება:** Static Site $0; Web Service $7/თვე (free tier იძინებს — webhook-ისთვის გამოუსადეგარია).
 
-> ✅ **გადაწყვეტილია ([D21](./approach.md)): ორივე Vercel-ზე.** Paddle webhook და `/activate`
-> short-lived request-ებია — Vercel serverless functions ჰყოფნის, long-running service არ გვჭირდება.
-> ე.ი. **Render Web Service ($7/თვე) v1-ისთვის აღარ არის საჭირო**; store = Vercel KV / Neon free tier.
+> ✅ **გადაწყვეტილია ([D21](./approach.md)): serverless ჰყოფნის.** w2w-ს Render **Standard $25/თვე**
+> სჭირდება მხოლოდ იმიტომ, რომ URL/HTML import ნამდვილ **Chromium**-ს უშვებს სერვერზე (~1GB RAM).
+> Legibly-ის API = license CRUD + checkout + webhook — მილიწამების request-ები, მძიმე პროცესის გარეშე.
+> ე.ი. **long-running service და $25 tier არ გვჭირდება**; store = managed Postgres/KV free tier.
+> კონკრეტული ვენდორი (Vercel functions vs სხვა) — billing vendor-ის არჩევის შემდეგ, ერთად.
 
 ---
 
@@ -82,62 +84,82 @@ Pro $20/თვე როცა გავიზრდებით.
 
 ---
 
-## 4. გადახდები — ✅ გადაწყვეტილია: **Paddle (MoR)** — [D21](./approach.md)
+## 4. გადახდები — ⏳ vendor **ღიაა** ([D21](./approach.md))
 
-**გამყიდველი:** ქართველი ინდ. მეწარმე, პირადი სახელით/ID-ით (user-confirmed, 2026-07-29).
+**გამყიდველი:** ქართველი **ინდ. მეწარმე**, პირადი სახელით/ID-ით (user-confirmed, 2026-07-29).
+ეს ერთი ფაქტი განსაზღვრავს ყველაფერს ქვემოთ.
 
-### ❌ ვარიანტი A — Figma Payments API (`figma.payments`) — **გამორიცხულია**
+### ❌ Figma Payments API (`figma.payments`) — **გამორიცხულია**
 Figma Community-ზე paid resource მოითხოვს **აქტიურ Stripe account-ს**
 ([Figma Help](https://help.figma.com/hc/en-us/articles/360042293394-Publish-plugins-to-the-Figma-Community)),
 Stripe კი საქართველოს merchant country-ად **არ უჭერს მხარს** (46 supported country, GEL არ არსებობს).
-IE-ს სტატუსით ეს არხი დახურულია. *(გაიხსნებოდა მხოლოდ EE/UK/US entity-ით — არ არის დღევანდელი გეგმა.)*
+*(გაიხსნებოდა მხოლოდ EE/UK/US entity-ით — არ არის დღევანდელი გეგმა.)*
 
-### ❌ ვარიანტი B — Flitt (ex-Fondy) — **v1-სთვის არა**
-- უკვე ნაცნობია web2wireframe-იდან; ქართული acquiring კარგია.
-- **მაგრამ:** Flitt არის **PSP, არა Merchant of Record** → EU B2C digital services-ის VAT
-  **პირველივე ევროდან ჩვენზეა** (OSS რეგისტრაცია, 27 იურისდიქცია). + უცხოელი დიზაინერისთვის
-  უცნობი checkout = conversion-ის დანაკარგი. Legibly-ის target გლობალურია, web2wireframe-ისა — არა.
-- რჩება როგორც შესაძლო **ლოკალური** არხი მოგვიანებით.
+> ℹ️ **და ეს დანაკარგი არ არის.** Figma-ს [review guidelines](https://help.figma.com/hc/en-us/articles/360039958914-Plugin-and-widget-review-guidelines)
+> უშვებს გარე მონეტიზაციას; ასეთი listing რჩება **Free**-დ, ფასი ცხოვრობს plugin-ის UI-სა და საიტზე,
+> და **Figma 0% იჭერს**. w2w ზუსტად ასე მუშაობს. ე.ი. გარე checkout ისედაც გვერჩია.
 
 ### ❌ LemonSqueezy — **გამორიცხულია**
-Stripe-ის შვილობილი → იგივე GE-ის ბლოკი, რაც ვარიანტ A-ში.
+Stripe-ის შვილობილი → იგივე GE-ის ბლოკი.
 
-### ✅ ვარიანტი C — **Paddle (MoR)** — არჩეული
-- GE = supported seller country; payout **wire ან Payoneer**.
-- VAT/sales tax სრულად მათი ვალდებულებაა — 200+ ქვეყანა, ჩვენი tax liability = 0.
-- subscriptions + webhooks built-in.
-- **ფასი:** ~5% + $0.50. ცნობიერად გადახდილი ფასი 27 ქვეყნის compliance-ის ნაცვლად.
-- ⚠️ **built-in license key API არ აქვს** (განსხვავებით LemonSqueezy-სგან) → key generation ჩვენზეა, იხ. §5.
+### ⏳ სამი დარჩენილი კანდიდატი
 
-**რა უნდა გავაკეთოთ:**
-- [ ] Paddle seller account (IE-ს დოკუმენტებით) + verification
-- [ ] პროდუქტი: Pro $12/mo (+ optional yearly discount)
-- [ ] webhook endpoint → license key generation → Resend delivery
-- [ ] payout method: Payoneer ან wire
+| | **Flitt** | **Paddle** | **Dodo Payments** |
+|---|---|---|---|
+| GE-დან გაყიდვა | ✅ მუშაობს (w2w prod) | ⚠️ **დაუდასტურებელი** | ✅ **დადასტურებული** |
+| მტკიცებულება | რეალური ტრანზაქციები | სანქციების blocklist-ში GE არ არის, მაგრამ "supported" არსად არ წერია | [merchant-eligibility სია](https://docs.dodopayments.com/miscellaneous/accepted-countries-and-territories) **#63 Georgia** (Gambia↔Germany); *"payouts supported only in the countries listed above"* |
+| ინდ. მეწარმე | ✅ | ✅ sole trader — KYB არ სჭირდება, მხოლოდ პირადი ID | ✅ unregistered business |
+| **Recurring** | ❌ **უარი** — Flitt არ რთავს, სანამ გაყიდვები არ დაფიქსირდება (user, 2026-07-30) | ✅ | ✅ + dunning |
+| MoR / VAT | ❌ PSP — VAT ჩვენზე | ✅ | ✅ |
+| Payout | ქართული acquiring | wire / Payoneer, min $100, თვეში 1× | USD/GBP/EUR wallet; $5 fee თუ payout < $1000 |
+| Fee — $12/თვე | 4% = $0.48 | 5%+$0.50 = **9.2%** | 4%+$0.40 = **7.3%**¹ |
+| Fee — $120/წელი | 4% | 5.4% | 4.3% |
+| სიმწიფე | w2w-ში გამოცდილი | 2012-დან | ახალგაზრდა → **counterparty risk** |
+
+¹ US domestic ბარათის განაკვეთი; საერთაშორისო უფრო ძვირია (ზუსტი ციფრი public pricing-ზე არ არის).
+
+> 💡 **ფიქსირებული საკომისიო არის მთავარი პრობლემა, არა პროცენტი.** $0.50 თავისთავად 4.2%-ია $12-ზე.
+> **წლიური გეგმა ($120) fee-ს თითქმის ორჯერ ამცირებს** და Flitt-ის recurring-ის უქონლობასაც არბილებს
+> (წელიწადში ერთხელ ხელით განახლება ≪ ყოველთვიური churn). ეს ცალკე გადასაწყვეტია, vendor-ისგან დამოუკიდებლად.
+
+**შემდეგი ნაბიჯი — ემპირიული, არა დოკუმენტაციური:**
+- [ ] Paddle sign-up (უფასო, ვალდებულების გარეშე) → onboarding-ში საქართველო არჩევადია country-ს ველში?
+- [ ] Dodo sign-up → იგივე შემოწმება + საერთაშორისო-ბარათის რეალური განაკვეთი
+- [ ] ფასის სტრუქტურა: $12/თვე vs $120/წელი vs ორივე
 
 ---
 
-## 5. License binding — Figma OAuth **არ გვჭირდება** ([D21](./approach.md))
+## 5. Identity & license binding — **Figma OAuth, რეგისტრაციის გარეშე** ([D21](./approach.md))
 
-`figma.currentUser` (manifest: `"permissions": ["currentuser"]`) აბრუნებს `{ id, name, photoUrl, sessionId }` —
-**სტაბილურ Figma user ID-ს პლაგინის შიგნიდან, OAuth-ის გარეშე.**
+**რეგისტრაცია/პაროლი/email-verification არ არსებობს.** `figmaUserId` არის primary key;
+email მხოლოდ checkout-იდან მოდის, receipt-ისთვის. ეს w2w-ის დადასტურებული მოდელია.
 
 ```
-Paddle checkout (website)
-  → webhook → license key → Resend email
-  → user აწერს key-ს Settings-ში
-  → POST /activate { key, figmaUserId }   ← figma.currentUser.id
-  → seat binding (max 2/key) → signed token
-  → figma.clientStorage cache + offline grace (~7 დღე)
+Plugin → Figma OAuth (scope: current_user:read) → API ჭრის HMAC ტოკენს
+       → ტოკენი ინახება figma.clientStorage-ში
+       → POST /checkout/create { figmaUserId } → hosted checkout ბრაუზერში
+       → 3DS → approved → server callback → webhook (signature + dedup)
+       → License.upsert { plan: pro, cycleEndsAt }
+Plugin polls /license/me → UI განახლდა
 ```
 
-- **რატომ ჰყოფნის:** `currentUser.id` client-reported-ია, ე.ი. spoof-ადი — მაგრამ $12-იან პლაგინზე
-  მიზანი anti-piracy არაა, არის key-ის უაზრო გაზიარების შეჩერება. seat-limit საკმარისია.
-- **Caveat:** `currentUser` შეიძლება იყოს `null` → fallback: key მარტო email-ზე იბმება.
-- **manifest:** `allowedDomains` += ჩვენი API დომენი (`api.<domain>`), `permissions` += `currentuser`.
+> ⚠️ **რატომ OAuth და არა შიშველი `figma.currentUser.id`:** w2w-მ ზუსტად ეს დაუცველობა უკვე გაიარა.
+> [`licenseClient.ts:44-52`](../../Web2Wireframe/packages/figma-plugin/src/ui/shared/licenseClient.ts) —
+> ძველი `/api/auth/init` ტოკენს ჭრიდა ნებისმიერი body-ში მითითებული `figmaUserId`-ისთვის, **მტკიცებულების გარეშე
+> რომ caller ამ account-ს ფლობს**, ე.ი. ნებისმიერს შეეძლო სხვისი Pro-ს იმიტაცია. გასწორდა Figma OAuth-ით
+> ([`figmaAuth.ts:137-144`](../../Web2Wireframe/packages/api/src/routes/website/figmaAuth.ts), `scope=current_user:read`).
+>
+> Legibly-ის fix **ლოკალურია** — იმიტაცია დღეს მხოლოდ დაკარგული შემოსავალია, ჩვენს ხარჯს არ ზრდის.
+> **მაგრამ** §6-ის hosted alt-text quota-ს ჩართვისთანავე იმიტაცია = **ჩვენი Anthropic ბილინგი**.
+> ⇒ OAuth თავიდანვე ჩავდოთ, არა მოგვიანებით.
 
-**Figma OAuth ბრუნდება მაშინ და მხოლოდ მაშინ, როცა** website-ზე account portal ("Sign in with Figma")
-ან cross-device sync გვინდა key-ის copy-paste-ის გარეშე — **post-v1**.
+**რა უნდა გავაკეთოთ:**
+- [ ] Figma app registration → `client_id` / `client_secret`
+- [ ] redirect URI (⇒ დომენი, §1)
+- [ ] scope: **მხოლოდ** `current_user:read` — file scope არ გვჭირდება, plugin API თვითონ ხატავს
+- [ ] plugin-ის manifest-ში `allowedDomains` += ჩვენი API დომენი
+
+**ღირებულება:** $0.
 
 ---
 
@@ -181,7 +203,7 @@ Paddle checkout (website)
 | Analytics SDK plugin-ში | `allowedDomains`-ის გაფართოება trust-ს აზიანებს. Figma Community-ს თავისი stats აქვს. |
 | Error tracking (Sentry) plugin-ში | იგივე მიზეზი. website-ზე — შეიძლება. |
 | CDN | website static-ია; hosting-ს თავისი აქვს. |
-| ~~Database (v1)~~ | ⚠️ **შეიცვალა (D21):** Paddle-ს built-in license API არ აქვს → **გვჭირდება მინიმალური store** (key → figma user id seat binding). Vercel KV ან Neon free tier. settings კვლავ → `figma.clientStorage`. |
+| ~~Database (v1)~~ | ⚠️ **შეიცვალა (D21):** license state ვერ იქნება მხოლოდ provider-ის API-ში → **გვჭირდება მინიმალური store** (`figmaUserId` → plan/cycle/usage). free tier ჰყოფნის. settings კვლავ → `figma.clientStorage`. |
 
 ---
 
@@ -189,10 +211,12 @@ Paddle checkout (website)
 
 | # | კითხვა | ბლოკავს |
 |---|--------|---------|
-| ~~Q1~~ | ✅ **დახურულია (D21):** Figma Payments = Stripe-required → GE-სთვის მიუწვდომელი. Billing = Paddle. | — |
+| **Q1** | **billing vendor: Flitt vs Paddle vs Dodo** — ღიაა. ნაწილობრივ დახურულია: Figma Payments და LemonSqueezy გამორიცხულია (D21). | §4 — **ყველაზე პრიორიტეტული** |
 | Q2 | დომენი: `.app` თუ `.com` acquisition? | §1 → ყველაფერი |
-| ~~Q3~~ | ✅ **დახურულია (D21):** website + API ორივე Vercel-ზე. | — |
-| ~~Q4~~ | ✅ **დახურულია (D21):** არა — Flitt = PSP, VAT ჩვენზე დარჩებოდა. Paddle = MoR. | — |
-| Q7 | Paddle seller verification — IE-ს რა დოკუმენტები სჭირდება, რამდენი ხანი გრძელდება? | §4 |
+| ~~Q3~~ | ✅ **დახურულია (D21):** serverless ჰყოფნის — Legibly-ს Chromium არ სჭირდება, ე.ი. w2w-ის $25 Render Standard არარელევანტურია. | — |
+| ~~Q4~~ | ✅ **გადაფასდა (D21):** VAT არ არის Flitt-ის დისკვალიფიკაცია — w2w გლობალურად ყიდის და VAT-ს შეგნებულად არ იკრებს, ზღვრით (~$30K EU revenue). ეს **მიღებული რისკია**, არა ბლოკერი. | — |
+| Q7 | Paddle onboarding-ში საქართველო არჩევადია? (ემპირიული ტესტი) | §4 → Q1 |
+| Q8 | Dodo-ს **საერთაშორისო**-ბარათის რეალური განაკვეთი (public pricing მხოლოდ US domestic-ს აჩვენებს) | §4 → Q1 |
+| Q9 | ფასის სტრუქტურა: $12/თვე, $120/წელი, თუ ორივე? (fixed fee-ს გამო წლიური ბევრად ეფექტურია) | §4, pricing |
 | Q5 | Pro-ს AI quota-ს ეკონომიკა (cost/call) | §6 |
 | Q6 | F20-ის paywall timing ძალაშია? (fix უფასოა beta-ში) | plugin-ის copy — ახლა ასე წერია Plans modal-ში |
