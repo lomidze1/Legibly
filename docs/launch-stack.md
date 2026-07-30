@@ -130,8 +130,28 @@ Stripe-ის შვილობილი → იგივე GE-ის ბლ�
 
 **შემდეგი ნაბიჯი — ემპირიული, არა დოკუმენტაციური:**
 - [ ] Paddle sign-up (უფასო, ვალდებულების გარეშე) → onboarding-ში საქართველო არჩევადია country-ს ველში?
-- [ ] Dodo sign-up → იგივე შემოწმება + საერთაშორისო-ბარათის რეალური განაკვეთი
+- [x] Dodo sign-up → **საქართველო არჩევადია** country-ს dropdown-ში (🇬🇪, 2026-07-31). ⚠️ ეს ჯერ არ არის საბოლოო — **ნამდვილი დადასტურება KYC-ის გავლაა.**
+- [ ] Dodo — საერთაშორისო-ბარათის რეალური განაკვეთი
 - [ ] ფასის სტრუქტურა: $12/თვე vs $120/წელი vs ორივე
+
+#### Dodo — MSA-ის ის პუნქტები, რაც სასწორზე უნდა იდოს
+
+| | |
+|---|---|
+| 💰 Payout | *"on or before the 20th of the following month"* (§9.2) — **20-დან 50 დღემდე ლაგი.** Flitt-ის ~1 დღე არ არის; ეს დაშვება გასწორდა. |
+| 🛡 Reserve | დისკრეციული %, *"decided as per the risk profile of the Seller"* (§9.3) |
+| ⚡ Chargeback | **მინიმუმ $30** თითოზე (§9.7) — $12-იან პროდუქტზე ≈ **2.5 თვის შემოსავალი** |
+| ⛔ Termination | *"chargeback/cancellation/refund rate of more than 0.5% of total orders monthly"* (§18.3) |
+| ↩️ Refund | ჩართულია 7 დღე შეძენიდან (§9.6) · 🔗 ფართო set-off უფლება (§10.2) |
+
+- ❓ **დასაზუსტებელი:** §18.3-ის "cancellation" ნიშნავს order cancellation-ს თუ **subscription churn-ს**? თუ მეორეა, 0.5% ვერცერთ subscription-ბიზნესს ვერ დაიტევს (ნორმა 3–7%). წერილობითი პასუხი გვინდა **გაყიდვების დაწყებამდე.**
+
+#### Merchant Acceptance Policy — შემოწმებული (2026-07-31)
+- ✅ supported: *"SaaS & AI products · Digital goods · **Templates, Plugins & Apps**"* — პირდაპირ ჩვენზეა
+- ⛔ **"Marketplaces/resale" აკრძალული კატეგორიაა (#29 / 32)** — რეგისტრაციისას category უნდა იყოს **SaaS/AI or Digital products**
+- ⛔ *"selling custom design, development, coaching, freelancing or consulting services via digital platforms isn't allowed"* → **glinc.io პროდუქტ-კომპანიად უნდა კითხულობდეს, არა სტუდიად/აგენტობად.** შემოწმებულია — ასეა.
+- ⚠️ glinc.io-ზე **ფასები/terms/refund policy არ წერია** — MoR-ის review ამას ეძებს, verification-ამდე დასამატებელია
+- ✅ restricted countries: ბელარუსი, კუბა, ჰაიტი, ირანი, ერაყი, ჩრდ. კვიპროსი, ჩრდ. კორეა, პაკისტანი, რუსეთი, სამხრ. სუდანი, სუდანი, სირია, ვენესუელა, იემენი — **საქართველო არ არის**
 
 ---
 
