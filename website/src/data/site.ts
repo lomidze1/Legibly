@@ -3,7 +3,7 @@ export const site = {
   tagline: "Accessibility auto-fix for Figma",
   description:
     "Legibly scans Figma designs against WCAG 2.2 AA and fixes violations in one click, using your own design tokens. Zero false positives, every fix re-verified.",
-  email: "hello@glinc.io",
+  email: "hello@legibly.design",
   /**
    * The public launch window, in one place so the hero kicker, the pricing
    * note and the closing copy cannot drift apart — they used to say "coming

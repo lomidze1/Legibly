@@ -26,22 +26,31 @@
 
 ---
 
-## 1. 🔴 დომენი — ბლოკავს ყველაფერს
+## 1. 🟡 დომენი — ✅ შეძენილია, DNS ჯერ არა
 
-- [ ] 👤 შევამოწმოთ ხელმისაწვდომობა: `legibly.app` · `legibly.io` · `getlegibly.com`
-  - `legibly.com` **დაკავებულია** მესამე პირზე (parked, 403) — [`branding.md`](./branding.md)
-- [ ] 👤 შევიძინოთ + WHOIS privacy
-- [ ] 👤 DNS: `A`/`CNAME` → hosting, `MX`/`TXT` (SPF/DKIM/DMARC) → Resend
-- [ ] 👤 **Trademark clearance (Track F)** — web-search ≠ იურიდიული შემოწმება. USPTO/EUIPO
-      ფორმალური ძებნა **გამოქვეყნებამდე**, თორემ rebrand launch-ის შემდეგ ხდება
+- [x] 👤 ხელმისაწვდომობის შემოწმება — **ყველა მოკლე ვარიანტი დაკავებულია:** `legibly.com` (parked),
+      `legibly.app` (🔴 **ცოცხალი პროდუქტი იმავე სახელით** — "Legal clarity for peaceful parenting"),
+      `legibly.io` (GoDaddy, დეკ 2025), `legibly.ai` (Namecheap, აგვ 2025), `getlegibly.com` (აპრ 2026).
+      `legibly.co` თავისუფალია, მაგრამ **premium — $325/წელი, ყოველწლიურად.**
+- [x] 👤 **შეძენილია `legibly.design`** (2026-08-01, Namecheap — $12.98 1-ლი წელი / $58.98 განახლება).
+      WHOIS privacy ✅ · auto-renew ✅
+- [x] 🤖 დომენი ჩასმულია კოდში: `SITE` ([links.ts:8](../plugin/src/ui/links.ts:8)),
+      `SITE_URL` ([schema.ts:3](../website/src/lib/schema.ts:3)), `site.email` → `hello@legibly.design`
+- [ ] 👤 `hello@legibly.design` mailbox — Namecheap-ის უფასო Email Forwarding → პირად Gmail-ზე.
+      **საიტის ყველა contact ლინკი და waitlist-ის შეტყობინება ამ მისამართზე მიდის** (`route.ts:80`)
+- [ ] 👤 DNS: `A`/`CNAME` → hosting, `TXT`/`MX` (SPF/DKIM/DMARC) → Resend
+      - ⚠️ Resend **subdomain-ზე** (`send.legibly.design`) დავაყენოთ, რომ root-ის `MX` forwarding-ს დარჩეს
+- [ ] 👤 **Trademark clearance (Track F)** — ⬆️ **პრიორიტეტი გაიზარდა.** `legibly.app`-ის აღმოჩენის
+      შემდეგ ეს აღარაა ფორმალობა: ფორმალური USPTO/EUIPO ძებნა **Figma Community publish-ამდე.**
+      თუ `.app`-ის მფლობელს აქვს ნიშანი class 9/42-ში — rename იძულებითია
 
 ---
 
 ## 2. 🔴 გატეხილი ლინკები — ზუსტად რომელი
 
 ### 2.1 Plugin → ვებ (ხუთივე 404)
-[`plugin/src/ui/links.ts`](../plugin/src/ui/links.ts)-ში `SITE = 'https://legibly.app'` — **placeholder,
-დომენი არ არსებობს.** ამ ერთი კონსტანტის შეცვლა ხუთივეს ასწორებს:
+`SITE` უკვე `https://legibly.design`-ია ([links.ts:8](../plugin/src/ui/links.ts:8)), მაგრამ **საიტი
+ჯერ არ არის deploy-ული და ხუთივე route არ არსებობს** — ე.ი. ლინკები კვლავ 404-ია:
 
 | ღილაკი plugin-ში | სად მიდის | გვერდი არსებობს? |
 |---|---|---|
@@ -51,7 +60,7 @@
 | Help → "Contact" | `/contact` | ❌ არა |
 | Footer → "Send feedback" | `/feedback` | ❌ არა |
 
-- [ ] 🤖 `SITE` განახლდეს რეალურ დომენზე (1 ხაზი)
+- [x] 🤖 `SITE` განახლდა რეალურ დომენზე (2026-08-01)
 - [ ] 🤖 შევქმნათ დაკლებული routes, ან ლინკები გადავამისამართოთ არსებულებზე
       (`/pricing` → `/#pricing`, `/feedback` → `mailto:` ან form). **გადასაწყვეტია: რომელი 5-დან
       მართლა გვჭირდება v1-ზე** — `/docs`-ის დაწერა ცალკე სამუშაოა
@@ -72,8 +81,8 @@
 - [ ] 👤 Resend account + domain verification (⇒ დომენი, §1)
 - [ ] 👤 env vars deploy-ზე: `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `WAITLIST_FROM`
       - default sender ახლა `onboarding@resend.dev` — **Resend-ის sandbox, real launch-ზე არ გამოდგება**
-- [ ] 🤖 `site.email` = **`hello@glinc.io`** — ეს სხვა ბრენდის მისამართია
-      ([`website/src/data/site.ts`](../website/src/data/site.ts)). შესაცვლელია `hello@<ჩვენი დომენი>`-ზე
+- [x] 🤖 `site.email` → **`hello@legibly.design`** (2026-08-01, ადრე `hello@glinc.io` იყო).
+      ⚠️ **mailbox ჯერ არ არსებობს** — Namecheap forwarding საჭიროა, თორემ waitlist-ის შეტყობინება ბრუნდება
 - [ ] 🤖 double opt-in confirmation (GDPR — EU დიზაინერები target-ია)
 
 ---

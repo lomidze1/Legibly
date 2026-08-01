@@ -12,7 +12,7 @@ PRODUCT_NAME_SHORT: Legibly
 PRODUCT_NAME_SLUG: legibly         # lowercase, no spaces — for file names, URLs
 PRODUCT_NAME_NPM: legibly           # npm package name (if published)
 TAGLINE: "Accessibility & design-system auto-fix for Figma — WCAG 2.2 AA, done right"
-DOMAIN_PLACEHOLDER: legibly.app     # not yet acquired (.com registered but parked/empty)
+DOMAIN: legibly.design              # ✅ acquired 2026-08-01 (Namecheap, WHOIS privacy + auto-renew)
 ```
 
 **Figma store title (SEO):** `Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker`
@@ -44,9 +44,11 @@ DOMAIN_PLACEHOLDER: legibly.app     # not yet acquired (.com registered but park
 |-------|--------|
 | Figma Community name | ✅ free (indicative) |
 | Existing software brand | ✅ none found (indicative) |
-| `legibly.com` | ⚠️ registered but parked/empty (403, no active brand) — acquire/negotiate or use alt TLD |
-| **Formal USPTO/EUIPO clearance** | ⏳ **Track F to-do before public launch** |
-| **Domain acquisition** (.app/.io/getlegibly) | ⏳ **Track F to-do** |
+| `legibly.com` | ⚠️ registered but parked/empty (403, no active brand) |
+| **`legibly.app`** | 🔴 **LIVE PRODUCT, same name** — "Legibly \| Legal clarity for peaceful parenting" (Vercel, 200 OK, checked 2026-08-01). Different sector (legal services ≈ Nice class 45) than ours (software ≈ class 9/42), so coexistence is plausible — **but this is no longer "no existing brand found"** |
+| `legibly.io` · `legibly.ai` · `getlegibly.com` | ⚠️ all registered by third parties, parked (2025–2026) |
+| **Formal USPTO/EUIPO clearance** | ⏳ **Track F — moved earlier: must run BEFORE Figma Community publish, not "before public launch".** If the `.app` holder owns or has applied for a mark in class 9 or 42, rename is forced |
+| **Domain acquisition** | ✅ **`legibly.design` acquired 2026-08-01** |
 
 > ⚠️ ზემოთა web-checks **ინდიკატორია, არა legal clearance.** launch-ამდე საჭიროა proper trademark search + domain lock (`research/trademark-search.md`, `research/domains.md`).
 

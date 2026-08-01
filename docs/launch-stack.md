@@ -11,7 +11,7 @@
 
 | # | რა | ვენდორი | სტატუსი | ბლოკავს |
 |---|----|---------|---------|---------|
-| 1 | დომენი | Namecheap | ❌ არ გვაქვს | **ყველაფერს** — plugin-ის ყველა ლინკს |
+| 1 | დომენი | Namecheap | ✅ **`legibly.design`** (2026-08-01) | — *(ბლოკი მოხსნილია)* |
 | 2 | Hosting | Render | ❌ არ არის | website + (თუ დაგვჭირდა) API |
 | 3 | Email | Resend | ❌ არ არის | Subscribe, feedback autoreply |
 | 4 | გადახდები | ⏳ **ღიაა** — Flitt / Paddle / Dodo (D21) | ❌ არ არის | Pro tier-ის ჩართვა |
@@ -27,13 +27,15 @@
 
 **რისთვის:** website, email sender domain, OAuth redirect, plugin-ის ყველა outbound ლინკი.
 
-**მდგომარეობა:** [`branding.md`](./branding.md) — `legibly.com` **დარეგისტრირებულია მესამე პირზე**
-(parked/empty, 403). `legibly.app` = placeholder, **ჯერ არ არის შეძენილი**.
+**მდგომარეობა:** ✅ **`legibly.design` შეძენილია** (2026-08-01, Namecheap).
+`legibly.app` — 🔴 ცოცხალი პროდუქტი იმავე სახელით; `.com`/`.io`/`.ai` — parked მესამე პირებზე;
+`legibly.co` — premium $325/**წელიწადში**. დეტალები → [`branding.md`](./branding.md).
 
 **რა უნდა გავაკეთოთ:**
-- [ ] შევამოწმოთ `legibly.app` / `legibly.io` / `getlegibly.com` ხელმისაწვდომობა
-- [ ] შევიძინოთ + ჩავრთოთ WHOIS privacy (Namecheap-ს უფასოდ აქვს)
-- [ ] DNS: `A`/`CNAME` → Render, `MX`/`TXT` → Resend
+- [x] ხელმისაწვდომობის შემოწმება (ყველა მოკლე TLD დაკავებულია)
+- [x] შეძენა + WHOIS privacy + auto-renew
+- [ ] `hello@` — Namecheap-ის უფასო Email Forwarding
+- [ ] DNS: `A`/`CNAME` → hosting, `TXT`/`MX` → Resend (**subdomain-ზე**, root-ის MX forwarding-ს რჩება)
 
 **ღირებულება:** `.app` ≈ $15–20/წელი (Google-ის TLD — **HSTS preload სავალდებულოა**, ე.ი.
 HTTPS-only by design; ჩვენთვის უპრობლემოა). `.com` acquisition თუ ვცდით — $500–5000+, არაპროგნოზირებადი.

@@ -1,6 +1,6 @@
 import { site } from "@/data/site";
 
-export const SITE_URL = "https://legibly.app";
+export const SITE_URL = "https://legibly.design";
 
 /** JSON-LD for the product. One SoftwareApplication node on the home page. */
 export function softwareApplicationSchema() {
