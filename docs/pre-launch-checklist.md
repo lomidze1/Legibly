@@ -116,6 +116,20 @@
 
 ---
 
+## 5.1 🟡 AI Designer Judge (D24) — cutoff **1 სექტემბერი**, launch-ს **არ ბლოკავს**
+
+> მონიშნული frame → snapshot → `/api/judge` → Claude vision + rubric → verdict.
+> **Pro-gated + 3 საცდელი free-ზე.** ვერ მოასწრო cutoff-მდე → v1.1 (~2 კვირა post-launch).
+> სრული დასაბუთება → [`approach.md D24`](./approach.md) · [`launch-stack.md §6`](./launch-stack.md)
+
+- [ ] 🤖 `/api/judge` endpoint — OAuth-bound, quota counter License row-ში (⇒ §5-ის backend)
+- [ ] 🤖 rubric + eval pass — **"მზადაა"-ს კრიტერიუმი**: generic ფიდბექი launch-ში არ გადის
+- [ ] 🤖 plugin UI: Judge ღილაკი + Pro gate + trial counter
+- [ ] 🤖 privacy + listing copy: *"your design leaves Figma only when you click Judge"*
+- [ ] 🤖 model-ის არჩევა cost-ით (Haiku vs Opus vision) → quota-ს ეკონომიკა
+
+---
+
 ## 6. 🟠 Figma Community listing
 
 - [ ] 👤 **publish = user action** (Figma ანგარიშის მფლობელი). Claude ვერ გამოაქვეყნებს
@@ -123,8 +137,10 @@
       (10 SC, advisory tier — draft ჯერ v0.1-ის ტექსტია)
 - [ ] 🤖 cover art + screenshots (Figma Community-ს სავალდებულო აქვს)
 - [ ] 🤖 `site.figmaCommunityUrl` = `null` → რეალური URL. სანამ null-ია, hero-ს CTA waitlist-ია
-- [x] 🤖 manifest-ის `networkAccess.allowedDomains` = **`["none"]`** (D22) — review-ზე
-      ეს ჩვენი ყველაზე ძლიერი არგუმენტია, არ გავაფართოვოთ
+- [x] 🤖 manifest-ის `networkAccess.allowedDomains` = **`["none"]`** (D22) — კოდის დღევანდელი მდგომარეობა.
+      ⚠️ **D24-ის დაზუსტება:** paywall/OAuth-თან ერთად ეს **ისედაც** ხდება `[api.legibly.design]` —
+      ე.ი. review-ს არგუმენტი აღარ არის "zero egress", არამედ: *"network only for license checks —
+      your design leaves Figma only when you click Judge."* ამაზე მეტად არ გავაფართოვოთ
 
 ---
 

@@ -268,6 +268,16 @@ license state-ს store სჭირდება. სამაგიეროდ
 - **Outcome:** [`launch-stack.md §4`](./launch-stack.md) გადაწერილია **Flitt-only**-დ სრული დასაბუთებით; `requirements.md` F19/F20; `pre-launch-checklist.md §5` = ნაბიჯ-ნაბიჯ Flitt; `plugin/src/ui/FooterBar.tsx`; `website/src/app/page.tsx`. **Q1, Q9 დახურულია.** ალტერნატიული ვენდორების spike და შედარებები **წაშლილია** (git history: `9528d9a`, `789baa3`) — რომ დახურული კითხვა ხელახლა არ გაიხსნას.
 ---
 
+### D24 — 2026-08-02 — **AI Designer Judge**: შენდება ახლავე, launch-ს არ ბლოკავს (cutoff 1 სექტემბერი) — user-approved
+- **Context:** user-ს უნდა vision-ფუნქცია — მონიშნული დიზაინი → Claude აფასებს ("judge"). Figma-ში inter-plugin API არ არსებობს, ე.ი. Claude Design-თან პირდაპირი ინტეგრაცია ტექნიკურად შეუძლებელია; ერთადერთი გზა = **ჩვენი proxy → Anthropic Messages API (vision)** — ზუსტად ის hosted მოდელი, რომელსაც D22 "თუ ოდესმე დავაბრუნებთ"-ად აღწერდა.
+- **ღირებულების ობიექტური შეფასება:** ბირთვი დეტერმინისტული engine-ია — judge არის advisory layer + კონვერსიის მექანიზმი (~15-20% პროდუქტული ღირებულება), მაგრამ **მაღალი აღქმული სიახლით** listing-ის screenshot-ში. "50% ფუნქციის დაკარგვა" არ არის — მაგრამ მარკეტინგული წონა რეალურია.
+- **არქიტექტურა არ იცვლება:** დაგეგმილი backend (serverless + Figma OAuth + License store, D21/D23) საკმარისია — judge = **+1 endpoint `/api/judge`** + quota counter იმავე License row-ში. OAuth **სავალდებულოა**: judge = ჩვენი Anthropic ბილინგი, იმიტაცია პირდაპირი ხარჯია (§5-ის ცნობილი რისკი).
+- **Decision (timing):** შენდება ბლოკირების ჯაჭვის (deploy → email → Flitt/OAuth) **თავზე**, feature flag-ით. **Cutoff 2026-09-01:** მზადაა და eval-ი კარგია → launch build-შია და listing-ის მთავარი screenshot-ია; ვერა → launch მის გარეშე გადის, judge = v1.1 (~2 კვირა post-launch). **Launch-ის თარიღი judge-ზე არასდროს იბმევა.** განხილული ალტერნატივები: hard blocker (უარყოფილია — ერთ ფუნქციაზე მიბმული deadline-რისკი) და მხოლოდ post-launch (უარყოფილია — listing-ის პირველი ტალღა ფუნქციას ვერ ნახავდა, თუ დროზე მზადაა).
+- **Gating:** Pro-only + free user-ს **3 საცდელი judge** — launch-ის დღეს Pro user 0-ია, საცდელის გარეშე ფუნქციას ვერავინ ნახავდა; საცდელი = upsell-ის კარი.
+- **Trust story-ის კორექცია:** D22-ის `["none"]` **ისედაც იცვლება paywall-თან ერთად** (OAuth + `/license/me` ⇒ manifest += ჩვენი API დომენი) — ე.ი. judge-ის მარგინალური privacy-ფასი მხოლოდ დიზაინის snapshot-ის egress-ია, **per-click, opt-in**. ახალი ფორმულირება privacy/listing-ისთვის: *"network only for license checks — your design leaves Figma only when you click Judge."*
+- **ხარისხის რისკი (cutoff-ის კრიტერიუმი):** generic-ფიდბექიანი judge უარესია, ვიდრე მისი არქონა. rubric + eval pass სავალდებულოა "მზადაა"-ს განსაზღვრებაში.
+---
+
 ## 4. Risk Register (ბიზნესის რისკები)
 
 | # | რისკი | ალბათობა | ზიანი | Mitigation |

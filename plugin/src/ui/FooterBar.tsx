@@ -192,7 +192,7 @@ export function FooterBar({ onOpenUrl }: Props): React.ReactElement {
             <LinkRow label="Contact us" url={LINKS.contact} onOpenUrl={onOpenUrl} />
             <LinkRow label="Subscribe to updates" url={LINKS.subscribe} onOpenUrl={onOpenUrl} />
             <p className="microtext modal-foot">
-              Legibly runs on your device. Nothing leaves Figma unless you add your own AI key.
+              Legibly runs on your device. Nothing ever leaves Figma.
             </p>
           </div>
         </Modal>

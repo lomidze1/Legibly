@@ -712,7 +712,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
               <li>Fix issues</li>
             </ol>
             <div className="microtext">
-              Runs on your device. Nothing leaves Figma unless you add your own AI key.
+              Runs on your device. Nothing ever leaves Figma.
             </div>
           </div>
         )}

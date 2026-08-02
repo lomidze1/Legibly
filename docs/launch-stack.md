@@ -217,15 +217,30 @@ Plugin polls /license/me → UI განახლდა
 
 ---
 
-## 6. Anthropic API key — ❌ **აღარ გვჭირდება** (D22)
+## 6. Anthropic API key — 🔄 **ბრუნდება AI Designer Judge-ისთვის** ([D24](./approach.md))
 
-**დღევანდელი მდგომარეობა:** **AI საერთოდ არ არის plugin-ში.** BYOK (მომხმარებლის `sk-ant-…` key
-Settings-ში) **წაშლილია** — იხ. [D22](./approach.md). Manifest ამბობს `"allowedDomains": ["none"]`,
-ე.ი. plugin **ვერცერთ ქსელურ მოთხოვნას ვერ გააკეთებს**.
+> **განახლება (D24, 2026-08-02):** AI ბრუნდება — მაგრამ ზუსტად იმ ფორმით, რასაც ეს სექცია
+> "თუ ოდესმე დავაბრუნებთ"-ად აღწერდა: **hosted, pay-as-you-go, ჩვენი key, server-side proxy.**
+> ფუნქცია: **AI Designer Judge** — მონიშნული frame → `exportAsync()` snapshot → `/api/judge` →
+> Claude vision + rubric → სტრუქტურირებული verdict. **Pro-gated + 3 საცდელი free user-ზე.**
+> **Cutoff 1 სექტემბერი** — launch-ს არ ბლოკავს; ვერ მოასწრო → v1.1.
+>
+> - [ ] 🤖 `/api/judge` endpoint (OAuth-bound quota, License row-ის counter)
+> - [ ] 🤖 rubric + eval pass — "მზადაა"-ს კრიტერიუმი (generic ფიდბექი = არ გავიდეს)
+> - [ ] 🤖 plugin UI: Judge ღილაკი + Pro gate + trial counter
+> - [ ] 🤖 privacy/listing copy: *"your design leaves Figma only when you click Judge"*
+> - [ ] cost per judge call (Haiku vs Opus vision) → quota-ს ეკონომიკა
+
+### ისტორია: რატომ წაიშალა BYOK (D22)
+
+**კოდის დღევანდელი მდგომარეობა (judge-ის აშენებამდე):** AI არ არის plugin-ში. BYOK (მომხმარებლის
+`sk-ant-…` key Settings-ში) **წაშლილია** — იხ. [D22](./approach.md). Manifest ამბობს
+`"allowedDomains": ["none"]`, ე.ი. plugin ვერცერთ ქსელურ მოთხოვნას ვერ აკეთებს.
+⚠️ ეს ისედაც შეიცვლება paywall-თან ერთად (§5 OAuth ⇒ manifest += ჩვენი API დომენი) — D24.
 
 SC 1.1.1 უცვლელად რჩება: presence check დეტერმინისტულია, ტექსტი ხელით იწერება ან decorative-ად ინიშნება.
 
-### რატომ წაიშალა
+### რატომ წაიშალა BYOK
 - **Conversion:** დიზაინერების უმრავლესობას Anthropic key არ აქვს — ფუნქცია პრაქტიკულად მკვდარი იყო.
 - **Trust:** `allowedDomains: ["none"]` ისეთი privacy-განაცხადია, რომელსაც ნებისმიერი მომხმარებელი
   manifest-ში თავად ამოწმებს. "თითქმის არაფერი გადის" → "**არაფერი გადის**".
@@ -235,13 +250,11 @@ SC 1.1.1 უცვლელად რჩება: presence check დეტე�
 ჩვენი key **ვერასდროს ჩაიდება plugin-ის bundle-ში** — Figma plugin-ის კოდი მომხმარებლის მანქანაზე
 იწერება და მთლიანად წაკითხვადია. **ჩვენი key = სავალდებულოდ server-side proxy.**
 
-### თუ ოდესმე დავაბრუნებთ — მხოლოდ ასე
-**Pay-as-you-go, ჩვენი key-ით, proxy-ს გავლით.** მაშინ დაგვჭირდება: backend (§2) + Figma OAuth (§5,
-quota-ს მიბმა) + `allowedDomains` += ჩვენი API დომენი. **BYOK-ის კოდი ამაში არაფერში გამოდგებოდა** —
+### დაბრუნების ფორმა — ზუსტად ის, რაც D24-მა დაადასტურა
+**Pay-as-you-go, ჩვენი key-ით, proxy-ს გავლით.** სჭირდება: backend (§2) + Figma OAuth (§5,
+quota-ს მიბმა) + `allowedDomains` += ჩვენი API დომენი. **BYOK-ის კოდი ამაში არაფერში გამოდგება** —
 ის სხვა plumbing-ია. წაშლილი `ai-client.ts` (prompt, strict tool schema, ვალიდატორი) git-ის
-ისტორიაშია და საჭიროებისას მთლიანად აღდგება.
-
-- [ ] *(მხოლოდ თუ დავაბრუნებთ)* cost per alt-text call (Haiku vs Sonnet vision) → quota-ს ეკონომიკა
+ისტორიაშია; alt-text-ის დაბრუნებაზე ცალკე გადაწყვეტილება არ მიღებულა — D24 მხოლოდ judge-ს ეხება.
 
 ---
 
