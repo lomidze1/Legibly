@@ -184,7 +184,7 @@ Body copy ახლა 7:1-ზეა (SC 1.4.6), არა 4.5:1. `--color-neutr
 
 - **Header-იდან CTA მოიხსნა** (`d1a28d6`) — "Get early access" პირველ ეკრანზე სამჯერ ეწერა
   (nav, hero-ს ფორმა, specimen-ის ღილაკი). ახლა მხოლოდ ფორმაშია
-- **Login ღილაკი — არა, ჯერ** (გადაწყვეტილება). Paddle-ის (D21) ნაკადი license key-ია
+- **Login ღილაკი — არა, ჯერ** (გადაწყვეტილება). Flitt-ის (D23) ნაკადი license key-ის გარეშეა — `figmaUserId` binding
   email-ით → პლაგინში ჩასმა; ვებ-ლოგინი ამ ნაკადში არ ხვდება. backend არ არსებობს
   (checklist §5). "Sign in" launch-ის შემდეგ, როცა ლიცენზიის მართვა გაჩნდება
 - **ScanDemo** (`3d936d8`) — Coverage სექციაში. "Run scan" → 6 finding; "Fix all 4" →

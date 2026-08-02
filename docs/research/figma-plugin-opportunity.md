@@ -182,7 +182,7 @@ Assumptions stated explicitly; all are estimates, not measured.
 - Accessibility leader — [Stark for Figma](https://www.getstark.co/figma/) · [Stark G2 pricing](https://www.g2.com/products/stark-stark/pricing)
 - Design systems / tokens — [Tokens Studio](https://tokens.studio/pricing) · [Tokens Studio (Community)](https://www.figma.com/community/plugin/843461159747178978/tokens-studio-for-figma)
 - Design-to-code density — [Builder.io best plugins](https://www.builder.io/blog/best-figma-plugins) · [sixtythirtyten — Figma-to-code 2026](https://www.sixtythirtyten.co/blog/from-figma-to-dev-workflows-in-2026)
-- Indie plugin monetization — [Dodo Payments — monetize Figma plugins](https://dodopayments.com/blogs/sell-figma-plugins) · [Indie Hackers](https://www.indiehackers.com/)
+- Indie plugin monetization — [Indie Hackers](https://www.indiehackers.com/)
 - Forum pain points — [Figma Forum — plugin fragmentation/QA threads](https://forum.figma.com/)
 </content>
 </invoke>

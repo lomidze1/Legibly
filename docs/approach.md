@@ -225,39 +225,27 @@ Phase 3: Enterprise v1.0 (~12 months)
 - **Outcome:** `website/src/app/page.tsx` (tiers 3→2), `page.module.css` (`.tiers` grid 3→2 სვეტი), README, `docs/website.md`, `docs/requirements.md` F19, Open-questions checklist. Plugin ცვლილებას არ საჭიროებდა — უკვე Free/Pro $12 ეწერა.
 - **Follow-up (user-approved, იმავე დღეს):** Team ამოღებულია **რედიზაინის handoff-იდანაც** (`website-new-design/` — `.dc.html` ბარათი + `recommendedPlan` enum + `teamMarked` binding + README spec; zip ხელახლა აეწყო, რომ სტალე spec-მა ვერ იაღორძინოს), და **ARR-ის მიზნიდანაც** ("team seats → $1M+" წაიშალა `goal.md`/`approach.md`-ში). მიზეზი: სამომავლო seat-upside-ის დღეს ჩაწერა იმავე ცარიელი დაპირების კლასია — მომავლის მიზნები მაშინ დაიწერება, როცა მათი საფუძველი გაჩნდება.
 
-### D21 — 2026-07-29 — `figma.payments` გამორიცხულია; billing vendor ჯერ **ღიაა** (Flitt / Paddle / Dodo)
-> ⚠️ **ეს ჩანაწერი 2026-07-30-ს გადაიწერა.** პირველი ვერსია ამბობდა "Billing = Paddle (MoR), user-approved" — **ეს არასწორი იყო**: არჩევანი არ გაკეთებულა, და Paddle-ის საქართველოდან გაყიდვის უფლება იმ მომენტში დადასტურებული არ იყო. ქვემოთ დაყოფილია იმად, რაც **დადგენილია**, და იმად, რაც **ღიაა**.
+### D21 — 2026-07-29 — `figma.payments` გამორიცხულია; identity = **Figma OAuth**
+> ℹ️ ამ ჩანაწერის billing-vendor-ის ნაწილი **გადაწყდა [D23](#)-ში (Flitt)**. აქ რჩება ის ორი დასკვნა, რომელიც D23-მდე დადგინდა და ძალაშია.
 
-**Context:** "ვინ იხდის?" კითხვამ ორი დამოუკიდებელი საკითხი გააერთიანა — (ა) ვინ ამუშავებს ფულს, (ბ) plugin-მა როგორ იცის ვინ გადაიხადა.
+**1. `figma.payments` გამორიცხულია — და ეს დანაკარგი არ არის.**
+Figma Community-ზე paid resource-ის გამოქვეყნება **მოითხოვს აქტიურ Stripe account-ს**
+([Figma Help](https://help.figma.com/hc/en-us/articles/360042293394-Publish-plugins-to-the-Figma-Community)),
+Stripe კი საქართველოს merchant country-ად **არ უჭერს მხარს**. გამყიდველი = ქართველი ინდ. მეწარმე ⇒ არხი დახურულია.
+სამაგიეროდ Figma-ს [review guidelines](https://help.figma.com/hc/en-us/articles/360039958914-Plugin-and-widget-review-guidelines)
+პირდაპირ უშვებს გარე მონეტიზაციას: listing რჩება **Free**-დ, ფასი ცხოვრობს plugin-ის UI-სა და საიტზე,
+და **Figma 0%-ს იჭერს**. w2w ზუსტად ასე მუშაობს ⇒ გარე checkout ისედაც გვერჩია.
 
-#### ✅ დადგენილი — `figma.payments` გამორიცხულია
-Figma Community-ზე paid resource-ის გამოქვეყნება **მოითხოვს აქტიურ Stripe account-ს** ([Figma Help](https://help.figma.com/hc/en-us/articles/360042293394-Publish-plugins-to-the-Figma-Community)), Stripe კი საქართველოს merchant country-ად **არ უჭერს მხარს** (46 supported country, GEL არ არსებობს). გამყიდველი = **ქართველი ინდ. მეწარმე პირადი სახელით/ID-ით** (user-confirmed) ⇒ launch-stack-ის ვარიანტი A დახურულია.
+**2. Identity = Figma OAuth, არა შიშველი `currentUser.id`.**
+w2w-ის `licenseClient.ts:44-52` აფიქსირებს რეალურ, უკვე გასწორებულ დაუცველობას: ძველი `/api/auth/init`
+ტოკენს ჭრიდა ნებისმიერი body-ში მითითებული `figmaUserId`-ისთვის, **მტკიცებულების გარეშე რომ caller ამ
+account-ს ფლობს** ⇒ ნებისმიერს შეეძლო სხვისი Pro-ს იმიტაცია. გასწორდა Figma OAuth-ით
+(`scope=current_user:read`, `figmaAuth.ts:137-144`). რეგისტრაცია/პაროლი არ არსებობს — `figmaUserId`
+primary key-ია, email მხოლოდ checkout-იდან, receipt-ისთვის.
 
-#### ✅ დადგენილი — Figma listing რჩება **Free**, ფასი plugin-ში/საიტზე
-Figma-ს [review guidelines](https://help.figma.com/hc/en-us/articles/360039958914-Plugin-and-widget-review-guidelines) პირდაპირ უშვებს გარე მონეტიზაციას (მესამე მხარესთან გადამისამართება). ასეთ listing-ს Figma **0% იჭერს** — web2wireframe ზუსტად ასე მუშაობს ([LAUNCH-COSTS](../../Web2Wireframe/docs/LAUNCH-COSTS-AND-DECISIONS.md): "Figma plugin publish = $0, საკომისიო არ აქვს"). ანუ `figma.payments`-ის დაკარგვა **არ არის დანაკარგი** — მისი ხელმისაწვდომობის შემთხვევაშიც გარე checkout გვერჩია.
-
-#### ✅ დადგენილი — identity = Figma OAuth, **არა** შიშველი `currentUser.id`
-w2w-ის `licenseClient.ts:44-52` აფიქსირებს რეალურ, უკვე გასწორებულ დაუცველობას: ძველი `/api/auth/init` ტოკენს ჭრიდა ნებისმიერი body-ში მითითებული `figmaUserId`-ისთვის, **ყოველგვარი მტკიცებულების გარეშე რომ caller ამ account-ს ფლობს** ⇒ ნებისმიერს შეეძლო სხვისი Pro-ს იმიტაცია. გასწორდა Figma OAuth-ით (`scope=current_user:read`, `figmaAuth.ts:137-144`).
-- Legibly-ის fix **ლოკალურია** (სერვერს არ ხარჯავს), ე.ი. იმიტაცია დღეს მხოლოდ დაკარგული შემოსავალია — **მაგრამ** [`launch-stack §6`](./launch-stack.md)-ის hosted alt-text quota-ს დამატებისთანავე იმიტაცია = ჩვენი Anthropic ბილინგი, ანუ ზუსტად w2w-ის სცენარი. ⇒ **OAuth თავიდანვე, არა მერე.**
-- რეგისტრაცია/პაროლი **არ არსებობს** — `figmaUserId` = primary key, email მხოლოდ checkout-იდან, receipt-ისთვის (w2w `PAYMENT-SYSTEM.md §2.3`).
-
-#### ⏳ ღია — billing vendor
-| | Flitt | Paddle | Dodo Payments |
-|---|---|---|---|
-| GE-დან გაყიდვა | ✅ უკვე მუშაობს (w2w) | ⚠️ **დაუდასტურებელი** — სანქციების blocklist-ში GE არ არის, მაგრამ "supported" არსად არ წერია | ✅ **დადასტურებული** — merchant-eligibility სია, #63 Georgia; "payouts supported only in the countries listed above" |
-| ინდ. მეწარმე | ✅ | ✅ (sole trader, KYB არ სჭირდება) | ✅ (unregistered business) |
-| Recurring | ❌ **არა** — Flitt-მა უარი თქვა სანამ გაყიდვები არ დაფიქსირდება (user, 2026-07-30) | ✅ | ✅ (dunning-ითურთ) |
-| MoR / VAT | ❌ PSP — VAT ჩვენზე | ✅ | ✅ |
-| Fee $12/თვე | 4% = $0.48 | 5%+$0.50 = **9.2%** | 4%+$0.40 = **7.3%**¹ |
-| Fee $120/წელი | 4% | 5.4% | 4.3% |
-| სიმწიფე | გამოცდილი (w2w prod) | 2012-დან | ახალგაზრდა → counterparty risk |
-
-¹ US domestic ბარათის განაკვეთი; საერთაშორისო უფრო ძვირია. + $5 payout fee თუ თვის payout < $1000.
-
-- **Flitt-ის VAT-ზე შესწორება:** ადრე ეწერა, თითქოს w2w ლოკალური აუდიტორიისაა და ამიტომ Flitt იქ გამართლებულია — **ეს მცდარი იყო**. w2w არის გლობალური, flat $16 USD, და VAT-ს **შეგნებულად არ იკრებს** ([`PAYMENT-SYSTEM.md §2.7`](../../Web2Wireframe/docs/plans/PAYMENT-SYSTEM.md)) disclaimer-ით + re-evaluate trigger-ით ~$30K EU revenue. ე.ი. VAT არის **მიღებული და ზღვრით შემოსაზღვრული რისკი**, არა Flitt-ის დისკვალიფიკაცია.
-- **გადამწყვეტი, რაც ჯერ არ ვიცით:** (1) Paddle-ის onboarding-ში საქართველო არჩევადია თუ არა; (2) Dodo-ს რეალური საერთაშორისო-ბარათის განაკვეთი; (3) $12/თვე vs $120/წელი — ფიქსირებული საკომისიო ყოველთვიურ $12-ს ყველაზე მძიმედ ეხება.
-- **Outcome:** ჩანაწერი გასწორდა; `launch-stack.md` §4/§5/§8 და `requirements.md` F20 შესაბამისად. **Q1 ისევ ღიაა.**
-
+**3. Backend სავალდებულოა, მაგრამ პატარა.** `requirements.md` F20-ის "no server" ძალადაკარგულია —
+license state-ს store სჭირდება. სამაგიეროდ Legibly-ს **Chromium არ სჭირდება** (fix პლაგინში სრულდება),
+ე.ი. w2w-ის $25/თვე Render Standard არარელევანტურია — serverless ჰყოფნის.
 ### D22 — 2026-08-02 — AI alt-text + BYOK key **წაშლილია**; plugin-ს ნულოვანი ქსელი აქვს — user-approved
 - **Context:** BYOK (მომხმარებელი წერს საკუთარ `sk-ant-…` key-ს Settings-ში) ერთადერთ ფუნქციას ასაზრდოებდა — SC 1.1.1-ის alt-ტექსტის მონახაზს. User-ის კითხვა იყო პირდაპირი: "ვაიძულებთ მომხმარებელს key ჰქონდეს?" — და პასუხი, რომ დიზაინერების უმრავლესობას ის არ აქვს, ფუნქციას **de facto მკვდრად** აქცევდა.
 - **Alternatives:** (a) დროებით დამალვა UI-დან, კოდის შენარჩუნებით — უარყოფილია: manifest მაინც `api.anthropic.com`-ს გამოაცხადებდა, ე.ი. მთავარი მოგება (ნულოვანი egress) არ მიიღწეოდა; (b) დატოვება — უარყოფილია: ცარიელი ფუნქცია იმავე კლასის არაპატიოსნებაა, რაც D20-ის ცარიელი tier.
@@ -269,19 +257,15 @@ w2w-ის `licenseClient.ts:44-52` აფიქსირებს რეალ�
 
 ---
 
-### D23 — 2026-08-02 — Billing = **Flitt, one-time, წლიური-first**; Dodo დოკუმენტირებული fallback-ია — user-approved
-- **Context:** [D21](#) vendor-ს ღიად ტოვებდა. Dodo-ს კვლევამ და [`spike/dodo`](../spike/dodo/README.md)-მ ტექნიკურად დაამტკიცა, რომ ჯდება — მაგრამ **ეკონომიკურად მოცულობაზეა დამოკიდებული**, და ის მოცულობა ჯერ არ გვაქვს.
-- **გადამწყვეტი არითმეტიკა (10 გამომწერი, $12):** Flitt $120 − 4% = **$115 (4%)** · Dodo $120 − $10.60 tx − $30 payout = **$79 (34%)**. თვეში $36 სხვაობა. Dodo 11%-მდე მხოლოდ ~100 გამომწერზე ეშვება.
-- **დამატებით Flitt-ის სასარგებლოდ:** ფული ~1 დღეში (Dodo: 20–50); KYC/approval-ის რისკი **ნული** (merchant account უკვე აქვს); launch სექტემბერშია, შიდა deadline 30 აგვისტო — ახალი vendor-ის verification ამ ვადას ჭამს; runbook-ები (refund, chargeback, key rotation) უკვე დაწერილია.
-- **Alternatives:** (a) **Dodo** — უარყოფილია *ახლა*, არა სამუდამოდ: MoR/VAT და auto-renew რეალური უპირატესობებია, მაგრამ დღევანდელ მოცულობაზე მათი ფასი 34%-ია. (b) **Paddle** — GE-დან გაყიდვა დაუდასტურებელი დარჩა.
-- **Decision — one-time, ორი tier, წლიური მთავარი:** `$120/წელი` (გამოკვეთილი) + `$12/30 დღე` (გვერდით). auto-renewal არ არსებობს, გასაუქმებელი არაფერია, განახლება დღეებს სტეკავს.
-- **რატომ წლიური-first:** one-time-ის ერთადერთი სუსტი წერტილი ყოველთვიური ხელახალი ყიდვაა. წლიური მას სტრუქტურულად ხსნის — და ისედაც სჯობდა: [`launch-stack §4`](./launch-stack.md)-ის break-even ≈ **10.3 თვე**, ანუ თუ საშუალო გამომწერი 10 თვეზე ნაკლებს რჩება (indie $12-ზე თითქმის ყოველთვის), წლიური იგებს. vendor-ისგან დამოუკიდებელი დასკვნა იყო; ახლა ტექნიკურ პრობლემასაც წყვეტს.
-- **მიგრაციის გზა subscription-ზე უკვე გაკვალულია:** w2w-ის [`PAYMENT-SYSTEM.md §1`](../../Web2Wireframe/docs/plans/PAYMENT-SYSTEM.md) — *"Native recurring subscription code is **complete but parked at the route level** until Flitt grants subscription access"*; webhook handler და License model ორივე გზას უჭერს მხარს. ე.ი. ფაზა 2 = flag-ის გადართვა, არა ხელახლა წერა.
-- **რასაც შეგნებულად ვიღებთ — VAT ჩვენზე რჩება.** Flitt PSP-ია, არა MoR. w2w-ის ზუსტი მიდგომა: ფასი tax-exclusive, Terms-ში disclaimer, re-evaluate trigger ~$30K EU revenue. **მიღებული და ზღვრით შემოსაზღვრული რისკი**, არა უგულებელყოფა.
-- **Dodo-ს spike არ იშლება:** `handle-event.ts` განზრახ დაიწერა HTTP-სა და SDK-ისგან თავისუფლად — license state machine (dunning, out-of-order guard, lazy expiry, webhook dedup, 10/10 tests) Flitt-ზე უცვლელად გადადის. spike რჩება როგორც **fallback-ის მტკიცებულება**, თუ Flitt-მა recurring არასდროს გახსნა ან VAT-მა ზღვარს გადააჭარბა.
-- **ფაზა 2-ის trigger:** Flitt-ის ერთადერთი პირობა ზეპირად იყო — *"გაყიდვები დაფიქსირდეს"*; **რიცხვი მათ არ დაუსახელებიათ** (user-ის დაზუსტება, 2026-08-02). `$1000` არის **ჩვენი** trigger, საიდანაც საუბარს აზრი აქვს, არა Flitt-ის ზღვარი. ე.ი. ეს არასოდეს ყოფილა ბლოკერი — one-time-ით ვიწყებთ, გაყიდვები ისედაც სჭირდება.
-- **Outcome:** `launch-stack.md` §0/§4 (Q1 იხურება), `requirements.md` F19/F20, `plugin/src/ui/FooterBar.tsx`, `website/src/app/page.tsx`. Q9 (წლიური იყოს თუ არა) — **დახურულია: კი, და მთავარიც.**
-
+### D23 — 2026-08-02 — Billing = **Flitt**, ერთჯერადი გადახდა, წლიური-first — user-approved
+- **Context:** [D21](#) ვენდორს ღიად ტოვებდა. გამოკვლეულ იქნა Merchant-of-Record ალტერნატივები (VAT-ს თავის თავზე იღებენ, auth-renew აქვთ) — ტექნიკურად ჯდებოდნენ, **ეკონომიკურად არა ჩვენს დღევანდელ მოცულობაზე**.
+- **გადამწყვეტი არითმეტიკა:** Flitt = **4% flat, ფიქსირებული საკომისიოს გარეშე**. ალტერნატივები ამატებდნენ per-transaction ფიქსირებულს (~$0.40–0.50) **და** თვიურ payout ხარჯს (~$30, გაყიდვებისგან დამოუკიდებლად). 10 გამომწერზე ($120): Flitt **4%** vs ალტერნატივები **~34%**; ისინი მხოლოდ **~100 გამომწერიდან** ხდებიან კონკურენტული. ის მოცულობა ჯერ არ გვაქვს.
+- **დანარჩენი სამი არგუმენტი იმავე მიმართულებით:** ფული **~1 დღეში** (ალტერნატივები: 20–50 დღე) · **approval-ის რისკი ნული** — merchant account და KYC უკვე გვაქვს, launch სექტემბერშია (შიდა deadline 30 აგვისტო) · **კოდი დაწერილია** — w2w-ის `flittService`, webhook handler + dedup, `License` model, admin endpoint-ები, სამი runbook. გადმოტანაა, არა წერა.
+- **Decision — ერთჯერადი, ორი tier:** **`$120/წელი` (მთავარი)** + `$12/30 დღე`. auto-renewal არ არსებობს, გასაუქმებელი არაფერია, განახლება დღეებს სტეკავს.
+- **რატომ წლიური მთავარი:** ერთჯერადი მოდელის ერთადერთ სუსტ წერტილს — ყოველთვიურ ხელახალ ყიდვას — სტრუქტურულად ხსნის. და ისედაც სჯობდა: **break-even ≈ 10.3 თვე**, ანუ თუ საშუალო გამომწერი 10 თვეზე ნაკლებს რჩება (indie $12-ზე თითქმის ყოველთვის), წლიური მეტს ტოვებს. ⚠️ **არა საკომისიოს გამო** — ეს შეცდომა ერთხელ დავუშვით: ფასდაკლება უფრო მეტს ჯდება, ვიდრე საკომისიოზე იზოგება. ერთადერთი რეალური არგუმენტი churn-ია.
+- **რასაც შეგნებულად ვიღებთ — VAT ჩვენზე რჩება.** Flitt PSP-ია, არა MoR. w2w-ის ზუსტი მიდგომა: ფასი tax-exclusive, Terms-ში disclaimer, **re-evaluate trigger ~$30K EU revenue**. მიღებული და ზღვრით შემოსაზღვრული რისკი.
+- **Recurring — გადადებული, არა დაკარგული.** Flitt ჩართავს გაყიდვების დაფიქსირების შემდეგ; **რიცხვი მათ არ დაუსახელებიათ** (user-ის დაზუსტება 2026-08-02 — `$1000` ჩვენი trigger-ია, არა მათი ზღვარი). ბლოკერი არასდროს ყოფილა: ერთჯერადით სწორედ იმ გაყიდვებს ვაფიქსირებთ. და როცა ჩართავენ, აშენება არ დაგვჭირდება — w2w-ის recurring კოდი დაწერილი და გატესტილია, route-ის დონეზეა გამორთული (`PAYMENT-SYSTEM.md §1`).
+- **Outcome:** [`launch-stack.md §4`](./launch-stack.md) გადაწერილია **Flitt-only**-დ სრული დასაბუთებით; `requirements.md` F19/F20; `pre-launch-checklist.md §5` = ნაბიჯ-ნაბიჯ Flitt; `plugin/src/ui/FooterBar.tsx`; `website/src/app/page.tsx`. **Q1, Q9 დახურულია.** ალტერნატიული ვენდორების spike და შედარებები **წაშლილია** (git history: `9528d9a`, `789baa3`) — რომ დახურული კითხვა ხელახლა არ გაიხსნას.
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

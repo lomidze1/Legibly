@@ -96,17 +96,23 @@
 
 ---
 
-## 5. 🔴 გადახდები — Pro-ს ყიდვა შეუძლებელია
+## 5. 🔴 გადახდები — **Flitt** (D23)
 
-- [x] ~~**Q1: Figma Payments API**~~ — ✅ **გამორიცხულია** (D21): მოითხოვს Stripe-ს, Stripe საქართველოს
-      merchant-ად არ უჭერს მხარს. listing რჩება **Free**-დ, ფასი plugin-ში/საიტზე; Figma 0% იჭერს.
-- [ ] 👤 **vendor-ის ემპირიული შემოწმება** ([`launch-stack.md §4`](./launch-stack.md)):
-      Paddle sign-up → საქართველო არჩევადია? · Dodo sign-up (merchant list-ში #63 GE) + საერთაშორისო განაკვეთი
-      · Flitt — recurring **უარყოფილია** სანამ გაყიდვები არ დაფიქსირდება (2026-07-30)
-- [ ] 👤 ფასის სტრუქტურა: $12/თვე vs $120/წელი — fixed fee ($0.40–0.50) ყოველთვიურ $12-ს 3–4%-ს ჭამს
-- [ ] 🤖 paywall-ის ჩართვა — დღეს fix **უფასოა beta-ში** (F20). ეს განზრახაა, მაგრამ
-      `Plans` modal-ში ასე წერია და ორივე ერთდროულად უნდა შეიცვალოს
-- [x] ~~ფასების სტრუქტურა~~ — ✅ **Free + Pro $12/mo** (D20, 2026-07-28). Team მოხსნილია
+> გადაწყვეტილი: **Flitt · ერთჯერადი გადახდა · `$120/წელი` (მთავარი) + `$12/30 დღე`.**
+> სრული დასაბუთება → [`launch-stack.md §4`](./launch-stack.md). ვენდორის კითხვა **დახურულია** — არ გავხსნათ.
+
+**ნაბიჯ-ნაბიჯ:**
+
+- [x] ~~ვენდორის არჩევა~~ — ✅ Flitt (D23, 2026-08-02)
+- [x] ~~ფასის სტრუქტურა~~ — ✅ `$120/წელი` + `$12/30 დღე`, ორივე ერთჯერადი (D23)
+- [ ] 👤 **Flitt merchant portal:** Legibly-ის ცალკე product + `order_id` prefix (w2w-სგან გასამიჯნად)
+- [ ] 👤 **`server_callback_url`** რეგისტრაცია → `https://api.legibly.design/api/webhooks/flitt`
+- [ ] 🤖 env: `FLITT_MERCHANT_ID` · `FLITT_SECRET_KEY` · `FLITT_BASE_URL=https://pay.flitt.com`
+- [ ] 🤖 **w2w-დან გადმოტანა:** `flittService` (checkout + SHA1 signature) · webhook handler (verify + dedup) · `License` model · admin override endpoint-ები
+- [ ] 🤖 **Figma OAuth** (`current_user:read`) → HMAC token → `figma.clientStorage` ([`launch-stack §5`](./launch-stack.md))
+- [ ] 🤖 **Terms გვერდი:** refund policy · **tax-exclusive disclaimer** (VAT ჩვენზეა — Flitt PSP-ია) · statutory-rights clause
+- [ ] 🤖 paywall-ის ჩართვა — დღეს fix **უფასოა beta-ში** (F20). განზრახაა, მაგრამ `Plans` modal-შიც ასე წერია: ორივე ერთდროულად უნდა შეიცვალოს
+- [ ] 👤 **chargeback rate მონიტორინგი** — target **<0.5%** (ინდუსტრიის სტანდარტი). $12-ზე refund ($12) ყოველთვის იაფია, ვიდრე chargeback (~$42 + rate)
 
 ---
 
