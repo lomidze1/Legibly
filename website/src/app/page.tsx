@@ -176,7 +176,7 @@ const checks = [
   {
     name: "Image alt text",
     sc: "SC 1.1.1",
-    body: "A presence check on every image, with optional drafts written under your own API key.",
+    body: "A presence check on every image, with somewhere to write the description or mark it decorative.",
   },
   {
     name: "Color-only links",
@@ -357,7 +357,7 @@ function Pricing() {
 const trustPoints = [
   {
     name: "Private by design",
-    body: "Scanning and fixing run entirely on your machine. The only optional network call is AI alt-text drafting, sent straight to Anthropic with your own key.",
+    body: "The manifest declares zero network access, and Figma enforces it. Nothing about your file can be sent anywhere, to us or to anyone else.",
   },
   {
     name: "One source of truth",
@@ -406,7 +406,7 @@ const faqs = [
   },
   {
     q: "Is my file private?",
-    a: "Yes. Nothing leaves your machine except the alt-text drafts you explicitly request, and those go directly to Anthropic under your own API key.",
+    a: "Yes, and not as a promise. The plugin declares no network access in its Figma manifest, so nothing about your file can be transmitted anywhere — check the manifest yourself before installing.",
   },
   {
     q: "Which criteria do you not check?",

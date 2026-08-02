@@ -56,7 +56,7 @@ const findings: Finding[] = [
     sc: "SC 1.1.1",
     detail: "Three images carrying no description",
     verdict: "violation",
-    repaired: "Three drafted · your own API key",
+    repaired: "Three described · one marked decorative",
   },
   {
     index: "09",

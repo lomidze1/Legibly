@@ -258,6 +258,15 @@ w2w-ის `licenseClient.ts:44-52` აფიქსირებს რეალ�
 - **გადამწყვეტი, რაც ჯერ არ ვიცით:** (1) Paddle-ის onboarding-ში საქართველო არჩევადია თუ არა; (2) Dodo-ს რეალური საერთაშორისო-ბარათის განაკვეთი; (3) $12/თვე vs $120/წელი — ფიქსირებული საკომისიო ყოველთვიურ $12-ს ყველაზე მძიმედ ეხება.
 - **Outcome:** ჩანაწერი გასწორდა; `launch-stack.md` §4/§5/§8 და `requirements.md` F20 შესაბამისად. **Q1 ისევ ღიაა.**
 
+### D22 — 2026-08-02 — AI alt-text + BYOK key **წაშლილია**; plugin-ს ნულოვანი ქსელი აქვს — user-approved
+- **Context:** BYOK (მომხმარებელი წერს საკუთარ `sk-ant-…` key-ს Settings-ში) ერთადერთ ფუნქციას ასაზრდოებდა — SC 1.1.1-ის alt-ტექსტის მონახაზს. User-ის კითხვა იყო პირდაპირი: "ვაიძულებთ მომხმარებელს key ჰქონდეს?" — და პასუხი, რომ დიზაინერების უმრავლესობას ის არ აქვს, ფუნქციას **de facto მკვდრად** აქცევდა.
+- **Alternatives:** (a) დროებით დამალვა UI-დან, კოდის შენარჩუნებით — უარყოფილია: manifest მაინც `api.anthropic.com`-ს გამოაცხადებდა, ე.ი. მთავარი მოგება (ნულოვანი egress) არ მიიღწეოდა; (b) დატოვება — უარყოფილია: ცარიელი ფუნქცია იმავე კლასის არაპატიოსნებაა, რაც D20-ის ცარიელი tier.
+- **Decision:** სრული წაშლა. `shared/ai-client.ts` + `tests/ai-client.test.ts` წაშლილია, `export-image` RPC handler-იც (მისი ერთადერთი მომხმარებელი AI იყო), UI-დან key-ის ველი და "Suggest with AI" ღილაკები. **Manifest: `"allowedDomains": ["none"]`.**
+- **რატომ ეს მოგებაა, არა დანაკარგი:** privacy-განაცხადი ხარისხობრივად იცვლება — "თითქმის არაფერი გადის" → "**არაფერი გადის, და ამას Figma აღასრულებს**". ეს **გადამოწმებადია** ნებისმიერის მიერ manifest-ში, ე.ი. აღარაა ჩვენი დაპირება. Compliance-პროდუქტისთვის, რომელსაც production ბიბლიოთეკებზე ჩაწერის უფლება აქვს, ეს გასაყიდი არგუმენტია. Figma review-ზეც ერთი კითხვა ნაკლები.
+- **რა არ დაზარალდა:** SC 1.1.1 სრულად რჩება — presence check დეტერმინისტულია, ხელით ჩაწერა და decorative marker უცვლელია. **10 SC რჩება 10.**
+- **მომავალი (user-ის განზრახვა):** თუ AI დაბრუნდება, ის იქნება **ჩვენი მხრიდან, pay-as-you-go**, hosted proxy-ით. BYOK-ის plumbing იქ არაფერში გამოდგებოდა (სხვა auth, სხვა quota), ხოლო ღირებული ნაწილი — prompt, strict tool schema, ვალიდატორი — git-ის ისტორიაშია და აღდგება.
+- **Verify:** plugin 312 tests green (328−16 = AI-ის ტესტები), typecheck + build სუფთა; website 32 tests green, typecheck სუფთა. განახლდა: `manifest.json`, `App.tsx`, `guide.ts`, `main/index.ts`, საიტის trust/FAQ/checks/ScanDemo/privacy, `launch-stack.md §6`, `requirements.md`, `checks-expansion.md`, `website.md`, `pre-launch-checklist.md`.
+
 ---
 
 ## 4. Risk Register (ბიზნესის რისკები)

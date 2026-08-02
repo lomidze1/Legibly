@@ -43,6 +43,22 @@ export function isSolidPaint(p: PaintLite): p is SolidPaintLite {
   return p.type === 'SOLID';
 }
 
+/**
+ * One uniformly-styled run inside a text node (Figma's getStyledTextSegments).
+ * Carries only the fields SC 1.4.1 needs to tell "different colour" from
+ * "different colour AND something else".
+ */
+export interface TextSegmentLite {
+  characters: string;
+  start: number;
+  end: number;
+  fills?: readonly PaintLite[] | unknown;
+  textDecoration?: string;
+  fontSize?: number;
+  fontWeight?: number;
+  fontName?: { family: string; style: string };
+}
+
 export interface RectLite {
   x: number;
   y: number;
@@ -69,8 +85,15 @@ export interface NodeLite {
   absoluteBoundingBox?: RectLite | null;
   /** Prototype interactions — explicit interactivity signal (2.5.8). */
   reactions?: readonly unknown[];
+  /**
+   * Component properties resolved on an instance. A VARIANT axis named "State"
+   * means the component was designed to react to the user (2.5.8 / 1.4.11).
+   */
+  componentProperties?: Record<string, { type?: string; value?: unknown } | undefined>;
   /** Auto-layout: 'NONE' | 'HORIZONTAL' | 'VERTICAL' | 'GRID'. */
   layoutMode?: string;
+  /** Frame clips anything outside its bounds — content past it is invisible. */
+  clipsContent?: boolean;
   minWidth?: number | null;
   minHeight?: number | null;
   // text-only
@@ -82,6 +105,14 @@ export interface NodeLite {
   lineHeight?: unknown;
   /** Plugin data reader — present on real nodes; fixtures may provide it. */
   getSharedPluginData?: (namespace: string, key: string) => string;
+  /** Styled runs of a TEXT node — the input to SC 1.4.1. */
+  getStyledTextSegments?: (fields: readonly string[]) => readonly TextSegmentLite[];
+  /**
+   * Variable modes pinned on this node (collectionId → modeId). A pinned
+   * subtree renders that mode regardless of the page's, so the mode sweep
+   * must not project another mode onto it.
+   */
+  explicitVariableModes?: Record<string, string>;
   // page-only
   backgrounds?: readonly PaintLite[];
 }

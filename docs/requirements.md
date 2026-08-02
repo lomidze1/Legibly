@@ -62,7 +62,7 @@
 |----------|-------|----------------|
 | ~~Target size (24px AA) + text spacing~~ | ✅ **shipped 2026-07-14** ([approach.md D12](./approach.md)); 44px floor = SC 2.5.5 shipped 2026-07-26 (D16) | Android 48px — not a WCAG SC, deferred |
 | ~~Non-text / UI contrast (SC 1.4.11)~~ | ✅ **shipped 2026-07-14** (interactive icons/strokes; D12) | free-floating graphics — judgment, footer-ში |
-| ~~LLM tier: alt text (SC 1.1.1)~~ | ✅ **shipped 2026-07-14** BYOK-first ([approach.md D14](./approach.md)) | labels/4.1.2 + hosted backend — v0.4, billing-თან ერთად |
+| ~~Alt text presence (SC 1.1.1)~~ | ✅ **shipped 2026-07-14** ([D14](./approach.md)); AI draft **წაშლილია 2026-08-02** — manual/decorative მხოლოდ ([D22](./approach.md)) | hosted pay-as-you-go AI — backend-ის შემდეგ, თუ საერთოდ |
 | ~~Use of colour (1.4.1) + clipped text (1.4.10 signal)~~ | ✅ **shipped 2026-07-26** ([approach.md D17](./approach.md)) | in-paragraph runs only; standalone colour-coded labels/icons remain judgement |
 | ~~Label presence (2.4.6) + focus capability (2.4.7) + advisory tier~~ | ✅ **shipped 2026-07-26** ([approach.md D18](./approach.md)) | presence/capability only; no auto-fix by design |
 | System-strict design-token enforcement (non-a11y) | v1.0 | ცალკე module; FigmaLint owns token-cleanup (free) |

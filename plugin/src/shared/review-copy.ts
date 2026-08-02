@@ -86,6 +86,31 @@ export const REVIEW_COPY: Record<NeedsReviewReason, ReviewCopy> = {
     why: 'Screen-reader users need a text alternative for informative images. Figma has no native alt field, so Legibly records it for dev handoff and the report.',
     todo: 'Write a short description of what the image conveys, or mark it decorative if it carries no information.',
   },
+  'color-only-signifier': {
+    title: 'Colour is the only thing marking this text',
+    why: 'Part of this text is a different colour from the rest, with no underline, weight or size change. Readers who don’t see that colour difference — colour blindness, a greyscale print, a dimmed screen — read it as ordinary text. If it’s a link or a status, its meaning is lost.',
+    todo: 'If it is a link or carries meaning, underline it (one click below) or add another cue. If the colour is purely decorative, ignore this.',
+  },
+  'no-visible-label': {
+    title: 'Field may have no visible label',
+    why: 'A placeholder is not a label: it vanishes the moment someone types, it is often too low-contrast to read, and voice-control users have no name to speak. Figma has no form semantics, so we go by the layer name and by what sits next to it.',
+    todo: 'Add a short text label above or beside the field. If this layer is not actually an input, ignore this.',
+  },
+  'no-focus-state': {
+    title: 'Component has states, but no focus state',
+    why: 'This component set defines how it looks on hover or when pressed, but not when it has keyboard focus. Whoever builds it then has to invent a focus ring — or ships without one, and keyboard users lose their place on the screen.',
+    todo: 'Add a Focus variant with a visible indicator, and keep it at 3:1 against its background so it passes the non-text contrast rule.',
+  },
+  'small-text': {
+    title: 'Very small text',
+    why: 'WCAG sets no minimum font size, so this is our advice rather than a rule: below about 12px, text gets hard to read on a phone held at arm’s length, and for anyone whose near vision has changed.',
+    todo: 'Raise the size if this carries real content. Legal fine print and decorative labels are usually fine as they are — this never counts as a WCAG failure.',
+  },
+  'clipped-text': {
+    title: 'Text is cut off by its container',
+    why: 'This text layer extends past a frame that clips its contents, so part of the string is never painted. Nobody sees it — and the missing words usually only surface once someone reads the string in the build.',
+    todo: 'Widen or grow the container, shorten the text, or switch the layer to auto-height so it wraps. If the clipping is deliberate (a mask or a marquee), ignore this.',
+  },
   'invisible-text': {
     title: 'Invisible text layer',
     why: 'This text exists in the design but has no visible color (0% opacity or no fill) — a common leftover from imports. Real users won’t see it, but it may still be read out by assistive tech in the final product.',

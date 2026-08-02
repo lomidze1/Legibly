@@ -46,6 +46,45 @@ describe('collectTargets', () => {
     expect(targets[0]!.node.name).toBe('Buy');
   });
 
+  it('collects instances with a State variant axis as suspect', () => {
+    const b = node({
+      type: 'INSTANCE',
+      name: 'Untitled',
+      absoluteBoundingBox: box(0, 0, 20, 20),
+      componentProperties: { State: { type: 'VARIANT', value: 'Default' } },
+    });
+    const targets = collectTargets([withParents(node({ type: 'PAGE', children: [b] }))]);
+    expect(targets).toHaveLength(1);
+    expect(targets[0]!.certain).toBe(false);
+  });
+
+  it('does not treat a Status axis as a control — that is the badge convention', () => {
+    const badge = node({
+      type: 'INSTANCE',
+      name: 'Untitled',
+      absoluteBoundingBox: box(0, 0, 20, 20),
+      componentProperties: { Status: { type: 'VARIANT', value: 'Success' } },
+    });
+    expect(collectTargets([withParents(node({ type: 'PAGE', children: [badge] }))])).toHaveLength(0);
+  });
+
+  it('ignores non-variant component properties', () => {
+    const card = node({
+      type: 'INSTANCE',
+      name: 'Untitled',
+      absoluteBoundingBox: box(0, 0, 20, 20),
+      componentProperties: { State: { type: 'BOOLEAN', value: true } },
+    });
+    expect(collectTargets([withParents(node({ type: 'PAGE', children: [card] }))])).toHaveLength(0);
+  });
+
+  it('collects form fields — they are controls, and 1.4.11 measures their borders', () => {
+    const input = node({ type: 'FRAME', name: 'Email input', absoluteBoundingBox: box(0, 0, 200, 40) });
+    const targets = collectTargets([withParents(node({ type: 'PAGE', children: [input] }))]);
+    expect(targets).toHaveLength(1);
+    expect(targets[0]!.certain).toBe(false);
+  });
+
   it('skips invisible subtrees', () => {
     const b = tap({ visible: false });
     const root = withParents(node({ type: 'PAGE', children: [b] }));
@@ -111,5 +150,35 @@ describe('checkTargetSizes — verdicts', () => {
     const b = { node: tap(), certain: true, box: box(21, 0, 20, 20) };
     const result = checkTargetSizes([a, b]);
     expect(result.findings[0]!.targetSize!.autoFixable).toBe(false);
+  });
+});
+
+describe('checkTargetSizes — 44px enhanced floor (SC 2.5.5)', () => {
+  it('reports 2.5.5, not 2.5.8, when the enhanced floor is used', () => {
+    const a = { node: tap({ layoutMode: 'HORIZONTAL' }), certain: true, box: box(0, 0, 32, 32) };
+    const result = checkTargetSizes([a], 44);
+    expect(result.findings).toHaveLength(1);
+    expect(result.findings[0]!.sc).toBe('2.5.5');
+    expect(result.findings[0]!.targetSize).toMatchObject({ required: 44 });
+  });
+
+  it('does NOT grant the spacing exception — 2.5.5 is size-only', () => {
+    const lone = { node: tap(), certain: true, box: box(0, 0, 32, 32) };
+    expect(checkTargetSizes([lone], 24).findings).toHaveLength(0); // isolated → 2.5.8 exception
+    expect(checkTargetSizes([lone], 44).findings).toHaveLength(1); // 2.5.5 has no exception
+  });
+
+  it('44×44 and larger passes the enhanced floor', () => {
+    const ok = { node: tap(), certain: true, box: box(0, 0, 44, 44) };
+    const result = checkTargetSizes([ok], 44);
+    expect(result.findings).toHaveLength(0);
+    expect(result.passCount).toBe(1);
+  });
+
+  it('keeps the honesty tier — a name-only target is still needsReview', () => {
+    const a = { node: node({ type: 'FRAME', name: 'btn' }), certain: false, box: box(0, 0, 30, 30) };
+    const result = checkTargetSizes([a], 44);
+    expect(result.findings[0]!.tier).toBe('needsReview');
+    expect(result.findings[0]!.sc).toBe('2.5.5');
   });
 });

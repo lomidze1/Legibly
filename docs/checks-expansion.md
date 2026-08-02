@@ -14,7 +14,7 @@
 | **1.4.12** Text spacing | authored line-height < 1.5× | ყოველთვის needsReview | ✅ "150%" + overflow guard |
 | **2.5.8** Target size | interactive target < 24×24 + spacing exception | prototype reaction → violation · name hint → needsReview | ✅ auto-layout min-size |
 | **1.4.11** Non-text contrast | **მხოლოდ** interactive target-ების icon/border | certain target + all-fail → violation · სხვა → needsReview | ✅ იგივე token engine |
-| **1.1.1** Alt text | content-sized image fills — **presence only** | ყოველთვის needsReview | ✅ manual / decorative / BYOK AI draft |
+| **1.1.1** Alt text | content-sized image fills — **presence only** | ყოველთვის needsReview | ✅ manual / decorative *(AI draft წაშლილია — D22)* |
 
 **საბოლოო გეგმა (requirements §2) რაც დარჩა:** system-strict token enforcement (v1.0), brand-QA vision (v2), MCP server (v2). ანუ **a11y check-ების roadmap ფაქტობრივად ამოიწურა** — v0.1→v0.3 ყველა დაგეგმილი SC ჩაბარდა. ეს დოკუმენტი ავსებს იმ ვაკუუმს.
 

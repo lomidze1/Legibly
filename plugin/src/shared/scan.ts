@@ -1,9 +1,12 @@
 /**
  * Scanner: traverse selection or page and run every check —
- * text contrast (1.4.3), target size (2.5.8), non-text contrast (1.4.11),
- * text spacing capability (1.4.12). Pure over NodeLite (C1).
+ * text contrast (1.4.3), use of colour (1.4.1), target size (2.5.8/2.5.5),
+ * non-text contrast (1.4.11), text spacing capability (1.4.12),
+ * alt-text presence (1.1.1), clipped text (1.4.10), label presence (2.4.6),
+ * focus-state capability (2.4.7), plus non-WCAG advisories. Pure over
+ * NodeLite (C1).
  */
-import type { ScanReport, Settings } from './types';
+import type { Finding, ScanReport, Settings } from './types';
 import { NOT_CHECKED_SCS } from './types';
 import { NodeLite } from './figma-lite';
 import { classifyTextNode } from './classify';
@@ -11,9 +14,20 @@ import { checkTextSpacing } from './text-spacing';
 import { collectTargets, checkTargetSizes } from './target-size';
 import { checkNonTextContrast } from './non-text';
 import { checkAltText, hasImageFill } from './alt-text';
+import { checkUseOfColor } from './use-of-color';
+import { checkClippedText } from './clipped-text';
+import { checkSmallText } from './advisory';
+import { checkFormLabels } from './form-label';
+import { checkFocusStates } from './focus-state';
 
 function isRendered(node: NodeLite): boolean {
   return node.visible !== false && (typeof node.opacity !== 'number' || node.opacity > 0);
+}
+
+/** Certain first, then judgement, then non-WCAG advice. Stable within a tier. */
+const TIER_ORDER: Record<Finding['tier'], number> = { violation: 0, needsReview: 1, advisory: 2 };
+export function byTier(a: Finding, b: Finding): number {
+  return TIER_ORDER[a.tier] - TIER_ORDER[b.tier];
 }
 
 /** Depth-first collection of rendered TEXT nodes under the given roots. */
@@ -53,15 +67,29 @@ export function scanNodes(
 
     const spacing = checkTextSpacing(t);
     if (spacing) report.findings.push(spacing);
+
+    const colorOnly = checkUseOfColor(t);
+    if (colorOnly) report.findings.push(colorOnly);
+
+    const clipped = checkClippedText(t);
+    if (clipped) report.findings.push(clipped);
+
+    const small = checkSmallText(t);
+    if (small) report.findings.push(small);
   }
 
   // 2.5.8 + 1.4.11 over interactive targets
   const targets = collectTargets(roots);
   report.targetCount = targets.length;
-  const sizes = checkTargetSizes(targets);
+  const sizes = checkTargetSizes(targets, settings.targetFloor);
   report.findings.push(...sizes.findings);
   const nonText = checkNonTextContrast(targets);
   report.findings.push(...nonText.findings);
+
+  // 2.4.6 label presence + 2.4.7 focus-state capability — both need sibling
+  // and variant context, so they run over the roots, not per node.
+  report.findings.push(...checkFormLabels(roots));
+  report.findings.push(...checkFocusStates(roots));
 
   // 1.1.1 alt-text presence over content-sized images
   const walkImages = (n: NodeLite): void => {
@@ -78,8 +106,7 @@ export function scanNodes(
   };
   for (const r of roots) walkImages(r);
 
-  // violations first, then needsReview; stable within tiers
-  report.findings.sort((a, b) => (a.tier === b.tier ? 0 : a.tier === 'violation' ? -1 : 1));
+  report.findings.sort(byTier);
   report.durationMs = now() - start;
   return report;
 }

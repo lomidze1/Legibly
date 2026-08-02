@@ -14,13 +14,18 @@ export interface RGBA {
 export type WcagLevel = 'AA' | 'AAA';
 
 /**
- * 3-tier result model (F7):
+ * Result model (F7):
  * - violation: mathematically certain, deterministic — the zero-false-positive tier (F8)
  * - needsReview: computable suspicion or ambiguous input — never a hard fail
- * - notChecked: out of v0.1 scope — listed so silence never reads as a pass
+ * - advisory: NOT a WCAG conformance verdict at all — readability guidance that
+ *   no success criterion covers. Kept in its own tier so a report can never
+ *   read our advice as a legal finding (detection research §1: conflating best
+ *   practice with conformance is the standard a11y-marketing dishonesty).
+ * - notChecked: out of scope — listed so silence never reads as a pass
  */
-export type Tier = 'violation' | 'needsReview';
+export type Tier = 'violation' | 'needsReview' | 'advisory';
 
+/** Why a finding landed outside the certain tier — needsReview and advisory alike. */
 export type NeedsReviewReason =
   | 'gradient-fill'
   | 'gradient-range'
@@ -36,7 +41,12 @@ export type NeedsReviewReason =
   | 'maybe-interactive'
   | 'line-height-floor'
   | 'non-text-judgment'
-  | 'missing-alt';
+  | 'missing-alt'
+  | 'color-only-signifier'
+  | 'clipped-text'
+  | 'no-visible-label'
+  | 'no-focus-state'
+  | 'small-text';
 
 export interface Finding {
   nodeId: string;
@@ -65,6 +75,17 @@ export interface Finding {
   reason?: NeedsReviewReason;
   /** Human-readable detail for the results panel. */
   detail: string;
+  /**
+   * Set when the finding was measured in a variable mode the canvas is not
+   * currently showing, e.g. "Theme · Dark". Absent = measured as rendered.
+   */
+  mode?: string;
+  /**
+   * Effective backgrounds per variable mode, keyed by mode key — `''` is the
+   * mode on screen. Present only on themed files. A fix must clear EVERY entry,
+   * or repairing one theme silently breaks another (NF3).
+   */
+  bgByMode?: Record<string, RGBA[]>;
   /** Name of the token/style currently bound to the fill (same-ramp step, F13). */
   currentTokenName?: string;
   /** Which paint a color fix applies to (1.4.3 text vs 1.4.11 icon/border). */
@@ -73,6 +94,8 @@ export interface Finding {
   targetSize?: { width: number; height: number; required: number; autoFixable: boolean };
   /** SC 1.4.12 data. */
   lineHeight?: { ratio: number; fixable: boolean };
+  /** SC 1.4.1 data: the colour-only runs, and what the first one says. */
+  colorOnly?: { ranges: { start: number; end: number }[]; excerpt: string };
 }
 
 export interface ScanReport {
@@ -96,6 +119,13 @@ export interface TokenCandidate {
   kind: 'variable' | 'style';
   name: string;
   color: RGBA;
+  /**
+   * What this token resolves to under each variable mode, keyed by mode key.
+   * A variable is a different colour per theme, so a candidate has to be judged
+   * with the value it will actually take in each one. Absent = same everywhere
+   * (paint styles, unthemed files).
+   */
+  colorsByMode?: Record<string, RGBA>;
 }
 
 export interface TokenIndex {
@@ -155,22 +185,33 @@ export interface BgFixPlan {
   checkedCount: number;
 }
 
+/**
+ * Tap-target floor. 24 = SC 2.5.8 (AA, with the spacing exception);
+ * 44 = SC 2.5.5 (AAA) — also the iOS HIG minimum, no spacing exception.
+ */
+export type TargetFloor = 24 | 44;
+
 export interface Settings {
   level: WcagLevel;
   /** D8/F14: forbid new-token proposals; escalate instead. */
   strictMode: boolean;
+  targetFloor: TargetFloor;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   level: 'AA',
   strictMode: false,
+  targetFloor: 24,
 };
 
 /** What we do NOT (fully) check — the transparency footer (F7). */
 export const NOT_CHECKED_SCS: string[] = [
   '1.1.1 — alt-text PRESENCE is tracked (recorded via Legibly); its quality is your review',
-  '2.4.6 Headings & Labels',
-  '2.5.8 — elements without prototype interactions are “check by eye” only',
+  '2.4.6 — we check that a field has SOME visible label nearby; whether the wording is descriptive is your call',
+  '2.4.7 — we check that a component set defines a focus state; whether it renders at runtime is code-time',
+  'Tap targets — elements without prototype interactions are “check by eye” only',
+  '1.4.1 — only colour-coded runs inside a text layer are checked; colour-coded icons, chart keys and standalone labels are not',
+  '1.4.10 — we flag text clipped by its own container; real reflow behaviour at 320px cannot be tested from a static file',
   '1.4.11 — only icons/borders on interactive elements are measured',
   '1.4.12 — only authored line-height; letter/word spacing adaptability is runtime-only',
   'Focus order, reflow, semantics — not determinable from a static Figma file',

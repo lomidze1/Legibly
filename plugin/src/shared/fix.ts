@@ -31,7 +31,7 @@ function toOklch(c: RGBA): { l: number; c: number; h?: number } {
 }
 
 /** Hue distance in degrees, achromatic-aware (chroma < 0.03 ≈ no hue). */
-function hueCompatible(a: RGBA, b: RGBA, toleranceDeg: number): boolean {
+export function hueCompatible(a: RGBA, b: RGBA, toleranceDeg: number): boolean {
   const oa = toOklch(a);
   const ob = toOklch(b);
   const aAchromatic = oa.c < 0.03 || oa.h === undefined;
@@ -51,6 +51,53 @@ export function rampPrefix(name: string): string | null {
 export function minRatioOver(fg: RGBA, bgs: readonly RGBA[]): number {
   let min = Infinity;
   for (const bg of bgs) min = Math.min(min, wcagRatio(fg, bg));
+  return min;
+}
+
+/**
+ * One situation a fix has to survive: a variable mode (`''` = the mode on
+ * screen) and the backgrounds measured in it. A gradient contributes several
+ * samples to one context; a theme contributes a whole extra context.
+ */
+export interface FixContext {
+  mode: string;
+  bgs: readonly RGBA[];
+}
+
+/**
+ * Every context the finding must be fixed in. On an unthemed file this is the
+ * single situation we measured; on a themed one it is every mode, so a fix can
+ * never repair the visible theme at another theme's expense.
+ */
+export function contextsOf(finding: Finding): FixContext[] {
+  if (finding.bgByMode) {
+    const out = Object.entries(finding.bgByMode)
+      .filter(([, bgs]) => bgs.length > 0)
+      .map(([mode, bgs]) => ({ mode, bgs }));
+    if (out.length > 0) return out;
+  }
+  const bgs = finding.bgSamples?.length ? finding.bgSamples : finding.bg ? [finding.bg] : [];
+  return [{ mode: '', bgs }];
+}
+
+/** What a token resolves to in one mode — its own value there, or its only one. */
+export function colorInMode(token: TokenCandidate, mode: string): RGBA {
+  return token.colorsByMode?.[mode] ?? token.color;
+}
+
+/**
+ * Worst ratio a candidate achieves across every context. A token is judged
+ * with its own per-mode value; a proposed raw colour is the same everywhere.
+ */
+function worstRatio(
+  candidate: { token?: TokenCandidate; color: RGBA },
+  contexts: readonly FixContext[]
+): number {
+  let min = Infinity;
+  for (const ctx of contexts) {
+    const color = candidate.token ? colorInMode(candidate.token, ctx.mode) : candidate.color;
+    min = Math.min(min, minRatioOver(color, ctx.bgs));
+  }
   return min;
 }
 
@@ -120,12 +167,12 @@ interface Candidate {
  */
 function orderedCandidates(
   fg: RGBA,
-  bgs: readonly RGBA[],
+  contexts: readonly FixContext[],
   required: number,
   tokens: TokenCandidate[],
   currentTokenName?: string
 ): Candidate[] {
-  const passing = tokens.filter((t) => minRatioOver(t.color, bgs) >= required);
+  const passing = tokens.filter((t) => worstRatio({ token: t, color: t.color }, contexts) >= required);
   const byDistance = (a: TokenCandidate, b: TokenCandidate) => dist(fg, a.color) - dist(fg, b.color);
 
   const out: Candidate[] = [];
@@ -176,13 +223,15 @@ export function planFix(
     };
   }
   const { fg, bg, requiredRatio: required } = finding;
-  // On a gradient the fix must hold against every sampled background.
+  // The fix must hold against every sampled background — across a gradient,
+  // and across every variable mode the file defines.
+  const contexts = contextsOf(finding);
   const bgs: readonly RGBA[] = finding.bgSamples?.length ? finding.bgSamples : [bg];
   const before = { ratio: finding.ratio ?? minRatioOver(fg, bgs), requiredRatio: required };
 
-  for (const cand of orderedCandidates(fg, bgs, required, tokens, currentTokenName)) {
+  for (const cand of orderedCandidates(fg, contexts, required, tokens, currentTokenName)) {
     // RE-RUN THE EXACT SAME CHECK — the judge, not the generator, authorizes.
-    const verifiedRatio = minRatioOver(cand.color, bgs);
+    const verifiedRatio = worstRatio(cand, contexts);
     if (verifiedRatio >= required) {
       return {
         nodeId: finding.nodeId,
@@ -196,9 +245,12 @@ export function planFix(
   // No on-system token passes. D8: propose a minimal-change new token —
   // unless strict mode forbids novel values (F14) → escalate.
   if (!settings.strictMode) {
-    const proposed = minimalContrastFix(fg, bgs, required);
+    // A proposed colour is one literal value, identical in every mode, so it
+    // has to clear the union of every context's backgrounds at once.
+    const allBgs = contexts.flatMap((c) => [...c.bgs]);
+    const proposed = minimalContrastFix(fg, allBgs, required);
     if (proposed) {
-      const verifiedRatio = minRatioOver(proposed, bgs);
+      const verifiedRatio = worstRatio({ color: proposed }, contexts);
       if (verifiedRatio >= required) {
         return {
           nodeId: finding.nodeId,

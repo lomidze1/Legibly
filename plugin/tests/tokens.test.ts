@@ -10,6 +10,7 @@ function api(overrides: Partial<TokenSourceApi> = {}): TokenSourceApi {
     getCollection: async () => ({ id: 'col1', defaultModeId: 'mode1' }),
     getVariableById: async () => null,
     getLocalPaintStyles: async () => [],
+    getLocalCollections: async () => [{ id: 'col1', defaultModeId: 'mode1' }],
     ...overrides,
   };
 }
@@ -20,6 +21,34 @@ const colorVar = (id: string, name: string, value: unknown): VariableLite => ({
   resolvedType: 'COLOR',
   variableCollectionId: 'col1',
   valuesByMode: { mode1: value },
+});
+
+describe('harvestTokens — D15: our own proposals are not the user’s system', () => {
+  it('excludes variables living in the Legibly collection', async () => {
+    const idx = await harvestTokens(
+      api({
+        getLocalColorVariables: async () => [
+          colorVar('v1', 'text/primary', { r: 0.1, g: 0.1, b: 0.1 }),
+          { ...colorVar('v2', 'contrast-fix-1', { r: 0, g: 0, b: 0 }), variableCollectionId: 'legibly' },
+        ],
+        getCollection: async (id) =>
+          id === 'legibly'
+            ? { id: 'legibly', defaultModeId: 'mode1', name: 'Legibly' }
+            : { id: 'col1', defaultModeId: 'mode1', name: 'Brand' },
+      })
+    );
+    expect(idx.tokens.map((t) => t.name)).toEqual(['text/primary']);
+  });
+
+  it('keeps user collections that merely have a name', async () => {
+    const idx = await harvestTokens(
+      api({
+        getLocalColorVariables: async () => [colorVar('v1', 'brand/blue', { r: 0, g: 0, b: 1 })],
+        getCollection: async () => ({ id: 'col1', defaultModeId: 'mode1', name: 'Design tokens' }),
+      })
+    );
+    expect(idx.tokens).toHaveLength(1);
+  });
 });
 
 describe('harvestTokens — variables', () => {

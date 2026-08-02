@@ -91,7 +91,7 @@
 - **Hero demo:** ინტერაქტიული before/after კომპონენტი რეალური WCAG მათემატიკით (`FixDemo`) — მოგვიანებით ჩანაცვლდება/დაემატება რეალური პლაგინის GIF
 - **CTA (launch-ამდე):** waitlist email capture (`/api/waitlist`, Resend + honeypot); `site.ts`-ში `figmaCommunityUrl`-ის შევსებისას CTA გადავა "Install on Figma"-ზე
 - **Pricing:** ~~სამივე~~ **ორი** tier ჩანს (Free + Pro $12 — D20) + "Free during public beta" ბანერი
-- **Privacy copy:** პატიოსანი BYOK disclosure — "no network"-ის ნაცვლად "ერთადერთი optional call: alt-text → api.anthropic.com შენი key-თ"
+- **Privacy copy:** ~~BYOK disclosure~~ → **"no network at all"** (D22, 2026-08-02): manifest-ში `allowedDomains: ["none"]`, ე.ი. განაცხადი მომხმარებლის მიერ გადამოწმებადია
 - **გვერდები:** `/` (10 სექცია), `/privacy`, SEO (sitemap, robots, JSON-LD SoftwareApplication, OG image)
 
 **User actions (pending):** Vercel deploy + `RESEND_API_KEY` env; `legibly.app` domain-ის ყიდვა (Track F); Figma Community URL launch-ისას; რეალური demo GIF.

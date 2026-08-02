@@ -15,8 +15,14 @@ const SC_NAMES: Record<string, string> = {
   '1.4.3': 'Contrast (Minimum)',
   '1.4.11': 'Non-text Contrast',
   '2.5.8': 'Target Size (Minimum)',
+  '2.5.5': 'Target Size (Enhanced)',
   '1.4.12': 'Text Spacing',
+  '1.4.1': 'Use of Color',
+  '1.4.10': 'Reflow (clipped content)',
   '1.1.1': 'Non-text Content (alt text)',
+  '2.4.6': 'Headings and Labels (label presence)',
+  '2.4.7': 'Focus Visible (state defined)',
+  'Best practice': 'Legibly guidance — not a WCAG criterion',
 };
 
 function esc(v: string | number | undefined): string {
@@ -64,7 +70,15 @@ export function buildCsv(
 
   for (const f of report.findings) {
     const fix = applied[`${f.nodeId}:${f.sc}`];
-    const result = fix ? 'Fixed' : f.tier === 'violation' ? 'Violation' : 'Needs review';
+    // "Advisory" must never read as a conformance result — it is our guidance,
+    // and an auditor filing this CSV has to be able to tell the difference.
+    const result = fix
+      ? 'Fixed'
+      : f.tier === 'violation'
+        ? 'Violation'
+        : f.tier === 'advisory'
+          ? 'Advisory (not WCAG)'
+          : 'Needs review';
     lines.push(
       row([
         f.nodeName,

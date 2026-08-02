@@ -69,7 +69,8 @@
 `/` · `/privacy` · `/api/waitlist` · `/robots.txt` · `/sitemap.xml` · `/opengraph-image` — სულ ეს.
 
 - [ ] 🤖 **Terms of Service** გვერდი — გადახდების ჩართვამდე სავალდებულოა
-- [ ] 🤖 Privacy policy გადავამოწმოთ BYOK-ის ტექსტზე (Anthropic-ს რა მიდის)
+- [x] 🤖 Privacy policy — ✅ განახლდა (D22, 2026-08-02): BYOK სექცია წაიშალა, ჩანაცვლდა
+      "the plugin makes no network requests of any kind" + manifest-ის ციტატით
 
 ---
 
@@ -116,8 +117,8 @@
       (10 SC, advisory tier — draft ჯერ v0.1-ის ტექსტია)
 - [ ] 🤖 cover art + screenshots (Figma Community-ს სავალდებულო აქვს)
 - [ ] 🤖 `site.figmaCommunityUrl` = `null` → რეალური URL. სანამ null-ია, hero-ს CTA waitlist-ია
-- [ ] 🤖 manifest-ის `networkAccess.allowedDomains` = მხოლოდ `api.anthropic.com` — review-ზე
-      ეს ჩვენი უპირატესობაა, არ გავაფართოვოთ
+- [x] 🤖 manifest-ის `networkAccess.allowedDomains` = **`["none"]`** (D22) — review-ზე
+      ეს ჩვენი ყველაზე ძლიერი არგუმენტია, არ გავაფართოვოთ
 
 ---
 
@@ -131,7 +132,7 @@
 - [ ] 🔗 **Footer-ის ლინკები** — changelog, GitHub, X/Twitter ჯერ არ არსებობს. როცა გაჩნდება →
       `SiteFooter.tsx`-ის Company სვეტი
 - [ ] 👥 **Social proof** — 0. waitlist counter ან testimonial launch-ის შემდეგ
-- [ ] 🤖 `/docs` — რა შედის v1-ში? (getting started, რას ვამოწმებთ, strict mode, BYOK setup)
+- [ ] 🤖 `/docs` — რა შედის v1-ში? (getting started, რას ვამოწმებთ, strict mode)
 - [ ] 👤 launch თარიღი: `site.ts` ამბობს **September 2026**; შიდა გეგმა — ყველაფერი გარდა
       გადახდებისა 15 აგვისტოსთვის. თუ ეს ცურავს, საიტის ტექსტიც უნდა ცურავდეს
 
@@ -144,8 +145,8 @@
       ⚠️ 2026-07-29-ის review pass ახლანდელ დიზაინზე გაკეთდა. რედიზაინზე გადასვლისას **გადადის**
       ტოკენები, კონტრასტი (AAA), lining figures, SVG specimen, contrast.test.ts; **არ გადადის**
       layout-ზე მიბმული ფიქსები (checks-ის სვეტების flow, split-ის ღერძი, nav-ის გაზომვადი სიმაღლე)
-- [ ] **AI alt-text**: BYOK-ს ვტოვებთ უფასოდ + Pro-ს ვუმატებთ quota-ს ჩვენი key-ით?
-      (launch-stack §6 — საჭიროებს backend-ს, ე.ი. §5-ის შემდეგ)
+- [x] ~~**AI alt-text**: BYOK-ს ვტოვებთ?~~ — ✅ **წაშლილია** (D22, 2026-08-02). თუ ოდესმე
+      დაბრუნდება — მხოლოდ hosted pay-as-you-go ჩვენი key-ით (backend + OAuth საჭირო)
 - [ ] **main branch** — dev main-ზე **36 commit-ით წინაა**. გაშვებამდე merge საჭიროა
       (⚠️ CLAUDE.md: main-ზე push მხოლოდ user-ის ცალსახა თანხმობით)
 
@@ -160,7 +161,7 @@
       body copy 7:1 (AAA), oldstyle-ციფრების ბაგი გასწორდა, spacing/type ტოკენიზებულია,
       axe: **0 violations**
 - ✅ Brand name locked (D9) — იურიდიული clearance კი ჯერ არა (§1)
-- ✅ Privacy story: ყველა შემოწმება on-device; მხოლოდ optional BYOK alt-text გადის გარეთ
+- ✅ Privacy story: **ნულოვანი ქსელი** — `allowedDomains: ["none"]`, გადამოწმებადი manifest-ში (D22)
 
 ---
 

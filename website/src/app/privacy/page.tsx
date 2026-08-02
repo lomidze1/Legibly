@@ -6,7 +6,7 @@ import styles from "./privacy.module.css";
 export const metadata: Metadata = {
   title: "Privacy",
   description:
-    "How Legibly handles your data: design analysis runs on your machine, and the only optional network call is AI alt-text drafting with your own API key.",
+    "How Legibly handles your data: the plugin makes no network requests at all, and the website stores only the email you submit to the waitlist.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -24,18 +24,12 @@ export default function PrivacyPage() {
           uploaded to us. We do not operate servers that receive your design
           data, and the plugin works without an account.
         </p>
-
-        <h2>Optional AI alt-text</h2>
         <p>
-          The alt-text assistant is off by default and requires an Anthropic
-          API key that you provide. When you use it, the selected image is
-          sent directly from your machine to Anthropic
-          (api.anthropic.com) under your key and{" "}
-          <a href="https://www.anthropic.com/legal/privacy">
-            Anthropic&apos;s privacy policy
-          </a>
-          . We never see the image, the generated text, or your key. Skip the
-          feature and nothing leaves Figma.
+          The plugin makes no network requests of any kind. Its Figma manifest
+          declares <code>&quot;allowedDomains&quot;: [&quot;none&quot;]</code>,
+          which Figma enforces: no image, measurement, or piece of design data
+          can leave the file, to us or to anyone else. You can verify this in
+          the manifest before you install it.
         </p>
 
         <h2>This website</h2>

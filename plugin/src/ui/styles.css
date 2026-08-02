@@ -129,7 +129,14 @@ summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   align-items: center;
   justify-content: center;
 }
-.btn-active { background: var(--bg-secondary); }
+/* Pressed icon toggles fill with brand, matching the primary button — amber is
+   reserved for "Check by eye" and must not be spent on decoration. */
+.btn-active,
+.btn-active:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--on-brand);
+}
 
 .microtext {
   display: block;
@@ -335,6 +342,172 @@ summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   background: var(--badge-danger-bg);
   color: var(--badge-danger-fg);
   padding: 6px 12px;
+}
+
+/* ── Persistent action bar: guide · plans · help ─────────────────────────── */
+
+.appbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+/* Borderless in the bar so the plan pill is the only thing that reads as a control. */
+.btn-quiet {
+  border-color: transparent;
+  background: none;
+  color: var(--text-secondary);
+}
+.btn-quiet:hover { background: var(--bg-hover); color: var(--text); }
+
+.plan-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 3px 12px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: none;
+  color: var(--brand);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.plan-pill:hover { background: color-mix(in srgb, var(--brand) 10%, transparent); }
+.plan-pill:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.plan-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+/* ── Modal sheets ────────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(6px);
+}
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
+}
+.modal:focus { outline: none; }
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 12px 10px;
+}
+.modal-title { margin: 0; font-size: 13px; font-weight: 600; }
+.modal-body {
+  padding: 0 14px 14px;
+  overflow-y: auto;
+  line-height: 1.6;
+}
+.modal-body:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+.modal-foot { margin: 12px 0 0; }
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tab:hover { color: var(--text); }
+.tab[aria-selected='true'] { color: var(--brand); border-bottom-color: var(--brand); }
+.tab:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+.sc-line {
+  margin: 10px 0 2px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+.guide-block { margin-top: 10px; }
+.guide-block h3 {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+}
+.guide-block p { margin: 0; color: var(--text-secondary); }
+
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.link-row:hover { background: var(--bg-hover); }
+.link-row:focus-visible { outline: 2px solid var(--focus); outline-offset: -1px; }
+.link-row svg { flex: none; color: var(--text-secondary); }
+
+.plan-card {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.plan-card.is-pro { border-color: var(--brand); }
+.plan-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.plan-name { font-size: 12px; font-weight: 600; }
+.plan-price { color: var(--text-secondary); }
+.plan-list {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  color: var(--text-secondary);
+  line-height: 1.7;
 }
 
 .empty { text-align: center; color: var(--text-secondary); padding: 40px 20px; line-height: 1.7; }

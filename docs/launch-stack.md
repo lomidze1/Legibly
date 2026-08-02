@@ -54,7 +54,7 @@ HTTPS-only by design; ჩვენთვის უპრობლემოა). 
 **რა უნდა გავაკეთოთ:**
 - [ ] `website/` deploy — Static Site ან Web Service
 - [ ] custom domain + auto-TLS
-- [ ] env vars: `RESEND_API_KEY`, (მოგვიანებით) `FLITT_*`, `ANTHROPIC_API_KEY`
+- [ ] env vars: `RESEND_API_KEY`, (მოგვიანებით) გადახდის vendor-ის key-ები
 
 **ღირებულება:** Static Site $0; Web Service $7/თვე (free tier იძინებს — webhook-ისთვის გამოუსადეგარია).
 
@@ -81,7 +81,7 @@ license key delivery.
 Pro $20/თვე როცა გავიზრდებით.
 
 > 🔒 **არქიტექტურული წესი:** plugin **არასდროს** აგზავნის email-ს პირდაპირ. Figma-ს manifest-ის
-> `networkAccess.allowedDomains` ახლა მხოლოდ `api.anthropic.com`-ს იცნობს, და ასე რჩება.
+> `networkAccess.allowedDomains` ახლა **`["none"]`-ია** (D22), და ასე რჩება.
 > Subscribe = `figma.openExternal()` → ბრაუზერი → website form. **ე.ი. Resend key plugin-ს არასდროს ხედავს.**
 
 ---
@@ -191,36 +191,31 @@ Plugin polls /license/me → UI განახლდა
 
 ---
 
-## 6. Anthropic API key — BYOK თუ ჩვენი? (გასარკვევი #1)
+## 6. Anthropic API key — ❌ **აღარ გვჭირდება** (D22)
 
-**დღევანდელი მდგომარეობა:** **BYOK** — მომხმარებელი აწერს საკუთარ `sk-ant-…` key-ს Settings-ში,
-ინახება მხოლოდ მეხსიერებაში (plugin-ის დახურვისას იშლება), მოთხოვნა მიდის **პირდაპირ**
-`api.anthropic.com`-ზე. ერთადერთი ფუნქცია რომელიც მას იყენებს = AI alt-text draft (SC 1.1.1).
+**დღევანდელი მდგომარეობა:** **AI საერთოდ არ არის plugin-ში.** BYOK (მომხმარებლის `sk-ant-…` key
+Settings-ში) **წაშლილია** — იხ. [D22](./approach.md). Manifest ამბობს `"allowedDomains": ["none"]`,
+ე.ი. plugin **ვერცერთ ქსელურ მოთხოვნას ვერ გააკეთებს**.
 
-### ⛔ რაც **შეუძლებელია**
-ჩვენი key **ვერ ჩაიდება plugin-ის bundle-ში**. Figma plugin-ის კოდი მომხმარებლის მანქანაზე იწერება
-და მთლიანად წაკითხვადია — key-ს პირველ დღესვე მოიპარავენ. **ჩვენი key = სავალდებულოდ server-side proxy.**
+SC 1.1.1 უცვლელად რჩება: presence check დეტერმინისტულია, ტექსტი ხელით იწერება ან decorative-ად ინიშნება.
 
-### შედარება
+### რატომ წაიშალა
+- **Conversion:** დიზაინერების უმრავლესობას Anthropic key არ აქვს — ფუნქცია პრაქტიკულად მკვდარი იყო.
+- **Trust:** `allowedDomains: ["none"]` ისეთი privacy-განაცხადია, რომელსაც ნებისმიერი მომხმარებელი
+  manifest-ში თავად ამოწმებს. "თითქმის არაფერი გადის" → "**არაფერი გადის**".
+- **Figma review:** ნულოვანი egress = ერთი კითხვა ნაკლები.
 
-| | BYOK (ახლანდელი) | ჩვენი key (proxy) |
-|---|---|---|
-| ღირებულება ჩვენთვის | **$0** | ცვლადი — abuse რისკი |
-| Backend | არ სჭირდება | **სავალდებულოა** (Render, §2) |
-| Key custody რისკი | არანაირი | ჩვენზეა |
-| **Conversion** | ❌ **ცუდი** — დიზაინერების უმრავლესობას Anthropic key არ აქვს, ე.ი. ფუნქცია პრაქტიკულად მკვდარია | ✅ მუშაობს click-ზე |
-| Pro-ს value story | სუსტი | "AI alt-text შედის" = გასაყიდი |
+### ⛔ რაც შემდეგშიც შეუძლებელი დარჩება
+ჩვენი key **ვერასდროს ჩაიდება plugin-ის bundle-ში** — Figma plugin-ის კოდი მომხმარებლის მანქანაზე
+იწერება და მთლიანად წაკითხვადია. **ჩვენი key = სავალდებულოდ server-side proxy.**
 
-### რეკომენდაცია — **ჰიბრიდი**
-1. **BYOK რჩება, უფასოდ და ულიმიტოდ** — power user-ებისთვის, privacy-conscious ორგანიზაციებისთვის
-   (nothing leaves Figma = ჩვენი trust story, არ უნდა დავარღვიოთ).
-2. **Pro-ს მოყვება metered quota ჩვენი key-ით** (მაგ. 50 alt-text/თვე) server proxy-ს გავლით.
-3. Free + key-ის გარეშე → ფუნქცია disabled, ღილაკი ხსნის Pro-ს modal-ს.
+### თუ ოდესმე დავაბრუნებთ — მხოლოდ ასე
+**Pay-as-you-go, ჩვენი key-ით, proxy-ს გავლით.** მაშინ დაგვჭირდება: backend (§2) + Figma OAuth (§5,
+quota-ს მიბმა) + `allowedDomains` += ჩვენი API დომენი. **BYOK-ის კოდი ამაში არაფერში გამოდგებოდა** —
+ის სხვა plumbing-ია. წაშლილი `ai-client.ts` (prompt, strict tool schema, ვალიდატორი) git-ის
+ისტორიაშია და საჭიროებისას მთლიანად აღდგება.
 
-**რატომ ასე:** დღეს BYOK-ს არაფერი ეღირება და უკვე მუშაობს (238 ტესტი მწვანე). Proxy მხოლოდ
-მაშინ ავაშენოთ, როცა §4 გადაწყდება — მანამდე backend-ი ისედაც არ გვექნება.
-
-- [ ] **გასარკვევი:** cost per alt-text call (Haiku vs Sonnet vision) → quota-ს ეკონომიკა
+- [ ] *(მხოლოდ თუ დავაბრუნებთ)* cost per alt-text call (Haiku vs Sonnet vision) → quota-ს ეკონომიკა
 
 ---
 

@@ -16,7 +16,8 @@ import { reviewCopy } from '../shared/review-copy';
 import { DEEP_CHECKABLE, deepVerdict, DeepVerdict } from '../shared/deep-check';
 import { buildCsv, csvFileName } from '../shared/report-csv';
 import type { RectLite } from '../shared/figma-lite';
-import { AltSuggestion, bytesToBase64, requestAltText } from '../shared/ai-client';
+import { FooterBar } from './FooterBar';
+import { IconClose } from './icons';
 
 interface Props {
   rpc: RpcClient;
@@ -30,13 +31,20 @@ type Instruction =
   | { kind: 'token'; token: NonNullable<FixPlan['candidate']>['token']; paintTarget?: string }
   | { kind: 'proposal'; color: RGBA; tokenName: string; paintTarget?: string }
   | { kind: 'min-size'; required: number }
-  | { kind: 'line-height'; percent: number };
+  | { kind: 'line-height'; percent: number }
+  | { kind: 'underline'; ranges: { start: number; end: number }[]; excerpt: string };
 
 const SC_BADGE: Record<string, string> = {
   '1.4.3': 'LOW CONTRAST',
   '1.4.11': 'ICON/BORDER',
   '2.5.8': 'TAP TARGET',
+  '2.5.5': 'TAP TARGET',
   '1.4.12': 'LINE HEIGHT',
+  '1.4.1': 'COLOR ONLY',
+  '1.4.10': 'CLIPPED TEXT',
+  '2.4.6': 'FIELD LABEL',
+  '2.4.7': 'FOCUS STATE',
+  'Best practice': 'ADVISORY',
 };
 
 let proposalCounter = 0;
@@ -51,13 +59,6 @@ function keyOf(f: Finding): string {
 }
 
 /** Inline SVGs — emoji glyphs ignore `color` and flip presentation across platforms/themes. */
-function IconClose(): React.ReactElement {
-  return (
-    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
 function IconSettings(): React.ReactElement {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -114,14 +115,11 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
   const [error, setError] = useState<string | null>(null);
   const [deep, setDeep] = useState<Record<string, DeepVerdict>>({});
   const [bgPlans, setBgPlans] = useState<Record<string, BgFixPlan | null>>({});
-  /** BYOK — memory only, never persisted (clientStorage is not a secret store). */
-  const [aiKey, setAiKey] = useState('');
   const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
-  const [altSuggestions, setAltSuggestions] = useState<Record<string, AltSuggestion>>({});
   /** Which "Check by eye" groups are expanded — all collapsed by default to kill the scroll. */
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   /** A group-wide batch in flight: which kind, and how far along. */
-  const [batchKind, setBatchKind] = useState<null | 'deep' | 'alt' | 'dec' | 'text'>(null);
+  const [batchKind, setBatchKind] = useState<null | 'deep' | 'dec' | 'text'>(null);
   const [batchProgress, setBatchProgress] = useState<{ done: number; total: number } | null>(null);
   /** Contrast group view toggles — apply only after deep-check produces verdicts. */
   const [sortContrast, setSortContrast] = useState(false);
@@ -185,6 +183,11 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
     () => report?.findings.filter((f) => f.tier === 'needsReview') ?? [],
     [report]
   );
+  /** Non-WCAG guidance — kept out of the issue counts on purpose. */
+  const advisories = useMemo(
+    () => report?.findings.filter((f) => f.tier === 'advisory') ?? [],
+    [report]
+  );
 
   /** Split "Check by eye" into buckets by what the user can actually DO about each. */
   const reviewGroups = useMemo(() => {
@@ -201,7 +204,12 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
     return { contrast, image, text, other };
   }, [reviews]);
 
-  /** Color plans for contrast-based violations (1.4.3, 1.4.11). */
+  /**
+   * Color plans for contrast-based violations (1.4.3, 1.4.11), including ones
+   * found in a mode the canvas is not showing: each token carries its per-mode
+   * value and each finding its per-mode backgrounds, so a candidate is only
+   * offered when it clears every theme at once (NF1).
+   */
   const plans = useMemo(() => {
     const map: Record<string, FixPlan> = {};
     if (!tokens) return map;
@@ -238,6 +246,13 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
           instruction: { kind: 'line-height', percent: 150 },
           before: `${(f.lineHeight.ratio * 100).toFixed(0)}%`,
           target: '150%',
+        };
+      }
+      if (f.colorOnly) {
+        return {
+          instruction: { kind: 'underline', ranges: f.colorOnly.ranges, excerpt: f.colorOnly.excerpt },
+          before: 'color only',
+          target: 'a second, non-color cue',
         };
       }
       const plan = plans[keyOf(f)];
@@ -424,33 +439,6 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
     [rpc]
   );
 
-  /** 1.1.1 AI assist: export the image, ask Claude, stage for review (never auto-applied). */
-  const suggestAlt = useCallback(
-    async (f: Finding) => {
-      const key = keyOf(f);
-      setBusy((b) => ({ ...b, [key]: true }));
-      try {
-        const exported = await rpc.call<{ png: Uint8Array; nodeName: string; contextText: string }>(
-          'export-image',
-          { nodeId: f.nodeId }
-        );
-        const suggestion = await requestAltText(fetch, aiKey, {
-          imageBase64: bytesToBase64(exported.png, btoa),
-          nodeName: exported.nodeName,
-          contextText: exported.contextText,
-        });
-        setAltSuggestions((s) => ({ ...s, [key]: suggestion }));
-        setAltDrafts((d) => ({ ...d, [key]: suggestion.altText }));
-        setFailures(({ [key]: _, ...rest }) => rest);
-      } catch (e) {
-        setFailures((prev) => ({ ...prev, [key]: e instanceof Error ? e.message : String(e) }));
-      } finally {
-        setBusy((b) => ({ ...b, [key]: false }));
-      }
-    },
-    [rpc, aiKey]
-  );
-
   /** Batch "Deep-check all": measures each backdrop in turn — resolves uncertain, never guesses. */
   const runDeepCheckAll = useCallback(
     async (items: Finding[]) => {
@@ -467,24 +455,6 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
       setBatchProgress(null);
     },
     [deep, applied, runDeepCheck]
-  );
-
-  /** Batch "Suggest alt for all": stages an AI draft per image — always left for your review. */
-  const suggestAltAll = useCallback(
-    async (items: Finding[]) => {
-      const pending = items.filter((f) => !altSuggestions[keyOf(f)] && !applied[keyOf(f)]);
-      if (pending.length === 0) return;
-      setBatchKind('alt');
-      setBatchProgress({ done: 0, total: pending.length });
-      let done = 0;
-      for (const f of pending) {
-        await suggestAlt(f);
-        setBatchProgress({ done: ++done, total: pending.length });
-      }
-      setBatchKind(null);
-      setBatchProgress(null);
-    },
-    [altSuggestions, applied, suggestAlt]
   );
 
   /** Batch "Mark all decorative": records every pending image as decorative — one undo reverts all. */
@@ -546,12 +516,9 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
         failure={failures[keyOf(f)]}
         busy={!!busy[keyOf(f)]}
         draft={altDrafts[keyOf(f)] ?? ''}
-        suggestion={altSuggestions[keyOf(f)]}
-        aiEnabled={aiKey.trim().length > 0}
         onDraft={(v) => setAltDrafts((d) => ({ ...d, [keyOf(f)]: v }))}
         onSelect={selectNode}
         onSave={saveAlt}
-        onSuggest={suggestAlt}
       />
     ) : (
       <ReviewCard
@@ -620,27 +587,9 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
     }
   }
 
-  // ── Image group: alt text — AI suggest (staged) or bulk-decorative ──
-  const imageUnsuggested = reviewGroups.image.filter((f) => !altSuggestions[keyOf(f)] && !applied[keyOf(f)]).length;
+  // ── Image group: alt text — bulk-decorative ──
   const imageUnresolved = reviewGroups.image.filter((f) => !applied[keyOf(f)]).length;
   const imageActions: BatchAction[] = [];
-  if (imageUnsuggested > 0) {
-    imageActions.push({
-      id: 'ai',
-      label: `Suggest all with AI (${imageUnsuggested})`,
-      running: 'Asking AI…',
-      progress: batchKind === 'alt' ? batchProgress : null,
-      disabled: busyBatch,
-      // Shown even without a key: clicking without one explains what's missing (Figma toast).
-      onRun: () =>
-        aiKey.trim().length > 0
-          ? void suggestAltAll(reviewGroups.image)
-          : void rpc.call('notify', {
-              message: 'Add your Anthropic API key in Settings to use AI suggestions.',
-              error: true,
-            }),
-    });
-  }
   if (imageUnresolved > 0) {
     imageActions.push({
       id: 'dec',
@@ -721,18 +670,23 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
             AA is the level laws and audits require. Changing it clears current results.
           </div>
           <label style={{ marginTop: 8 }}>
-            AI assist (optional)
-            <input
-              type="password"
-              placeholder="Anthropic API key (sk-ant-…)"
-              value={aiKey}
-              onChange={(e) => setAiKey(e.target.value)}
-              style={{ flex: 1 }}
-            />
+            Tap target minimum
+            <select
+              value={settings.targetFloor}
+              onChange={(e) =>
+                updateSettings({
+                  ...settings,
+                  targetFloor: Number(e.target.value) as Settings['targetFloor'],
+                })
+              }
+            >
+              <option value={24}>24px — WCAG AA (SC 2.5.8)</option>
+              <option value={44}>44px — WCAG AAA · iOS (SC 2.5.5)</option>
+            </select>
           </label>
           <div className="microtext">
-            Enables AI alt-text suggestions. Kept in memory only — cleared when the plugin closes.
-            Only the selected image is sent, directly to Anthropic with your key.
+            24px allows the spacing exception: a small control passes when nothing else is within
+            reach of it. 44px is size-only — the rule mobile platforms expect.
           </div>
         </div>
       )}
@@ -880,7 +834,20 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
               </>
             )}
 
-            {violations.length === 0 && reviews.length === 0 && (
+            {advisories.length > 0 && (
+              <>
+                <div className="tier-heading">
+                  Legibly recommends <span className="count">{advisories.length}</span>
+                </div>
+                <div className="microtext" style={{ padding: '0 12px 8px' }}>
+                  Readability guidance, not WCAG. Nothing here counts as a failure in the exported
+                  report — it is labelled “Advisory (not WCAG)”.
+                </div>
+                {advisories.map(renderReviewCard)}
+              </>
+            )}
+
+            {violations.length === 0 && reviews.length === 0 && advisories.length === 0 && (
               <div className="empty">
                 <h3>All clear ✓</h3>
                 No certain issues found in the scanned layers.
@@ -902,6 +869,12 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
           listed under “Check by eye”, never silently passed.
         </div>
       )}
+
+      <FooterBar
+        onOpenUrl={(url) => {
+          void rpc.call('open-url', { url }).catch(() => setError('That link could not be opened.'));
+        }}
+      />
     </div>
   );
 }
@@ -1034,6 +1007,7 @@ function ReviewCard({
           <span className="badge badge-review">{SC_BADGE[f.sc] ?? 'CHECK BY EYE'}</span>
         )}
       </div>
+      {f.mode && !applied && <ModeNote label={f.mode} fixable={false} />}
       {applied ? (
         <FixedDiff applied={applied} />
       ) : (
@@ -1066,6 +1040,20 @@ function ReviewCard({
                 {busy ? 'Fixing…' : 'Set line height to 150%'}
               </button>
             )}
+            {f.colorOnly && (
+              <button
+                className="btn btn-sm"
+                disabled={busy}
+                title="Adds an underline so the run is marked by more than colour"
+                onClick={() => void onFix(f)}
+              >
+                {busy
+                  ? 'Underlining…'
+                  : f.colorOnly.ranges.length > 1
+                    ? `Underline ${f.colorOnly.ranges.length} runs`
+                    : `Underline “${f.colorOnly.excerpt}”`}
+              </button>
+            )}
           </div>
         </>
       )}
@@ -1079,31 +1067,23 @@ interface AltCardProps {
   failure: string | undefined;
   busy: boolean;
   draft: string;
-  suggestion: AltSuggestion | undefined;
-  aiEnabled: boolean;
   onDraft: (value: string) => void;
   onSelect: (nodeId: string) => void;
   onSave: (finding: Finding, value: { altText?: string; decorative?: boolean }) => Promise<void>;
-  onSuggest: (finding: Finding) => Promise<void>;
 }
 
-/** 1.1.1 card: manual entry, decorative marker, review-required AI suggestion. */
+/** 1.1.1 card: manual entry and decorative marker. */
 function AltCard({
   finding: f,
   applied,
   failure,
   busy,
   draft,
-  suggestion,
-  aiEnabled,
   onDraft,
   onSelect,
   onSave,
-  onSuggest,
 }: AltCardProps): React.ReactElement {
   const copy = reviewCopy(f.reason);
-  // Low-confidence AI output must be edited before it can be saved (research §3).
-  const mustEdit = suggestion?.confidence === 'low' && draft === suggestion.altText;
   return (
     <div className="card">
       <div className="card-head">
@@ -1124,13 +1104,6 @@ function AltCard({
         <>
           <div className="detail">{copy.title}</div>
           {failure && <div className="error-bar">{failure}</div>}
-          {suggestion && (
-            <div className="detail">
-              AI suggests ({suggestion.confidence} confidence
-              {suggestion.decision === 'decorative' ? ', decorative' : ''}): {suggestion.rationale}
-              {mustEdit && <strong> — low confidence: edit the text before saving.</strong>}
-            </div>
-          )}
           <div className="card-actions">
             <input
               type="text"
@@ -1143,7 +1116,7 @@ function AltCard({
             />
             <button
               className="btn btn-primary btn-sm"
-              disabled={busy || draft.trim().length < 3 || mustEdit}
+              disabled={busy || draft.trim().length < 3}
               onClick={() => void onSave(f, { altText: draft })}
             >
               {busy ? 'Saving…' : 'Save alt text'}
@@ -1151,13 +1124,6 @@ function AltCard({
             <button className="btn btn-sm" disabled={busy} onClick={() => void onSave(f, { decorative: true })}>
               Mark decorative
             </button>
-            {aiEnabled ? (
-              <button className="btn btn-sm" disabled={busy} onClick={() => void onSuggest(f)}>
-                {busy ? 'Asking AI…' : '✨ Suggest with AI'}
-              </button>
-            ) : (
-              <span className="microtext">Add your Anthropic API key in Settings to enable AI suggestions.</span>
-            )}
           </div>
         </>
       )}
@@ -1176,6 +1142,23 @@ interface CardProps {
   onSelect: (nodeId: string) => void;
   onFix: (finding: Finding) => Promise<void>;
   onBgFix: (finding: Finding, plan: BgFixPlan) => Promise<void>;
+}
+
+/**
+ * Findings measured in a mode the canvas is not showing. A fix offered here is
+ * verified in every theme at once, so applying it cannot repair this one at the
+ * visible one's expense — but the user still needs to know why the layer looks
+ * fine on screen.
+ */
+function ModeNote({ label, fixable }: { label: string; fixable: boolean }): React.ReactElement {
+  return (
+    <div className="escalation">
+      Found in <strong>{label}</strong> — this layer reads fine in the mode on screen.{' '}
+      {fixable
+        ? 'The fix below is checked against every mode, so it holds in both.'
+        : `Switch the page to ${label} to work on it there, or change what that colour resolves to in this mode.`}
+    </div>
+  );
 }
 
 function ViolationCard({
@@ -1206,6 +1189,12 @@ function ViolationCard({
           <span className="badge badge-violation">{SC_BADGE[f.sc] ?? `SC ${f.sc}`}</span>
         )}
       </div>
+      {f.mode && !applied && (
+        <ModeNote
+          label={f.mode}
+          fixable={plan?.status === 'fixable' || plan?.status === 'needs-proposal'}
+        />
+      )}
 
       {applied ? (
         <FixedDiff applied={applied} />
@@ -1258,8 +1247,18 @@ function ViolationCard({
             )}
             {plan?.status === 'unfixable' && bgPlan && (
               <span className="microtext">
-                Changes “{bgPlan.ownerName}” behind this text — {bgPlan.checkedCount} other layers
-                on this frame re-verified, none break.
+                {/* B6: name what changes, show it, and let the user go look at it —
+                    a background swap is invisible on the card it was triggered from. */}
+                Changes <NodeName name={bgPlan.ownerName} onSelect={() => onSelect(bgPlan.ownerId)} />{' '}
+                behind this text
+                {f.bg && (
+                  <>
+                    {': '}
+                    <Swatch color={f.bg} /> {rgbaToHex(f.bg)} → <Swatch color={bgPlan.token.color} />{' '}
+                    {rgbaToHex(bgPlan.token.color)}
+                  </>
+                )}
+                . {bgPlan.checkedCount} other layers on this frame re-verified, none break.
               </span>
             )}
             {plan?.status === 'unfixable' && !bgPlan && (

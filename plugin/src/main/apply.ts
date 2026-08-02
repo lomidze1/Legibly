@@ -14,16 +14,27 @@ import type { NodeLite } from '../shared/figma-lite';
 import { rgbaToHex } from '../shared/fix';
 import { measureNonText, NON_TEXT_RATIO } from '../shared/non-text';
 import { lineHeightRatio, LINE_HEIGHT_FLOOR } from '../shared/text-spacing';
+import { PROPOSAL_COLLECTION } from './tokens';
 
 export type PaintTarget = 'text-fill' | 'shape-fill' | 'stroke';
+
+/**
+ * Cross-mode safety net. A colour fix rebinds a variable, and a variable
+ * carries a different value in every mode — so a fix verified against the
+ * theme on screen can still leave another theme failing. The guard re-measures
+ * the mutated node in the other modes and returns an error message when one
+ * regresses; returning null means every mode is clean. Called inside the
+ * apply try-block, so a rejection restores the previous paint like any other
+ * failed verification (NF1/NF3).
+ */
+export type ModeGuard = (node: NodeLite, paintTarget: PaintTarget) => string | null;
 
 export type FixInstruction =
   | { kind: 'token'; token: TokenCandidate; paintTarget?: PaintTarget }
   | { kind: 'proposal'; color: RGBA; tokenName: string; paintTarget?: PaintTarget }
   | { kind: 'min-size'; required: number }
-  | { kind: 'line-height'; percent: number };
-
-const PROPOSAL_COLLECTION = 'Legibly';
+  | { kind: 'line-height'; percent: number }
+  | { kind: 'underline'; ranges: { start: number; end: number }[]; excerpt: string };
 
 async function findSceneNode(nodeId: string): Promise<SceneNode> {
   const node = await figma.getNodeByIdAsync(nodeId);
@@ -109,7 +120,8 @@ export async function applyFix(
   settings: Settings,
   before: string,
   target: string,
-  sc: string
+  sc: string,
+  modeGuard?: ModeGuard
 ): Promise<AppliedFix> {
   const node = (await findSceneNode(nodeId)) as SceneNode & Mutable;
 
@@ -117,11 +129,13 @@ export async function applyFix(
     switch (instruction.kind) {
       case 'token':
       case 'proposal':
-        return applyColorFix(node, instruction, settings, before, target);
+        return applyColorFix(node, instruction, settings, before, target, modeGuard);
       case 'min-size':
         return applyMinSize(node, instruction.required, before, target);
       case 'line-height':
         return applyLineHeight(node, instruction.percent, before, target);
+      case 'underline':
+        return applyUnderline(node, instruction.ranges, instruction.excerpt, before, target);
     }
   })();
   applied.sc = sc;
@@ -133,7 +147,8 @@ async function applyColorFix(
   instruction: Extract<FixInstruction, { kind: 'token' | 'proposal' }>,
   settings: Settings,
   before: string,
-  target: string
+  target: string,
+  modeGuard?: ModeGuard
 ): Promise<AppliedFix> {
   const paintTarget: PaintTarget = instruction.paintTarget ?? 'text-fill';
   const prop = paintTarget === 'stroke' ? 'strokes' : 'fills';
@@ -178,6 +193,11 @@ async function applyColorFix(
       }
       after = `${measured.min.toFixed(2)}:1`;
     }
+
+    // The same judge, run in every other variable mode (NF1 across themes).
+    const modeError = modeGuard?.(node as unknown as NodeLite, paintTarget);
+    if (modeError) throw new Error(modeError);
+
     return { nodeId: node.id, nodeName: node.name, sc: '', before, after, target, changeDescription };
   } catch (e) {
     if (prevSnapshot !== figma.mixed) (node as Mutable)[prop] = prevSnapshot as never;
@@ -266,6 +286,58 @@ async function applyLineHeight(
   }
 }
 
+/**
+ * SC 1.4.1 fix: underline the colour-only runs. Verified by re-reading the
+ * decoration Figma actually stored, and reverted if any range did not take —
+ * the same judge/commit rule as every other fix (NF1).
+ */
+async function applyUnderline(
+  node: SceneNode & Mutable,
+  ranges: { start: number; end: number }[],
+  excerpt: string,
+  before: string,
+  target: string
+): Promise<AppliedFix> {
+  if (node.type !== 'TEXT') throw new Error('Underline applies to text only');
+  const text = node as unknown as TextNode;
+  if (ranges.length === 0) throw new Error('Nothing to underline');
+
+  // Every font in the layer must be loaded before any range edit is allowed.
+  const fonts = text.getStyledTextSegments(['fontName']).map((s) => s.fontName);
+  await Promise.all(fonts.map((f) => figma.loadFontAsync(f)));
+
+  const previous = ranges.map((r) => text.getRangeTextDecoration(r.start, r.end));
+  if (previous.some((d) => d === figma.mixed)) {
+    throw new Error('This run mixes underline styles — underline it manually');
+  }
+
+  try {
+    for (const r of ranges) text.setRangeTextDecoration(r.start, r.end, 'UNDERLINE');
+    for (const r of ranges) {
+      if (text.getRangeTextDecoration(r.start, r.end) !== 'UNDERLINE') {
+        throw new Error('Post-fix verification failed — fix reverted');
+      }
+    }
+    return {
+      nodeId: node.id,
+      nodeName: node.name,
+      sc: '',
+      before,
+      after: 'underlined',
+      target,
+      changeDescription:
+        ranges.length === 1
+          ? `underlined “${excerpt}”`
+          : `underlined ${ranges.length} colour-only runs`,
+    };
+  } catch (e) {
+    ranges.forEach((r, i) => {
+      text.setRangeTextDecoration(r.start, r.end, previous[i] as TextDecoration);
+    });
+    throw e;
+  }
+}
+
 export interface BatchResult {
   applied: AppliedFix[];
   failed: { nodeId: string; error: string }[];
@@ -274,12 +346,15 @@ export interface BatchResult {
 /** Batch fix (F17): apply all, then a single commitUndo → one Cmd-Z. */
 export async function applyBatch(
   fixes: { nodeId: string; instruction: FixInstruction; before: string; target: string; sc: string }[],
-  settings: Settings
+  settings: Settings,
+  modeGuard?: ModeGuard
 ): Promise<BatchResult> {
   const result: BatchResult = { applied: [], failed: [] };
   for (const f of fixes) {
     try {
-      result.applied.push(await applyFix(f.nodeId, f.instruction, settings, f.before, f.target, f.sc));
+      result.applied.push(
+        await applyFix(f.nodeId, f.instruction, settings, f.before, f.target, f.sc, modeGuard)
+      );
     } catch (e) {
       result.failed.push({ nodeId: f.nodeId, error: e instanceof Error ? e.message : String(e) });
     }

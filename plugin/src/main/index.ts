@@ -4,18 +4,28 @@
  * node selection, settings persistence.
  */
 import { createRpcServer } from '../shared/rpc';
-import { collectTextNodes, scanNodes } from '../shared/scan';
+import { byTier, scanNodes } from '../shared/scan';
 import { ALT_KEY, ALT_NS, DECORATIVE_KEY, validateAltText } from '../shared/alt-text';
 import type { NodeLite } from '../shared/figma-lite';
-import type { RGBA, ScanReport, Settings } from '../shared/types';
+import type { Finding, RGBA, ScanReport, Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
-import { resolveTextColors } from '../shared/background';
+import { resolveBackdrop, resolveTextColors } from '../shared/background';
 import { isLargeText, requiredRatio } from '../shared/contrast';
 import { findExportRoot, regionInRoot } from '../shared/deep-check';
 import { figmaTokenSource, harvestTokens } from './tokens';
-import { applyBatch, applyFix, boundVariablePaint, FixInstruction } from './apply';
+import { attachModeColors, buildModeProjections } from './modes';
+import {
+  findInTree,
+  indexById,
+  projectShallow,
+  projectTree,
+  touchesModeColors,
+} from '../shared/project';
+import { applyBatch, applyFix, boundVariablePaint, FixInstruction, ModeGuard } from './apply';
+import { measureNonText, NON_TEXT_RATIO } from '../shared/non-text';
 import { findBgOwner, frameState, noRegression, planBgFix } from './bg-fix';
 import { classifyTextNode } from '../shared/classify';
+import { rgbaToHex } from '../shared/fix';
 import type { TokenCandidate } from '../shared/types';
 
 const SETTINGS_KEY = 'legibly-settings-v1';
@@ -37,13 +47,26 @@ function markSelfEdit(): void {
     if (selfEdits > 0) selfEdits--;
   }, 500);
 }
-figma.on('documentchange', () => {
-  if (selfEdits > 0) {
-    selfEdits--;
-    return;
+/**
+ * `documentAccess: "dynamic-page"` refuses a documentchange handler until every
+ * page is loaded, so registration is deferred to the first scan: results can
+ * only go stale once they exist, and the all-pages load stays off plugin open.
+ */
+let changeWatch: Promise<void> | undefined;
+function watchCanvasChanges(): Promise<void> {
+  if (!changeWatch) {
+    changeWatch = figma.loadAllPagesAsync().then(() => {
+      figma.on('documentchange', () => {
+        if (selfEdits > 0) {
+          selfEdits--;
+          return;
+        }
+        figma.ui.postMessage({ legibly: 'event', type: 'canvas-changed' });
+      });
+    });
   }
-  figma.ui.postMessage({ legibly: 'event', type: 'canvas-changed' });
-});
+  return changeWatch;
+}
 
 /** Resolve the variable/style name bound to the text's top fill, if any. */
 async function currentTokenName(nodeId: string): Promise<string | undefined> {
@@ -65,7 +88,157 @@ async function currentTokenName(nodeId: string): Promise<string | undefined> {
   return undefined;
 }
 
+/** SCs whose verdict can change with a variable mode — colour checks only. */
+const MODE_SENSITIVE_SCS = new Set(['1.4.3', '1.4.11']);
+
+/**
+ * Re-run the colour checks in every variable mode the canvas is not showing.
+ * Reading `fills` yields one theme's colours, so a Light-mode file can pass on
+ * screen while its Dark mode is unreadable. Projections are read-only mirrors
+ * (shared/project.ts) — the document is never touched.
+ *
+ * A node already flagged in the base scan is not flagged again: its card
+ * exists, and one issue per layer per criterion is what the user can act on.
+ */
+async function sweepModes(
+  roots: readonly NodeLite[],
+  report: ScanReport,
+  settings: Settings
+): Promise<void> {
+  const page = figma.currentPage as unknown as NodeLite;
+  const currentModes = new Map<string, string>(
+    Object.entries((figma.currentPage as unknown as { explicitVariableModes?: Record<string, string> })
+      .explicitVariableModes ?? {})
+  );
+  const { projections, skipped } = await buildModeProjections(figmaTokenSource(), currentModes);
+  if (projections.length === 0) return;
+
+  const rootIds = new Set(roots.map((r) => r.id));
+  const seen = new Set(report.findings.map((f) => `${f.nodeId}:${f.sc}`));
+  /** mode key → that mode's mirror of the page, indexed by node id. */
+  const mirrors = new Map<string, Map<string, NodeLite>>();
+
+  for (const projection of projections) {
+    if (!touchesModeColors(page, projection.colors)) continue;
+    const mirrorPage = projectTree(page, projection);
+    mirrors.set(projection.key, indexById(mirrorPage));
+    const mirrorRoots = rootIds.has(page.id) ? [mirrorPage] : findInTree(mirrorPage, rootIds);
+    if (mirrorRoots.length === 0) continue;
+
+    for (const finding of scanNodes(mirrorRoots, settings).findings) {
+      if (!MODE_SENSITIVE_SCS.has(finding.sc)) continue;
+      const key = `${finding.nodeId}:${finding.sc}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      report.findings.push({
+        ...finding,
+        mode: projection.label,
+        detail: `In ${projection.label}: ${finding.detail}`,
+      });
+    }
+  }
+
+  attachBackgroundsPerMode(report, page, mirrors);
+
+  if (skipped > 0) {
+    report.notChecked = [
+      ...report.notChecked,
+      `${skipped} further variable mode${skipped === 1 ? '' : 's'} — not swept (scan-time limit)`,
+    ];
+  }
+}
+
+/** The backgrounds a colour finding is measured against, in one mode's tree. */
+function backgroundsFor(finding: Finding, node: NodeLite): RGBA[] | null {
+  if (finding.sc === '1.4.3') {
+    const resolved = resolveTextColors(node);
+    return resolved.ok ? [...resolved.bgs] : null;
+  }
+  const backdrop = resolveBackdrop(node);
+  return backdrop.ok ? [...backdrop.bgs] : null;
+}
+
+/**
+ * Record each colour finding's background in EVERY mode, so the fix engine can
+ * pick a token that clears all of them at once instead of repairing the theme
+ * on screen and breaking the other one (which the ModeGuard would then reject,
+ * costing the user a click and an error).
+ *
+ * `''` keys the mode actually on screen.
+ */
+function attachBackgroundsPerMode(
+  report: ScanReport,
+  page: NodeLite,
+  mirrors: ReadonlyMap<string, Map<string, NodeLite>>
+): void {
+  if (mirrors.size === 0) return;
+  const live = indexById(page);
+
+  for (const finding of report.findings) {
+    if (!MODE_SENSITIVE_SCS.has(finding.sc) || !finding.fg) continue;
+    const byMode: Record<string, RGBA[]> = {};
+
+    const liveNode = live.get(finding.nodeId);
+    if (liveNode) {
+      const bgs = backgroundsFor(finding, liveNode);
+      if (bgs) byMode[''] = bgs;
+    }
+    for (const [key, index] of mirrors) {
+      const node = index.get(finding.nodeId);
+      if (!node) continue;
+      const bgs = backgroundsFor(finding, node);
+      if (bgs) byMode[key] = bgs;
+    }
+    // One context is what planFix already assumes — only store real extra work.
+    if (Object.keys(byMode).length > 1) finding.bgByMode = byMode;
+  }
+}
+
+/**
+ * Build the cross-mode guard for a fix (see apply.ts ModeGuard).
+ *
+ * Only the branch around the node is projected — its top-level frame, plus a
+ * shallow page mirror as the parent so a variable-bound page background is
+ * still measured in the right mode. Projecting the whole page per fix would
+ * cost a full tree walk on every card of a batch.
+ *
+ * Returns undefined when the file has no other modes, so unthemed files pay
+ * nothing for this.
+ */
+async function buildModeGuard(settings: Settings): Promise<ModeGuard | undefined> {
+  const currentModes = new Map<string, string>(
+    Object.entries((figma.currentPage as unknown as { explicitVariableModes?: Record<string, string> })
+      .explicitVariableModes ?? {})
+  );
+  const { projections } = await buildModeProjections(figmaTokenSource(), currentModes);
+  if (projections.length === 0) return undefined;
+
+  return (node, paintTarget) => {
+    const root = findExportRoot(node);
+    for (const projection of projections) {
+      const parent = root.parent ? projectShallow(root.parent, projection) : null;
+      const mirror = findInTree(projectTree(root, projection, parent), new Set([node.id]))[0];
+      if (!mirror) continue;
+      if (paintTarget === 'text-fill') {
+        const verdict = classifyTextNode(mirror, settings);
+        // Only a certain failure blocks: an unresolvable backdrop in another
+        // mode is not evidence the fix is wrong (F8 applies to us too).
+        if (verdict.kind === 'finding' && verdict.finding.tier === 'violation') {
+          return `Fix reverted — it would leave this text at ${verdict.finding.ratio?.toFixed(2)}:1 in ${projection.label}`;
+        }
+      } else {
+        const measured = measureNonText(mirror, paintTarget);
+        if (measured && measured.max < NON_TEXT_RATIO) {
+          return `Fix reverted — it would leave this element at ${measured.min.toFixed(2)}:1 in ${projection.label}`;
+        }
+      }
+    }
+    return null;
+  };
+}
+
 async function scan(payload: { scope: 'selection' | 'page'; settings: Settings }): Promise<ScanReport> {
+  await watchCanvasChanges();
   const roots =
     payload.scope === 'selection'
       ? (figma.currentPage.selection as unknown as NodeLite[])
@@ -74,6 +247,8 @@ async function scan(payload: { scope: 'selection' | 'page'; settings: Settings }
     throw new Error('Nothing selected — select frames or layers to scan');
   }
   const report = scanNodes(roots, payload.settings);
+  await sweepModes(roots, report, payload.settings);
+  report.findings.sort(byTier);
   // Enrich text-contrast violations with the bound token name (same-ramp, F13).
   for (const f of report.findings) {
     if (f.tier === 'violation' && f.sc === '1.4.3') {
@@ -85,7 +260,21 @@ async function scan(payload: { scope: 'selection' | 'page'; settings: Settings }
 
 const handlers = {
   scan,
-  tokens: () => harvestTokens(figmaTokenSource()),
+  /**
+   * The token index the UI plans fixes with. On a themed file each token also
+   * carries its per-mode value, so a candidate is judged by what it will
+   * actually be in every theme (NF1) rather than by the one on screen.
+   */
+  tokens: async () => {
+    const api = figmaTokenSource();
+    const index = await harvestTokens(api);
+    const currentModes = new Map<string, string>(
+      Object.entries((figma.currentPage as unknown as { explicitVariableModes?: Record<string, string> })
+        .explicitVariableModes ?? {})
+    );
+    const { projections } = await buildModeProjections(api, currentModes);
+    return { ...index, tokens: attachModeColors(index.tokens, projections) };
+  },
   'apply-fix': async (payload: {
     nodeId: string;
     instruction: FixInstruction;
@@ -100,18 +289,20 @@ const handlers = {
       payload.settings,
       payload.before,
       payload.target,
-      payload.sc
+      payload.sc,
+      await buildModeGuard(payload.settings)
     );
     markSelfEdit();
     figma.commitUndo();
     return applied;
   },
-  'apply-batch': (payload: {
+  'apply-batch': async (payload: {
     fixes: { nodeId: string; instruction: FixInstruction; before: string; target: string; sc: string }[];
     settings: Settings;
   }) => {
+    const guard = await buildModeGuard(payload.settings);
     markSelfEdit();
-    return applyBatch(payload.fixes, payload.settings);
+    return applyBatch(payload.fixes, payload.settings, guard);
   },
   /**
    * Deep check (pixel-true): make the text transparent (opacity — never
@@ -146,26 +337,6 @@ const handlers = {
     return { png, rect, imageCssWidth: root.absoluteBoundingBox!.width, fg, required };
   },
   'file-name': () => figma.root.name,
-  /** Export an image node (≤512px) + nearby text — grounding for AI alt text. */
-  'export-image': async (payload: { nodeId: string }) => {
-    const node = await figma.getNodeByIdAsync(payload.nodeId);
-    if (!node || !('exportAsync' in node)) throw new Error('Image node not found');
-    const scene = node as SceneNode & ExportMixin;
-    const box = (scene as unknown as NodeLite).absoluteBoundingBox;
-    const longest = Math.max(box?.width ?? 512, box?.height ?? 512);
-    const scale = Math.min(1, 512 / longest);
-    const png = await scene.exportAsync({ format: 'PNG', constraint: { type: 'SCALE', value: scale } });
-
-    // Grounding context: text near the image (its parent frame's copy).
-    const parent = (scene as unknown as NodeLite).parent;
-    const contextText = parent
-      ? collectTextNodes([parent])
-          .map((t) => t.characters ?? '')
-          .join(' · ')
-          .slice(0, 300)
-      : '';
-    return { png, nodeName: scene.name, contextText };
-  },
   /** Record alt text / decorative flag in sharedPluginData (1.1.1). */
   'set-alt-text': async (payload: { nodeId: string; altText?: string; decorative?: boolean }) => {
     const node = await figma.getNodeByIdAsync(payload.nodeId);
@@ -228,6 +399,11 @@ const handlers = {
     const beforeState = frameState(root, payload.settings);
     const prevFills = [...((ownerLite.fills as readonly Paint[]) ?? [])];
     const mutable = owner as { fills?: unknown };
+    // B6: a background swap is invisible on the card that triggered it, so the
+    // record has to say which colour actually became which.
+    const prevTop = prevFills[prevFills.length - 1];
+    const prevHex =
+      prevTop && prevTop.type === 'SOLID' ? rgbaToHex({ ...prevTop.color, a: 1 }) : null;
     try {
       const paint =
         payload.token.kind === 'variable'
@@ -249,12 +425,19 @@ const handlers = {
         before: payload.before,
         after: `${verdict.ratio.toFixed(2)}:1`,
         target: payload.target,
-        changeDescription: `background "${owner.name}" → ${payload.token.name}`,
+        changeDescription: `background "${owner.name}" → ${payload.token.name}${
+          prevHex ? ` (${prevHex} → ${rgbaToHex(payload.token.color)})` : ''
+        }`,
       };
     } catch (e) {
       mutable.fills = prevFills;
       throw e;
     }
+  },
+  /** The UI iframe cannot navigate, so outbound links round-trip through here. */
+  'open-url': (payload: { url: string }) => {
+    if (!/^https:\/\//.test(payload.url)) throw new Error('Only https links can be opened');
+    figma.openExternal(payload.url);
   },
   'notify': (payload: { message: string; error?: boolean }) => {
     figma.notify(payload.message, { error: payload.error ?? false });
