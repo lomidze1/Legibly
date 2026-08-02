@@ -293,10 +293,11 @@ const tiers = [
   },
   {
     name: "Pro",
-    price: "$12",
-    cadence: "Per month",
+    price: "$120",
+    cadence: "Per year — or $12 for 30 days",
     items: [
       "Everything in Free",
+      "One-time payment — nothing renews, nothing to cancel",
       "One-click and batch auto-fix with a single undo",
       "CSV compliance report export",
       "Strict mode: on-system tokens only",

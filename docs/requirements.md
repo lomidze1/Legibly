@@ -44,8 +44,8 @@
 
 ### 1.4 Free vs Paid (money model — D7)
 - **F18.** **FREE:** unlimited detection (F5–F10) — the funnel/viral hook.
-- **F19.** **PAID ($12/mo Pro):** one-click fix (F11), batch fix (F17), **compliance report export** (CSV/PDF: findings + before/after + SC). ✏️ **D20:** seat-based Team tier მოხსნილია — ბრუნდება მხოლოდ რეალური seat-value-ს (shared policy / audit trail) არსებობისას.
-- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys. *(იხ. Open Q1.)* ✏️ **D21:** LemonSqueezy/Gumroad **აღარ ვარიანტია** (Stripe-ის GE ბლოკი); vendor ჯერ **ღიაა** — Flitt / Paddle / Dodo. **"no server" ნაწილი ძალადაკარგულია** — license state-ს store სჭირდება, ე.ი. მინიმალური backend სავალდებულოა (serverless ჰყოფნის). Identity = **Figma OAuth** (`current_user:read`) → HMAC token, **რეგისტრაციის გარეშე**; შიშველი `figma.currentUser.id` არასაკმარისია — იმპერსონაციის ვექტორია.
+- **F19.** **PAID Pro:** one-click fix (F11), batch fix (F17), **compliance report export** (CSV/PDF: findings + before/after + SC). ✏️ **D20:** seat-based Team tier მოხსნილია — ბრუნდება მხოლოდ რეალური seat-value-ს (shared policy / audit trail) არსებობისას. ✏️ **D23:** ფასი = **`$120/წელი` (მთავარი) + `$12/30 დღე`**, ორივე **one-time** — auto-renewal არ არსებობს, გასაუქმებელი არაფერია, განახლება დღეებს სტეკავს.
+- **F20.** Paywall **timing decision (open):** v0.1 ships fix FREE during **public beta** (distribution-first — the real risk) → paywall turns on in **v0.2** via license keys. *(იხ. Open Q1.)* ✏️ **D21:** LemonSqueezy/Gumroad **აღარ ვარიანტია** (Stripe-ის GE ბლოკი). ✏️ **D23:** vendor = **Flitt** (one-time, წლიური-first); Dodo = დოკუმენტირებული fallback. **"no server" ნაწილი ძალადაკარგულია** — license state-ს store სჭირდება, ე.ი. მინიმალური backend სავალდებულოა (serverless ჰყოფნის). Identity = **Figma OAuth** (`current_user:read`) → HMAC token, **რეგისტრაციის გარეშე**; შიშველი `figma.currentUser.id` არასაკმარისია — იმპერსონაციის ვექტორია.
 
 ### 1.5 Settings
 - **F21.** Strict mode (F14) on/off.

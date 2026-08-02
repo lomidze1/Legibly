@@ -269,6 +269,21 @@ w2w-ის `licenseClient.ts:44-52` აფიქსირებს რეალ�
 
 ---
 
+### D23 — 2026-08-02 — Billing = **Flitt, one-time, წლიური-first**; Dodo დოკუმენტირებული fallback-ია — user-approved
+- **Context:** [D21](#) vendor-ს ღიად ტოვებდა. Dodo-ს კვლევამ და [`spike/dodo`](../spike/dodo/README.md)-მ ტექნიკურად დაამტკიცა, რომ ჯდება — მაგრამ **ეკონომიკურად მოცულობაზეა დამოკიდებული**, და ის მოცულობა ჯერ არ გვაქვს.
+- **გადამწყვეტი არითმეტიკა (10 გამომწერი, $12):** Flitt $120 − 4% = **$115 (4%)** · Dodo $120 − $10.60 tx − $30 payout = **$79 (34%)**. თვეში $36 სხვაობა. Dodo 11%-მდე მხოლოდ ~100 გამომწერზე ეშვება.
+- **დამატებით Flitt-ის სასარგებლოდ:** ფული ~1 დღეში (Dodo: 20–50); KYC/approval-ის რისკი **ნული** (merchant account უკვე აქვს); launch სექტემბერშია, შიდა deadline 30 აგვისტო — ახალი vendor-ის verification ამ ვადას ჭამს; runbook-ები (refund, chargeback, key rotation) უკვე დაწერილია.
+- **Alternatives:** (a) **Dodo** — უარყოფილია *ახლა*, არა სამუდამოდ: MoR/VAT და auto-renew რეალური უპირატესობებია, მაგრამ დღევანდელ მოცულობაზე მათი ფასი 34%-ია. (b) **Paddle** — GE-დან გაყიდვა დაუდასტურებელი დარჩა.
+- **Decision — one-time, ორი tier, წლიური მთავარი:** `$120/წელი` (გამოკვეთილი) + `$12/30 დღე` (გვერდით). auto-renewal არ არსებობს, გასაუქმებელი არაფერია, განახლება დღეებს სტეკავს.
+- **რატომ წლიური-first:** one-time-ის ერთადერთი სუსტი წერტილი ყოველთვიური ხელახალი ყიდვაა. წლიური მას სტრუქტურულად ხსნის — და ისედაც სჯობდა: [`launch-stack §4`](./launch-stack.md)-ის break-even ≈ **10.3 თვე**, ანუ თუ საშუალო გამომწერი 10 თვეზე ნაკლებს რჩება (indie $12-ზე თითქმის ყოველთვის), წლიური იგებს. vendor-ისგან დამოუკიდებელი დასკვნა იყო; ახლა ტექნიკურ პრობლემასაც წყვეტს.
+- **მიგრაციის გზა subscription-ზე უკვე გაკვალულია:** w2w-ის [`PAYMENT-SYSTEM.md §1`](../../Web2Wireframe/docs/plans/PAYMENT-SYSTEM.md) — *"Native recurring subscription code is **complete but parked at the route level** until Flitt grants subscription access"*; webhook handler და License model ორივე გზას უჭერს მხარს. ე.ი. ფაზა 2 = flag-ის გადართვა, არა ხელახლა წერა.
+- **რასაც შეგნებულად ვიღებთ — VAT ჩვენზე რჩება.** Flitt PSP-ია, არა MoR. w2w-ის ზუსტი მიდგომა: ფასი tax-exclusive, Terms-ში disclaimer, re-evaluate trigger ~$30K EU revenue. **მიღებული და ზღვრით შემოსაზღვრული რისკი**, არა უგულებელყოფა.
+- **Dodo-ს spike არ იშლება:** `handle-event.ts` განზრახ დაიწერა HTTP-სა და SDK-ისგან თავისუფლად — license state machine (dunning, out-of-order guard, lazy expiry, webhook dedup, 10/10 tests) Flitt-ზე უცვლელად გადადის. spike რჩება როგორც **fallback-ის მტკიცებულება**, თუ Flitt-მა recurring არასდროს გახსნა ან VAT-მა ზღვარს გადააჭარბა.
+- **ფაზა 2-ის trigger:** Flitt-ის ერთადერთი პირობა ზეპირად იყო — *"გაყიდვები დაფიქსირდეს"*; **რიცხვი მათ არ დაუსახელებიათ** (user-ის დაზუსტება, 2026-08-02). `$1000` არის **ჩვენი** trigger, საიდანაც საუბარს აზრი აქვს, არა Flitt-ის ზღვარი. ე.ი. ეს არასოდეს ყოფილა ბლოკერი — one-time-ით ვიწყებთ, გაყიდვები ისედაც სჭირდება.
+- **Outcome:** `launch-stack.md` §0/§4 (Q1 იხურება), `requirements.md` F19/F20, `plugin/src/ui/FooterBar.tsx`, `website/src/app/page.tsx`. Q9 (წლიური იყოს თუ არა) — **დახურულია: კი, და მთავარიც.**
+
+---
+
 ## 4. Risk Register (ბიზნესის რისკები)
 
 | # | რისკი | ალბათობა | ზიანი | Mitigation |

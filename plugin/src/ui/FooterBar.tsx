@@ -112,7 +112,7 @@ function PlansPanel({ onOpenUrl }: Props): React.ReactElement {
       <div className="plan-card is-pro">
         <div className="plan-head">
           <span className="plan-name">Pro</span>
-          <span className="plan-price">$12/mo</span>
+          <span className="plan-price">$120/yr</span>
         </div>
         <ul className="plan-list">
           <li>One-click fix, snapped to a passing colour from your own library</li>
@@ -120,7 +120,8 @@ function PlansPanel({ onOpenUrl }: Props): React.ReactElement {
           <li>Compliance report export (CSV) with before/after and the criterion for each finding</li>
         </ul>
         <p className="microtext">
-          Free while Legibly is in public beta — fixing is unlocked for everyone today.
+          Or $12 for 30 days. Both are one-time payments — nothing renews, nothing to cancel.
+          Free while Legibly is in public beta: fixing is unlocked for everyone today.
         </p>
       </div>
 
