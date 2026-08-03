@@ -36,6 +36,9 @@ export function SiteFooter() {
             <li>
               <Link href="/#faq">FAQ</Link>
             </li>
+            <li>
+              <Link href="/docs">Docs</Link>
+            </li>
           </ul>
         </nav>
         <nav className={styles.column} aria-label="Company">
@@ -45,7 +48,10 @@ export function SiteFooter() {
               <a href={site.links.glinc}>Glinc studio</a>
             </li>
             <li>
-              <a href={`mailto:${site.email}`}>{site.email}</a>
+              <Link href="/contact">Contact</Link>
+            </li>
+            <li>
+              <Link href="/feedback">Feedback</Link>
             </li>
             <li>
               <Link href="/privacy">Privacy</Link>

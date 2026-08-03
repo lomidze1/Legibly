@@ -61,9 +61,9 @@
 | Footer → "Send feedback" | `/feedback` | ❌ არა |
 
 - [x] 🤖 `SITE` განახლდა რეალურ დომენზე (2026-08-01)
-- [ ] 🤖 შევქმნათ დაკლებული routes, ან ლინკები გადავამისამართოთ არსებულებზე
-      (`/pricing` → `/#pricing`, `/feedback` → `mailto:` ან form). **გადასაწყვეტია: რომელი 5-დან
-      მართლა გვჭირდება v1-ზე** — `/docs`-ის დაწერა ცალკე სამუშაოა
+- [x] 🤖 ხუთივე route ცოცხალია (2026-08-03): `/subscribe` (waitlist form), `/contact`, `/feedback`,
+      `/docs` (minimal one-pager), `/pricing` → 307 → `/#pricing`. Footer-ს დაემატა Docs/Contact/Feedback,
+      sitemap განახლდა. Deploy-ის შემდეგ plugin-ის არცერთი ღილაკი 404-ს აღარ მოხვდება
 
 ### 2.2 საიტზე არსებული routes (დღეს)
 `/` · `/privacy` · `/api/waitlist` · `/robots.txt` · `/sitemap.xml` · `/opengraph-image` — სულ ეს.
