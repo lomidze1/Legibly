@@ -14,19 +14,21 @@
 ## 0. ბლოკირების ჯაჭვი (რიგითობა მნიშვნელოვანია)
 
 ```
-დომენი ──┬──> website deploy ──> plugin-ის ლინკები ცოცხლდება
-         ├──> Resend domain verification ──> waitlist form მუშაობს
-         └──> (თუ დაგვჭირდა) OAuth redirect URI
+✅ დომენი ──┬──✅ website deploy ──✅ plugin-ის ხუთივე ლინკი ცოცხალია
+            ├──🔴 Resend domain verification ──> waitlist form ამუშავდება
+            └──🔴 Figma OAuth redirect URI
 
-გადახდის მოდელი ──> paywall ჩართვა ──> Pro რეალურად იყიდება
+🔴 backend (Flitt + OAuth + License) ──> paywall ჩართვა ──> Pro რეალურად იყიდება
+                                     └──> /api/judge (D24, cutoff 1 სექტ.)
 ```
 
-**ერთი წინადადებით:** დღეს plugin-ის ხუთივე ლინკი 404-ია, waitlist form 503-ს აბრუნებს,
-და Pro-ს ყიდვის გზა არ არსებობს. სამივე ერთ ფესვზე დგას — **დომენი და გადახდის მოდელი.**
+**ერთი წინადადებით (განახლდა 2026-08-03):** დომენისა და deploy-ის ჯაჭვი **დახურულია** —
+`https://legibly.design` ცოცხალია და plugin-ის ხუთივე ლინკი მუშაობს. დარჩა **ორი ფესვი:
+Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდვის გზა ჯერ არ არსებობს).
 
 ---
 
-## 1. 🟡 დომენი — ✅ შეძენილია, DNS ჯერ არა
+## 1. ✅ დომენი — ცოცხალია (2026-08-03)
 
 - [x] 👤 ხელმისაწვდომობის შემოწმება — **ყველა მოკლე ვარიანტი დაკავებულია:** `legibly.com` (parked),
       `legibly.app` (🔴 **ცოცხალი პროდუქტი იმავე სახელით** — "Legal clarity for peaceful parenting"),
@@ -36,37 +38,42 @@
       WHOIS privacy ✅ · auto-renew ✅
 - [x] 🤖 დომენი ჩასმულია კოდში: `SITE` ([links.ts:8](../plugin/src/ui/links.ts:8)),
       `SITE_URL` ([schema.ts:3](../website/src/lib/schema.ts:3)), `site.email` → `hello@legibly.design`
-- [ ] 👤 `hello@legibly.design` mailbox — Namecheap-ის უფასო Email Forwarding → პირად Gmail-ზე.
-      **საიტის ყველა contact ლინკი და waitlist-ის შეტყობინება ამ მისამართზე მიდის** (`route.ts:80`)
-- [ ] 👤 DNS: `A`/`CNAME` → hosting, `TXT`/`MX` (SPF/DKIM/DMARC) → Resend
-      - ⚠️ Resend **subdomain-ზე** (`send.legibly.design`) დავაყენოთ, რომ root-ის `MX` forwarding-ს დარჩეს
+- [x] 👤 **Email forwarding ✅** (2026-08-03) — `hello@` · `support@` · `billing@` → პირად Gmail-ზე,
+      Namecheap-ის უფასო Redirect Email-ით. MX = `eforward1–5.registrar-servers.com`.
+      საიტზე მხოლოდ `hello@` ჩანს; `billing@` Terms-სა და ქვითრებისთვისაა
+      - ⚠️ forwarding მხოლოდ **მიღებაა** — პასუხი პირადი Gmail-იდან წავა. გამოსწორება Resend-ის
+        შემდეგ: Gmail → Accounts → *Send mail as* → `hello@legibly.design`
+- [x] 👤 **DNS ✅** (2026-08-03) — `A` `@` → `216.198.79.1`, `CNAME` `www` →
+      `6c118a1a637b104d.vercel-dns-017.com`. Nameservers დარჩა `Namecheap BasicDNS`
+      (თუ Vercel-ის NS-ზე გადავიდოდით, email forwarding გაითიშებოდა)
+- [ ] 👤 Resend-ის DNS: `TXT`/`MX` (SPF/DKIM/DMARC) — **`send.legibly.design` subdomain-ზე**,
+      რომ root-ის `MX` forwarding-ს დარჩეს
 - [ ] 👤 **Trademark clearance (Track F)** — ⬆️ **პრიორიტეტი გაიზარდა.** `legibly.app`-ის აღმოჩენის
       შემდეგ ეს აღარაა ფორმალობა: ფორმალური USPTO/EUIPO ძებნა **Figma Community publish-ამდე.**
       თუ `.app`-ის მფლობელს აქვს ნიშანი class 9/42-ში — rename იძულებითია
 
 ---
 
-## 2. 🔴 გატეხილი ლინკები — ზუსტად რომელი
+## 2. ✅ Plugin-ის ლინკები — ხუთივე მუშაობს
 
-### 2.1 Plugin → ვებ (ხუთივე 404)
-`SITE` უკვე `https://legibly.design`-ია ([links.ts:8](../plugin/src/ui/links.ts:8)), მაგრამ **საიტი
-ჯერ არ არის deploy-ული და ხუთივე route არ არსებობს** — ე.ი. ლინკები კვლავ 404-ია:
+### 2.1 Plugin → ვებ (გადამოწმებულია ცოცხალ დომენზე 2026-08-03)
 
-| ღილაკი plugin-ში | სად მიდის | გვერდი არსებობს? |
+| ღილაკი plugin-ში | სად მიდის | სტატუსი |
 |---|---|---|
-| Plans modal → "Subscribe" | `/subscribe` | ❌ არა |
-| Help → "Compare plans" | `/pricing` | ⚠️ მხოლოდ `#pricing` anchor მთავარ გვერდზე |
-| Help → "Read the docs" | `/docs` | ❌ არა |
-| Help → "Contact" | `/contact` | ❌ არა |
-| Footer → "Send feedback" | `/feedback` | ❌ არა |
+| Plans modal → "Subscribe" | `/subscribe` | ✅ 200 |
+| Help → "Compare plans" | `/pricing` | ✅ 307 → `/#pricing` |
+| Help → "Read the docs" | `/docs` | ✅ 200 |
+| Help → "Contact" | `/contact` | ✅ 200 |
+| Footer → "Send feedback" | `/feedback` | ✅ 200 |
 
 - [x] 🤖 `SITE` განახლდა რეალურ დომენზე (2026-08-01)
 - [x] 🤖 ხუთივე route ცოცხალია (2026-08-03): `/subscribe` (waitlist form), `/contact`, `/feedback`,
       `/docs` (minimal one-pager), `/pricing` → 307 → `/#pricing`. Footer-ს დაემატა Docs/Contact/Feedback,
       sitemap განახლდა. Deploy-ის შემდეგ plugin-ის არცერთი ღილაკი 404-ს აღარ მოხვდება
 
-### 2.2 საიტზე არსებული routes (დღეს)
-`/` · `/privacy` · `/api/waitlist` · `/robots.txt` · `/sitemap.xml` · `/opengraph-image` — სულ ეს.
+### 2.2 საიტზე არსებული routes (2026-08-03)
+`/` · `/docs` · `/subscribe` · `/contact` · `/feedback` · `/privacy` · `/api/waitlist` ·
+`/robots.txt` · `/sitemap.xml` · `/opengraph-image` · `/pricing` (redirect).
 
 - [ ] 🤖 **Terms of Service** გვერდი — გადახდების ჩართვამდე სავალდებულოა
 - [x] 🤖 Privacy policy — ✅ განახლდა (D22, 2026-08-02): BYOK სექცია წაიშალა, ჩანაცვლდა
@@ -88,11 +95,14 @@
 
 ---
 
-## 4. 🟠 Hosting / deploy
+## 4. ✅ Hosting / deploy — ცოცხალია (2026-08-03)
 
-- [ ] 👤 **გადაწყვეტილება: Vercel თუ Render?** (launch-stack Q3 — რეკომენდაცია: website → Vercel)
-- [ ] 👤 deploy + custom domain + auto-TLS
-- [ ] 🤖 production build-ის შემოწმება deploy-ის შემდეგ (OG image, sitemap, robots)
+- [x] 👤 **Vercel** (Hobby, უფასო) — `lomidze1/Legibly`, Root Directory `website`, production branch `main`
+- [x] 👤 deploy + custom domain + auto-TLS — `legibly.design` = Production,
+      `www` → 308 → apex. Let's Encrypt სერტიფიკატი გამოწერილია (2026-08-03 → 2026-11-01)
+- [x] 🤖 production-ის შემოწმება: `/` `/docs` `/subscribe` `/contact` `/feedback` `/privacy`
+      `/sitemap.xml` = 200 · `/pricing` = 307 → `/#pricing` · waitlist = 503 (მოსალოდნელი, key აკლია)
+- [ ] 🤖 OG image-ის და robots-ის ვიზუალური გადამოწმება ცოცხალ დომენზე
 
 ---
 
@@ -190,7 +200,10 @@
 
 ## 10. მოკლე პასუხი — "დღეს რომ დავაჭიროთ publish-ს, რა მოხდება?"
 
-Plugin იმუშავებს (engine სრულყოფილად მზადაა), მაგრამ:
-**ხუთი ლინკი 404 · waitlist 503 · Pro-ს ყიდვის გზა არ არსებობს · email სხვისი დომენიდან.**
+**განახლდა 2026-08-03.** Plugin იმუშავებს, საიტი ცოცხალია საკუთარ დომენზე, ხუთივე ლინკი მუშაობს,
+email მისამართები ჩვენია. დარჩა ორი:
 
-ე.ი. პროდუქტი მზადაა, **ინფრასტრუქტურა არა.** ერთი ნაბიჯი ხსნის ჯაჭვის ნახევარს — **დომენი.**
+- 🔴 **waitlist 503-ს აბრუნებს** — Resend key + domain verification (§3)
+- 🔴 **Pro-ს ყიდვის გზა არ არსებობს** — backend + Flitt + OAuth (§5)
+
+ე.ი. **launch-ის ნახევარი დახურულია.** დარჩენილი ორივე ერთ ფესვზე დგას — **backend.**
