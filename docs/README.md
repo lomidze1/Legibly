@@ -21,7 +21,8 @@
 | 9 | [`website.md`](./website.md) | ვებსაიტის გეგმა (TODO — plugin-ზე დაფუძნებული) | launch-ის მომზადებისას |
 | 10 | [`pre-launch-checklist.md`](./pre-launch-checklist.md) | 🔴 **გამოქვეყნებამდე დარჩენილი საქმეები** — ერთადერთი to-do სია | launch-ზე მუშაობისას — ყოველთვის |
 | 11 | [`launch-stack.md`](./launch-stack.md) | ვენდორები/ინფრასტრუქტურა (დომენი, hosting, email, payments) | როცა checklist-ის პუნქტს ასრულებ |
-| 12 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
+| 12 | [`backend-spec.md`](./backend-spec.md) | 🔧 **Backend-ის სამუშაო სპეც: Flitt + Figma OAuth + AI Judge** — self-contained, ფაზებით, ტესტებით, ხაფანგებით | backend-ზე მუშაობისას — **სხვა ფაილი არ გჭირდება** |
+| 13 | [`research/`](./research/) | კვლევის შედეგები — per-tool/per-topic deep dives | reference material |
 
 ---
 
@@ -38,6 +39,9 @@ docs/
 ├── links.md                 ← გარე references (ALL)
 ├── research-roadmap.md      ← რა გამოვიკვლიოთ
 ├── glossary.md              ← ტერმინების განმარტება
+├── pre-launch-checklist.md  ← გაშვებამდე დარჩენილი საქმეები
+├── launch-stack.md          ← ვენდორები/ინფრასტრუქტურა
+├── backend-spec.md          ← 🔧 backend-ის სამუშაო სპეც (Flitt + OAuth + Judge)
 └── research/                ← per-topic deep dives
     └── claude-design-plugin.md
 ```

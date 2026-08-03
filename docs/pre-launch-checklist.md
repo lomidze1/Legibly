@@ -126,6 +126,9 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
 
 ---
 
+> 🔧 **Backend-ის სრული სამუშაო სპეციფიკაცია → [`backend-spec.md`](./backend-spec.md)**
+> (Flitt + Figma OAuth + AI Judge, ფაზებად, ტესტებით და ხაფანგებით — self-contained)
+
 ## 5.1 🟡 AI Designer Judge (D24) — cutoff **1 სექტემბერი**, launch-ს **არ ბლოკავს**
 
 > მონიშნული frame → snapshot → `/api/judge` → Claude vision + rubric → verdict.
