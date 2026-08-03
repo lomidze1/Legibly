@@ -1,6 +1,6 @@
-import { Button } from "@/components/Button";
 import { Container } from "@/components/Container";
 import { JsonLd } from "@/components/JsonLd";
+import { PricingTiers } from "@/components/PricingTiers";
 import { ScanDemo } from "@/components/ScanDemo";
 import { SpecimenPanel } from "@/components/SpecimenPanel";
 import { WaitlistForm } from "@/components/WaitlistForm";
@@ -277,34 +277,6 @@ function Checks() {
   );
 }
 
-/** One source of truth for the badge and the card's accent treatment. */
-const RECOMMENDED_PLAN = "Pro";
-
-const tiers = [
-  {
-    name: "Free",
-    price: "$0",
-    cadence: "Forever",
-    items: [
-      "Scan selections or whole pages",
-      "Three honest verdicts on every layer",
-      "Pixel-true deep check for composited backgrounds",
-    ],
-  },
-  {
-    name: "Pro",
-    price: "$120",
-    cadence: "Per year — or $12 for 30 days",
-    items: [
-      "Everything in Free",
-      "One-time payment — nothing renews, nothing to cancel",
-      "One-click and batch auto-fix with a single undo",
-      "CSV compliance report export",
-      "Strict mode: on-system tokens only",
-    ],
-  },
-] as const;
-
 function Pricing() {
   return (
     <section id="pricing" className={styles.section}>
@@ -315,42 +287,7 @@ function Pricing() {
           prices below take effect at the {site.launch} Community launch.
         </p>
       </div>
-      <div className={styles.tiers}>
-        {tiers.map((tier) => {
-          const featured = tier.name === RECOMMENDED_PLAN;
-          return (
-            <div
-              key={tier.name}
-              className={`${styles.tier} ${featured ? styles.tierFeatured : ""}`}
-            >
-              {featured && (
-                <span className={styles.recommended}>Recommended</span>
-              )}
-              <div>
-                <h3 className={styles.tierName}>{tier.name}</h3>
-                <p
-                  className={`${styles.tierPrice} ${
-                    featured ? styles.tierPriceAccent : ""
-                  }`}
-                >
-                  {tier.price}
-                </p>
-                <p className={styles.tierCadence}>{tier.cadence}</p>
-              </div>
-              <div className={styles.tierRule} />
-              <ul className={styles.tierItems}>
-                {tier.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              {/* A reader who picks a tier had nowhere to click before this. */}
-              <div className={styles.tierAction}>
-                <Button href="/#early">Join the waitlist</Button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      <PricingTiers />
     </section>
   );
 }

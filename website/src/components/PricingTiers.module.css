@@ -1,0 +1,157 @@
+/*
+ * The segmented control sits over the right-hand card, where the Pro price it
+ * changes is, and reads as one control: a single stroke with a hairline
+ * between the two halves.
+ */
+.switch {
+  display: flex;
+  width: fit-content;
+  margin: 0 0 var(--space-5) auto;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.switchOption {
+  min-height: var(--control-h);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: transparent;
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--color-neutral-700);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.switchOption + .switchOption {
+  border-left: 1px solid var(--color-divider);
+}
+
+.switchOption:hover {
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+/* Weight and wash, not colour alone, carry which half is selected. */
+.switchOptionActive {
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  font-weight: 500;
+  color: var(--color-accent-800);
+}
+
+.tiers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
+
+/* Same component role as the comparison cards, so the same padding. */
+.tier {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+
+.tierFeatured {
+  border-color: var(--color-accent);
+}
+
+/*
+ * Recommendation is a scanning aid, so it sits above the name rather than
+ * stranded under the feature list where it used to be.
+ */
+.recommended {
+  align-self: flex-start;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+
+.tierName {
+  margin-bottom: var(--space-2);
+  font-size: 20px;
+}
+
+.tierPrice {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 46px;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* 46px, so the accent's 3.0:1 is legal here. */
+.tierPriceAccent {
+  color: var(--color-accent);
+}
+
+.tierCadence {
+  margin-top: var(--space-2);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+/* The total, in sentence case, under the uppercase cadence. */
+.tierNote {
+  margin-top: var(--space-3);
+  font-size: 14px;
+  line-height: 24px;
+  color: var(--color-neutral-700);
+}
+
+.tierRule {
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.tierItems {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  font-size: 15px;
+  line-height: 26px;
+  color: var(--color-neutral-800);
+}
+
+/*
+ * margin-top: auto pins the action to the card's foot, so the shorter card
+ * stops carrying 140px of dead space under its list.
+ */
+.tierAction {
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+@media (max-width: 900px) {
+  .tiers {
+    grid-template-columns: 1fr;
+  }
+
+  /* The recommended plan leads once the cards stack. */
+  .tierFeatured {
+    order: -1;
+  }
+
+  /* Nothing to align to once the toggle no longer sits over a right card. */
+  .switch {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .tier {
+    padding: var(--space-5);
+  }
+}
