@@ -25,6 +25,13 @@ const body = Lora({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  /*
+   * www 308s to the apex at the edge, so the two hosts can never both serve a
+   * page — but the home page had no canonical at all, which left the apex and
+   * any future utm-tagged copy of it looking like separate URLs. Pages that
+   * need a different value set their own.
+   */
+  alternates: { canonical: "/" },
   title: {
     default: "Legibly — Accessibility Auto-Fix & WCAG 2.2 AA Checker for Figma",
     template: "%s — Legibly",

@@ -102,7 +102,9 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
       `www` → 308 → apex. Let's Encrypt სერტიფიკატი გამოწერილია (2026-08-03 → 2026-11-01)
 - [x] 🤖 production-ის შემოწმება: `/` `/docs` `/subscribe` `/contact` `/feedback` `/privacy`
       `/sitemap.xml` = 200 · `/pricing` = 307 → `/#pricing` · waitlist = 503 (მოსალოდნელი, key აკლია)
-- [ ] 🤖 OG image-ის და robots-ის ვიზუალური გადამოწმება ცოცხალ დომენზე
+- [x] 🤖 OG image + robots ცოცხალ დომენზე ✅ (2026-08-03): `/opengraph-image` = 200,
+      `image/png`, 1200×630, 56 KB · `robots.txt` sitemap-ს სწორად უთითებს · og/twitter
+      მეტა-ტეგები სრულია. **გასწორდა:** მთავარ გვერდს canonical არ ჰქონდა — დაემატა `layout.tsx`-ში
 
 ---
 
