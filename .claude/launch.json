@@ -4,8 +4,8 @@
     {
       "name": "legibly-website",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "website"],
-      "autoPort": true
+      "runtimeArgs": ["run", "dev", "--prefix", "website", "--", "-p", "3500"],
+      "port": 3500
     }
   ]
 }
