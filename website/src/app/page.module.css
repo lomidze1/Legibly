@@ -139,13 +139,6 @@
   margin-top: var(--space-7);
 }
 
-.heroNote {
-  margin-top: var(--space-3);
-  font-size: 13px;
-  line-height: 22px;
-  color: var(--color-neutral-700);
-}
-
 /* ---------- Stakes ---------- */
 
 .stakesBody {

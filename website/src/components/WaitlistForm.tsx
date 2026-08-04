@@ -150,6 +150,16 @@ export function WaitlistForm() {
           {status === "sending" ? "Joining…" : "Get early access"}
         </Button>
       </div>
+      {/*
+        This line is the record of consent, so it cannot promise more than the
+        privacy policy covers — that policy names one purpose, telling you when
+        Legibly is available. Keep the two in step if either changes.
+      */}
+      <p className={styles.consent}>
+        One email at the {site.launch} launch, and nothing else. We store the
+        address, nothing more, and you can leave at any time —{" "}
+        <a href="/privacy">privacy policy</a>.
+      </p>
       {/* Honeypot: hidden from real users, bots fill it. */}
       <input
         className={styles.honeypot}

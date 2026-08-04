@@ -55,6 +55,30 @@
   outline-offset: 0;
 }
 
+/*
+ * Consent has to be informed at the moment of submission, not after it — the
+ * confirmation state already says "one email, at launch", but by then the
+ * address is stored. Single opt-in makes this line the record of consent, so
+ * it states the purpose and links the policy.
+ */
+.consent {
+  margin-top: var(--space-3);
+  font-size: 13px;
+  line-height: 22px;
+  color: var(--color-neutral-800);
+}
+
+.consent a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.consent a:hover {
+  color: var(--color-accent-800);
+}
+
 .honeypot {
   position: absolute;
   width: 1px;

@@ -56,6 +56,9 @@ export function SiteFooter() {
             <li>
               <Link href="/privacy">Privacy</Link>
             </li>
+            <li>
+              <Link href="/terms">Terms</Link>
+            </li>
           </ul>
         </nav>
         <p className={styles.legal}>

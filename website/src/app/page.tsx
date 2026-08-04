@@ -63,13 +63,10 @@ function Hero() {
           against WCAG&nbsp;2.2 AA, then repair every violation in one click,
           using your own design tokens and never an invented color.
         </p>
+        {/* The form's own consent line now carries "one email, nothing else". */}
         <div className={styles.heroForm}>
           <WaitlistForm />
         </div>
-        <p className={styles.heroNote}>
-          Ahead of the Figma Community launch. No newsletter, no pricing
-          surprises.
-        </p>
       </div>
       <SpecimenPanel />
     </section>
@@ -409,8 +406,7 @@ function Closing() {
       <div>
         <p className={styles.closingLead}>
           Legibly is in private beta ahead of its {site.launch} Figma Community
-          launch. Leave your email and we will send you access, and nothing
-          else.
+          launch. Leave your email and we will send you access.
         </p>
         <div className={styles.closingForm}>
           <WaitlistForm />

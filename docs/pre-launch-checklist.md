@@ -75,7 +75,12 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
 `/` · `/docs` · `/subscribe` · `/contact` · `/feedback` · `/privacy` · `/api/waitlist` ·
 `/robots.txt` · `/sitemap.xml` · `/opengraph-image` · `/pricing` (redirect).
 
-- [ ] 🤖 **Terms of Service** გვერდი — გადახდების ჩართვამდე სავალდებულოა
+- [x] 🤖 **Terms of Service** ✅ (2026-08-03) — `/terms`: ერთჯერადი გადახდა და დღეების სტეკინგი ·
+      **tax-exclusive disclaimer** (D23) · refund policy (`billing@`) · EU-ს 14-დღიანი withdrawal +
+      statutory-rights clause · პასუხისმგებლობის ზღვარი · "არაა audit/certification/legal advice".
+      Footer-სა და sitemap-ში ჩასმულია.
+      ⚠️ **TODO launch-მდე:** გამყიდველის იურიდიული სახელი, ფორმა და მისამართი — იგივე ხარვეზი,
+      რაც privacy-ზეა (EU consumer-information + GDPR Art. 13(1)(a))
 - [x] 🤖 Privacy policy — ✅ განახლდა (D22, 2026-08-02): BYOK სექცია წაიშალა, ჩანაცვლდა
       "the plugin makes no network requests of any kind" + manifest-ის ციტატით
 
@@ -91,7 +96,15 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
       - default sender ახლა `onboarding@resend.dev` — **Resend-ის sandbox, real launch-ზე არ გამოდგება**
 - [x] 🤖 `site.email` → **`hello@legibly.design`** (2026-08-01, ადრე `hello@glinc.io` იყო).
       ⚠️ **mailbox ჯერ არ არსებობს** — Namecheap forwarding საჭიროა, თორემ waitlist-ის შეტყობინება ბრუნდება
-- [ ] 🤖 double opt-in confirmation (GDPR — EU დიზაინერები target-ია)
+- [ ] 🤖 **double opt-in — გადადებულია launch-ის დაგზავნამდე** (user-approved 2026-08-03).
+      GDPR მას *არ* ავალდებულებს — საჭიროა დამტკიცებადი consent, რაც ერთჯერადი opt-in-ითაც
+      მიიღწევა. სამაგიეროდ ✅ **ფორმას დაემატა consent-ის ხაზი გაგზავნამდე** (`WaitlistForm.tsx`):
+      რას იღებ, რას ვინახავთ, privacy-ს ლინკი.
+      ⚠️ **დაგზავნამდე სავალდებულო:** მისამართების ვალიდაცია — ახალი დომენიდან პირველი bulk-send
+      bounce-ებით sender reputation-ს აზიანებს ყველასთვის
+- [x] 🤖 copy-ს შეუსაბამობა გასწორდა (2026-08-03): consent ჰპირდებოდა "short notes when new
+      checks ship"-ს, privacy policy კი **ერთ** მიზანს აცხადებს. ყველგან დარჩა ვიწრო, სწორი
+      ვერსია — "one email at launch, and nothing else"
 
 ---
 
