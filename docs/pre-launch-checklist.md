@@ -100,9 +100,14 @@
 
 - [x] 👤 **Resend account + domain verification ✅** (2026-08-12) — `legibly.design`, region
       Ireland (`eu-west-1`), status `Verified`
-- [x] 👤 **env vars Vercel-ზე ✅** (Production + Preview): `RESEND_API_KEY` (Sending access) ·
-      `RESEND_AUDIENCE_ID` (audience `Legibly waitlist`, არა `General`) ·
-      `WAITLIST_FROM` = `Legibly waitlist <noreply@legibly.design>`
+- [x] 👤 **env vars Vercel-ზე ✅** (Production + Preview): `RESEND_API_KEY` · `RESEND_AUDIENCE_ID`
+      (audience `Legibly waitlist`, არა `General`) · `WAITLIST_FROM` =
+      `Legibly waitlist <noreply@legibly.design>`
+      - ⚠️ **key-ს `Full access` სჭირდება, არა `Sending access`.** `Sending access` მხოლოდ
+        გაგზავნას უშვებს — `contacts.create` იბლოკება და signup audience-ში **არ ჩაიწერება.**
+        სიმპტომი: წერილი მოდის, მაგრამ ტექსტში წერია `NOT STORED` და სია ცარიელია
+        ([route.ts:83](../website/src/app/api/waitlist/route.ts:83)). key-ის უფლება Resend-ში
+        ადგილზე რედაქტირდება — ახალი key და redeploy არ სჭირდება
       - Development გარემო განზრახ არაა — Vercel `Sensitive` ცვლადს იქ არ უშვებს (`vercel env pull`)
       - ⚠️ env-ის ცვლილება **მხოლოდ ახალ deployment-ში** ჩაიტვირთება — Redeploy სავალდებულოა
 - [x] 🤖 `site.email` → **`hello@legibly.design`** ✅ ცოცხალია Cloudflare Email Routing-ით (§1)
