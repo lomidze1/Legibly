@@ -15,16 +15,16 @@
 
 ```
 ✅ დომენი ──┬──✅ website deploy ──✅ plugin-ის ხუთივე ლინკი ცოცხალია
-            ├──🔴 Resend domain verification ──> waitlist form ამუშავდება
+            ├──✅ Resend domain verification ──✅ waitlist form მუშაობს
             └──🔴 Figma OAuth redirect URI
 
 🔴 backend (Flitt + OAuth + License) ──> paywall ჩართვა ──> Pro რეალურად იყიდება
                                      └──> /api/judge (D24, cutoff 1 სექტ.)
 ```
 
-**ერთი წინადადებით (განახლდა 2026-08-03):** დომენისა და deploy-ის ჯაჭვი **დახურულია** —
-`https://legibly.design` ცოცხალია და plugin-ის ხუთივე ლინკი მუშაობს. დარჩა **ორი ფესვი:
-Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდვის გზა ჯერ არ არსებობს).
+**ერთი წინადადებით (განახლდა 2026-08-12):** დომენი, deploy და **email/waitlist** — სამივე
+დახურულია. `https://legibly.design` ცოცხალია, plugin-ის ხუთივე ლინკი მუშაობს, waitlist იღებს
+მისამართებს. დარჩა **ერთი ფესვი: backend** (Pro-ს ყიდვის გზა ჯერ არ არსებობს).
 
 ---
 
@@ -38,16 +38,23 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
       WHOIS privacy ✅ · auto-renew ✅
 - [x] 🤖 დომენი ჩასმულია კოდში: `SITE` ([links.ts:8](../plugin/src/ui/links.ts:8)),
       `SITE_URL` ([schema.ts:3](../website/src/lib/schema.ts:3)), `site.email` → `hello@legibly.design`
-- [x] 👤 **Email forwarding ✅** (2026-08-03) — `hello@` · `support@` · `billing@` → პირად Gmail-ზე,
-      Namecheap-ის უფასო Redirect Email-ით. MX = `eforward1–5.registrar-servers.com`.
-      საიტზე მხოლოდ `hello@` ჩანს; `billing@` Terms-სა და ქვითრებისთვისაა
-      - ⚠️ forwarding მხოლოდ **მიღებაა** — პასუხი პირადი Gmail-იდან წავა. გამოსწორება Resend-ის
-        შემდეგ: Gmail → Accounts → *Send mail as* → `hello@legibly.design`
-- [x] 👤 **DNS ✅** (2026-08-03) — `A` `@` → `216.198.79.1`, `CNAME` `www` →
-      `6c118a1a637b104d.vercel-dns-017.com`. Nameservers დარჩა `Namecheap BasicDNS`
-      (თუ Vercel-ის NS-ზე გადავიდოდით, email forwarding გაითიშებოდა)
-- [ ] 👤 Resend-ის DNS: `TXT`/`MX` (SPF/DKIM/DMARC) — **`send.legibly.design` subdomain-ზე**,
-      რომ root-ის `MX` forwarding-ს დარჩეს
+- [x] 👤 **Email forwarding ✅** (2026-08-12, **მიგრირდა Cloudflare-ზე**) — `hello@` · `support@` ·
+      `billing@` → პირად Gmail-ზე, **Cloudflare Email Routing**-ით. MX = `route1/2/3.mx.cloudflare.net`.
+      Catch-all განზრახ `Disabled`. საიტზე მხოლოდ `hello@` ჩანს; `billing@` Terms-სა და ქვითრებისთვისაა
+      - ⚠️ forwarding მხოლოდ **მიღებაა** — პასუხი პირადი Gmail-იდან წავა. გამოსწორება:
+        Gmail → Accounts → *Send mail as* → `hello@legibly.design`
+      - ❌ **ძველი Namecheap Redirect Email მიტოვებულია.** მიზეზი: ის სერვისია, არა უბრალოდ MX —
+        მუშაობს მხოლოდ `Mail Settings = Email Forwarding` რეჟიმში, რომელიც MX-ს ბოქლომით კეტავს.
+        `Custom MX`-ზე გადასვლა forwarding-ს **თიშავს** (ვცადეთ, ჩავარდა). ე.ი. Namecheap-ზე
+        root-ის forwarding და `send`-ის MX ერთდროულად შეუძლებელი იყო — ეს იყო Resend-ის ბლოკერი
+- [x] 👤 **DNS ✅** (2026-08-12) — nameservers `Namecheap BasicDNS` → **Cloudflare**
+      (`kate.ns` · `rajeev.ns`). `A` `@` → `216.198.79.1`, `CNAME` `www` →
+      `6c118a1a637b104d.vercel-dns-017.com` — ორივე **`DNS only` (proxy OFF)**, თორემ Vercel-ის
+      TLS-ის ავტომატური განახლება ჩაიშლება. დომენის რეგისტრაცია Namecheap-ზე დარჩა
+- [x] 👤 **Resend-ის DNS ✅** (2026-08-12) — `TXT resend._domainkey` (DKIM) ·
+      `TXT send` + **`MX send` → `feedback-smtp.eu-west-1.amazonses.com` (pri 10)**.
+      root-ის SPF ახლა Cloudflare-ისაა (`include:_spf.mx.cloudflare.net`), დუბლიკატის გარეშე
+- [ ] 🤖 DMARC (`_dmarc` → `v=DMARC1; p=none;`) — არასავალდებულო, Cloudflare გვირჩევს
 - [ ] 👤 **Trademark clearance (Track F)** — ⬆️ **პრიორიტეტი გაიზარდა.** `legibly.app`-ის აღმოჩენის
       შემდეგ ეს აღარაა ფორმალობა: ფორმალური USPTO/EUIPO ძებნა **Figma Community publish-ამდე.**
       თუ `.app`-ის მფლობელს აქვს ნიშანი class 9/42-ში — rename იძულებითია
@@ -86,16 +93,19 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
 
 ---
 
-## 3. 🔴 Email / waitlist — ახლა არ მუშაობს
+## 3. ✅ Email / waitlist — მუშაობს (2026-08-12)
 
-[`website/src/app/api/waitlist/route.ts`](../website/src/app/api/waitlist/route.ts) `RESEND_API_KEY`-ის
-გარეშე **503-ს აბრუნებს** ("The waitlist is not configured yet").
+[`website/src/app/api/waitlist/route.ts`](../website/src/app/api/waitlist/route.ts) ცოცხალ დომენზე
+გადამოწმებულია: სწორი მისამართი → `{"ok":true}` 200 · არასწორი → 400 · honeypot → 200 და არ ინახება.
 
-- [ ] 👤 Resend account + domain verification (⇒ დომენი, §1)
-- [ ] 👤 env vars deploy-ზე: `RESEND_API_KEY`, `RESEND_AUDIENCE_ID`, `WAITLIST_FROM`
-      - default sender ახლა `onboarding@resend.dev` — **Resend-ის sandbox, real launch-ზე არ გამოდგება**
-- [x] 🤖 `site.email` → **`hello@legibly.design`** (2026-08-01, ადრე `hello@glinc.io` იყო).
-      ⚠️ **mailbox ჯერ არ არსებობს** — Namecheap forwarding საჭიროა, თორემ waitlist-ის შეტყობინება ბრუნდება
+- [x] 👤 **Resend account + domain verification ✅** (2026-08-12) — `legibly.design`, region
+      Ireland (`eu-west-1`), status `Verified`
+- [x] 👤 **env vars Vercel-ზე ✅** (Production + Preview): `RESEND_API_KEY` (Sending access) ·
+      `RESEND_AUDIENCE_ID` (audience `Legibly waitlist`, არა `General`) ·
+      `WAITLIST_FROM` = `Legibly waitlist <noreply@legibly.design>`
+      - Development გარემო განზრახ არაა — Vercel `Sensitive` ცვლადს იქ არ უშვებს (`vercel env pull`)
+      - ⚠️ env-ის ცვლილება **მხოლოდ ახალ deployment-ში** ჩაიტვირთება — Redeploy სავალდებულოა
+- [x] 🤖 `site.email` → **`hello@legibly.design`** ✅ ცოცხალია Cloudflare Email Routing-ით (§1)
 - [ ] 🤖 **double opt-in — გადადებულია launch-ის დაგზავნამდე** (user-approved 2026-08-03).
       GDPR მას *არ* ავალდებულებს — საჭიროა დამტკიცებადი consent, რაც ერთჯერადი opt-in-ითაც
       მიიღწევა. სამაგიეროდ ✅ **ფორმას დაემატა consent-ის ხაზი გაგზავნამდე** (`WaitlistForm.tsx`):
@@ -218,10 +228,9 @@ Resend** (waitlist ჯერ 503-ია) და **backend** (Pro-ს ყიდ�
 
 ## 10. მოკლე პასუხი — "დღეს რომ დავაჭიროთ publish-ს, რა მოხდება?"
 
-**განახლდა 2026-08-03.** Plugin იმუშავებს, საიტი ცოცხალია საკუთარ დომენზე, ხუთივე ლინკი მუშაობს,
-email მისამართები ჩვენია. დარჩა ორი:
+**განახლდა 2026-08-12.** Plugin იმუშავებს, საიტი ცოცხალია საკუთარ დომენზე, ხუთივე ლინკი მუშაობს,
+email მისამართები ჩვენია და **waitlist რეალურად იღებს მისამართებს.** დარჩა ერთი:
 
-- 🔴 **waitlist 503-ს აბრუნებს** — Resend key + domain verification (§3)
 - 🔴 **Pro-ს ყიდვის გზა არ არსებობს** — backend + Flitt + OAuth (§5)
 
-ე.ი. **launch-ის ნახევარი დახურულია.** დარჩენილი ორივე ერთ ფესვზე დგას — **backend.**
+ე.ი. launch-ის ყველა infrastructure-ული წინაპირობა დახურულია. **დარჩენილი ერთადერთი ბლოკერი backend-ია.**
