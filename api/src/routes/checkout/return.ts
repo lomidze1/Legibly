@@ -1,5 +1,5 @@
-import { env } from '../../config/env';
-import { queryParam, redirect, type ApiHandler } from '../../lib/http';
+import { env } from '../../config/env.js';
+import { queryParam, redirect, type ApiHandler } from '../../lib/http.js';
 
 /**
  * Flitt sends the shopper back with a POST. A 303 is what makes the browser

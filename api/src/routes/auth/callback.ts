@@ -1,15 +1,15 @@
-import { env } from '../../config/env';
-import { PLUGIN_TOKEN_TTL_SECONDS, signToken } from '../../lib/hmac';
-import { html, queryParam, type ApiHandler } from '../../lib/http';
-import { authStore, type AuthStore } from '../../models/authStore';
-import { licenseStore, type LicenseStore } from '../../models/License';
+import { env } from '../../config/env.js';
+import { PLUGIN_TOKEN_TTL_SECONDS, signToken } from '../../lib/hmac.js';
+import { html, queryParam, type ApiHandler } from '../../lib/http.js';
+import { authStore, type AuthStore } from '../../models/authStore.js';
+import { licenseStore, type LicenseStore } from '../../models/License.js';
 import {
   exchangeCodeForToken,
   fetchFigmaUser,
   figmaOAuthConfig,
   type FigmaOAuthConfig,
   type FigmaUser,
-} from '../../services/figmaOAuth';
+} from '../../services/figmaOAuth.js';
 
 /**
  * How long the finished token waits for the plugin to collect it.

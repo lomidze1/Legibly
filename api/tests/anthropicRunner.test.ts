@@ -38,10 +38,10 @@ vi.mock('@anthropic-ai/sdk', () => ({
   },
 }));
 
-const { JUDGE_MAX_TOKENS } = await import('../src/config/judge');
-const { JUDGE_SYSTEM_PROMPT, VERDICT_SCHEMA } = await import('../src/services/judgeRubric');
+const { JUDGE_MAX_TOKENS } = await import('../src/config/judge.js');
+const { JUDGE_SYSTEM_PROMPT, VERDICT_SCHEMA } = await import('../src/services/judgeRubric.js');
 const { JudgeUnavailableError, anthropicRunner, judge, renderNodes } = await import(
-  '../src/services/judgeService'
+  '../src/services/judgeService.js'
 );
 
 const config = { apiKey: 'sk-ant-test', model: 'claude-opus-5', freeTrials: 3, proMonthly: 30 };

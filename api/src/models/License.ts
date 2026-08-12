@@ -1,5 +1,5 @@
-import type { Duration } from '../config/pricing';
-import { query } from '../lib/db';
+import type { Duration } from '../config/pricing.js';
+import { query } from '../lib/db.js';
 
 export type Plan = 'free' | 'pro';
 export type LicenseStatus = 'active' | 'expired';

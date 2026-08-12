@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadEnv } from '../src/config/env';
+import { loadEnv } from '../src/config/env.js';
 import {
   FIGMA_ME_URL,
   FIGMA_TOKEN_URL,
@@ -11,7 +11,7 @@ import {
   figmaOAuthConfig,
   type FetchLike,
   type FigmaOAuthConfig,
-} from '../src/services/figmaOAuth';
+} from '../src/services/figmaOAuth.js';
 
 const config: FigmaOAuthConfig = {
   clientId: 'client-123',

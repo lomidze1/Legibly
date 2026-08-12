@@ -7,12 +7,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * parameters they are given, and how a row is turned into a domain object.
  */
 
-vi.mock('../src/lib/db', () => ({ query: vi.fn(async () => []) }));
+vi.mock('../src/lib/db.js', () => ({ query: vi.fn(async () => []) }));
 
-const { query } = await import('../src/lib/db');
-const { licenseStore } = await import('../src/models/License');
-const { webhookEventStore } = await import('../src/models/WebhookEvent');
-const { authStore } = await import('../src/models/authStore');
+const { query } = await import('../src/lib/db.js');
+const { licenseStore } = await import('../src/models/License.js');
+const { webhookEventStore } = await import('../src/models/WebhookEvent.js');
+const { authStore } = await import('../src/models/authStore.js');
 
 const mockQuery = vi.mocked(query);
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { requireAdmin, verifyAdminToken } from '../src/middleware/adminAuth';
-import { fakeResponse } from './helpers';
+import { requireAdmin, verifyAdminToken } from '../src/middleware/adminAuth.js';
+import { fakeResponse } from './helpers.js';
 
 const TOKEN = 'a'.repeat(40);
 

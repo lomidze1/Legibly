@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { PRICES } from '../src/config/pricing';
-import { signToken } from '../src/lib/hmac';
-import { createCheckoutCreateHandler, sanitizeReturnUrl } from '../src/routes/checkout/create';
-import { createCheckoutReturnHandler, createReturnHandler } from '../src/routes/checkout/return';
-import { FlittError, signParams, type CheckoutRequest, type FlittConfig } from '../src/services/flittService';
-import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
+import { PRICES } from '../src/config/pricing.js';
+import { signToken } from '../src/lib/hmac.js';
+import { createCheckoutCreateHandler, sanitizeReturnUrl } from '../src/routes/checkout/create.js';
+import { createCheckoutReturnHandler, createReturnHandler } from '../src/routes/checkout/return.js';
+import { FlittError, signParams, type CheckoutRequest, type FlittConfig } from '../src/services/flittService.js';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

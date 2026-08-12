@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { DURATION_MS, PRICES, RENEWAL_WINDOW_MS } from '../src/config/pricing';
-import { signParams } from '../src/services/flittService';
-import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt';
-import { fakeAuditStore, fakeLicenseStore, fakeResponse, fakeUsageEvents, fakeWebhookEventStore, proLicense } from './helpers';
+import { DURATION_MS, PRICES, RENEWAL_WINDOW_MS } from '../src/config/pricing.js';
+import { signParams } from '../src/services/flittService.js';
+import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt.js';
+import { fakeAuditStore, fakeLicenseStore, fakeResponse, fakeUsageEvents, fakeWebhookEventStore, proLicense } from './helpers.js';
 
 const SECRET = 'test_secret_key';
 const NOW = 1_700_000_000_000;

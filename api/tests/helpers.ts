@@ -1,9 +1,9 @@
-import type { ApiResponse } from '../src/lib/http';
-import type { AuthStore, PendingAuth } from '../src/models/authStore';
-import type { LicenseRow, LicenseStore } from '../src/models/License';
-import type { LicenseAuditInput, LicenseAuditStore } from '../src/models/LicenseAudit';
-import type { UsageEventInput, UsageEventStore } from '../src/models/UsageEvent';
-import type { WebhookEventRecord, WebhookEventStore } from '../src/models/WebhookEvent';
+import type { ApiResponse } from '../src/lib/http.js';
+import type { AuthStore, PendingAuth } from '../src/models/authStore.js';
+import type { LicenseRow, LicenseStore } from '../src/models/License.js';
+import type { LicenseAuditInput, LicenseAuditStore } from '../src/models/LicenseAudit.js';
+import type { UsageEventInput, UsageEventStore } from '../src/models/UsageEvent.js';
+import type { WebhookEventRecord, WebhookEventStore } from '../src/models/WebhookEvent.js';
 
 export interface FakeResponse extends ApiResponse {
   statusCode: number | null;

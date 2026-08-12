@@ -1,5 +1,5 @@
-import { TOKEN_ERROR_MESSAGE, verifyToken } from '../lib/hmac';
-import type { ApiRequest, ApiResponse } from '../lib/http';
+import { TOKEN_ERROR_MESSAGE, verifyToken } from '../lib/hmac.js';
+import type { ApiRequest, ApiResponse } from '../lib/http.js';
 
 const BEARER_PATTERN = /^Bearer[ ]+(.+)$/i;
 

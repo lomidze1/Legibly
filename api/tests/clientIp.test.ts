@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { UNKNOWN_IP, clientIpFrom } from '../src/lib/clientIp';
+import { UNKNOWN_IP, clientIpFrom } from '../src/lib/clientIp.js';
 
 describe('clientIpFrom', () => {
   it('prefers the header Vercel sets itself', () => {

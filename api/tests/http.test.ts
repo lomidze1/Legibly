@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { html, queryParam, redirect } from '../src/lib/http';
-import { fakeResponse } from './helpers';
+import { html, queryParam, redirect } from '../src/lib/http.js';
+import { fakeResponse } from './helpers.js';
 
 describe('queryParam', () => {
   it('reads a plain value', () => {

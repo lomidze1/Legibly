@@ -8,7 +8,7 @@
  * ever be passed into it.
  */
 
-import { query } from '../lib/db';
+import { query } from '../lib/db.js';
 
 export type UsageEventKind =
   | 'checkin'

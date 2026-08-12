@@ -11,7 +11,7 @@ import {
   sanitizeUserId,
   signParams,
   verifyCallback,
-} from '../src/services/flittService';
+} from '../src/services/flittService.js';
 
 const SECRET = 'test_secret_key';
 

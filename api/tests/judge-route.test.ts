@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadEnv } from '../src/config/env';
-import { DEFAULT_JUDGE_MODEL, JudgeDisabledError, judgeConfig, judgeEnabled } from '../src/config/judge';
-import { signToken } from '../src/lib/hmac';
-import { createJudgeHandler, quotaFor } from '../src/routes/judge/judge';
-import { JudgeRefusedError, JudgeUnavailableError, type RunModel } from '../src/services/judgeService';
-import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
+import { loadEnv } from '../src/config/env.js';
+import { DEFAULT_JUDGE_MODEL, JudgeDisabledError, judgeConfig, judgeEnabled } from '../src/config/judge.js';
+import { signToken } from '../src/lib/hmac.js';
+import { createJudgeHandler, quotaFor } from '../src/routes/judge/judge.js';
+import { JudgeRefusedError, JudgeUnavailableError, type RunModel } from '../src/services/judgeService.js';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = Date.parse('2026-08-12T12:00:00Z');

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ApiHandler } from '../src/lib/http';
-import { withCors } from '../src/middleware/cors';
-import { fakeResponse } from './helpers';
+import type { ApiHandler } from '../src/lib/http.js';
+import { withCors } from '../src/middleware/cors.js';
+import { fakeResponse } from './helpers.js';
 
 const reached: ApiHandler = (_req, res) => {
   res.status(200).json({ ok: true });

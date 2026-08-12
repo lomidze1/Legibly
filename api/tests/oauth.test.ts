@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { verifyToken } from '../src/lib/hmac';
-import { createCallbackHandler, PENDING_AUTH_TTL_MS } from '../src/routes/auth/callback';
-import { createExchangeHandler } from '../src/routes/auth/exchange';
-import { createLoginHandler, OAUTH_STATE_TTL_MS } from '../src/routes/auth/login';
-import type { FigmaOAuthConfig, FigmaUser } from '../src/services/figmaOAuth';
-import { VALID_NONCE, fakeAuthStore, fakeLicenseStore, fakeResponse } from './helpers';
+import { verifyToken } from '../src/lib/hmac.js';
+import { createCallbackHandler, PENDING_AUTH_TTL_MS } from '../src/routes/auth/callback.js';
+import { createExchangeHandler } from '../src/routes/auth/exchange.js';
+import { createLoginHandler, OAUTH_STATE_TTL_MS } from '../src/routes/auth/login.js';
+import type { FigmaOAuthConfig, FigmaUser } from '../src/services/figmaOAuth.js';
+import { VALID_NONCE, fakeAuthStore, fakeLicenseStore, fakeResponse } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

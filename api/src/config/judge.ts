@@ -21,7 +21,7 @@
  * decision, not a technical one — see docs/judge-eval.md.
  */
 
-import type { Env } from './env';
+import type { Env } from './env.js';
 
 /** Opus 5 unless overridden. Cheaper models are a deliberate trade, not a default. */
 export const DEFAULT_JUDGE_MODEL = 'claude-opus-5';

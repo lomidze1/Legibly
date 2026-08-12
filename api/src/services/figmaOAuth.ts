@@ -6,7 +6,7 @@
  * access token is used once, for /v1/me, and then dropped — it is never stored.
  */
 
-import type { Env } from '../config/env';
+import type { Env } from '../config/env.js';
 
 export const FIGMA_AUTHORIZE_URL = 'https://www.figma.com/oauth';
 export const FIGMA_TOKEN_URL = 'https://api.figma.com/v1/oauth/token';

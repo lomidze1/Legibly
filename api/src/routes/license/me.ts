@@ -1,9 +1,9 @@
-import { env } from '../../config/env';
-import type { ApiHandler } from '../../lib/http';
-import { serializeLicense } from '../../lib/serializeLicense';
-import { requireAuth } from '../../middleware/auth';
-import { licenseStore, type LicenseStore } from '../../models/License';
-import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
+import { env } from '../../config/env.js';
+import type { ApiHandler } from '../../lib/http.js';
+import { serializeLicense } from '../../lib/serializeLicense.js';
+import { requireAuth } from '../../middleware/auth.js';
+import { licenseStore, type LicenseStore } from '../../models/License.js';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.js';
 
 export interface LicenseMeDeps {
   licenses: LicenseStore;

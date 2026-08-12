@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { DURATION_MS, RENEWAL_WINDOW_MS } from '../src/config/pricing';
-import type { LicenseRow } from '../src/models/License';
-import { computeCycleEnd, isLivePro, renewalState } from '../src/services/licenseService';
-import { proLicense } from './helpers';
+import { DURATION_MS, RENEWAL_WINDOW_MS } from '../src/config/pricing.js';
+import type { LicenseRow } from '../src/models/License.js';
+import { computeCycleEnd, isLivePro, renewalState } from '../src/services/licenseService.js';
+import { proLicense } from './helpers.js';
 
 const NOW = 1_700_000_000_000;
 const DAY = 86_400_000;

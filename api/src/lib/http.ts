@@ -4,7 +4,7 @@
  * `VercelRequest`/`VercelResponse` satisfy these structurally.
  */
 
-import type { HeaderBag } from './clientIp';
+import type { HeaderBag } from './clientIp.js';
 
 export type QueryBag = Record<string, string | string[] | undefined>;
 

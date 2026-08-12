@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { PRICES } from '../src/config/pricing';
+import { PRICES } from '../src/config/pricing.js';
 import {
   FlittError,
   createCheckoutUrl,
@@ -8,7 +8,7 @@ import {
   type CheckoutRequest,
   type FetchLike,
   type FlittConfig,
-} from '../src/services/flittService';
+} from '../src/services/flittService.js';
 
 const config: FlittConfig = {
   merchantId: '1396424',

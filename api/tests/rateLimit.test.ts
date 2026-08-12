@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ApiHandler } from '../src/lib/http';
+import type { ApiHandler } from '../src/lib/http.js';
 import {
   AUTH_RATE_LIMIT,
   bucketKeyFor,
   checkRateLimit,
   withRateLimit,
   type BumpBucket,
-} from '../src/middleware/rateLimit';
-import { fakeResponse } from './helpers';
+} from '../src/middleware/rateLimit.js';
+import { fakeResponse } from './helpers.js';
 
 const WINDOW_MS = 600_000; // 10 minutes
 const options = { scope: 'auth', limit: 3, windowMs: WINDOW_MS };

@@ -1,7 +1,7 @@
-import { env } from '../../src/config/env';
-import type { ApiRequest, ApiResponse } from '../../src/lib/http';
-import { flittIpAllowlist, withFlittIpAllowlist } from '../../src/middleware/flittIpAllowlist';
-import { flittWebhookHandler } from '../../src/routes/webhooks/flitt';
+import { env } from '../../src/config/env.js';
+import type { ApiRequest, ApiResponse } from '../../src/lib/http.js';
+import { flittIpAllowlist, withFlittIpAllowlist } from '../../src/middleware/flittIpAllowlist.js';
+import { flittWebhookHandler } from '../../src/routes/webhooks/flitt.js';
 
 // Composed per request rather than at module load, so an instance that started
 // before the env var was set does not cache the wrong allowlist.

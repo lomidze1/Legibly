@@ -5,8 +5,8 @@
  * access someone paid for, and it has to be provable without a database.
  */
 
-import { DURATION_MS, RENEWAL_WINDOW_MS, type Duration } from '../config/pricing';
-import type { LicenseRow } from '../models/License';
+import { DURATION_MS, RENEWAL_WINDOW_MS, type Duration } from '../config/pricing.js';
+import type { LicenseRow } from '../models/License.js';
 
 const DAY_MS = 86_400_000;
 

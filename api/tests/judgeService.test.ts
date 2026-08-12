@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { MAX_PNG_BYTES, MAX_TREE_NODES, judgeMonth } from '../src/config/judge';
-import { VERDICT_SCHEMA } from '../src/services/judgeRubric';
+import { MAX_PNG_BYTES, MAX_TREE_NODES, judgeMonth } from '../src/config/judge.js';
+import { VERDICT_SCHEMA } from '../src/services/judgeRubric.js';
 import {
   JudgeInputError,
   JudgeRefusedError,
@@ -11,7 +11,7 @@ import {
   parseVerdict,
   renderNodes,
   type ModelReply,
-} from '../src/services/judgeService';
+} from '../src/services/judgeService.js';
 
 const PNG = Buffer.from('a fake png').toString('base64');
 

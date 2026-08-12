@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { PRICES } from '../src/config/pricing';
-import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt';
-import { signParams } from '../src/services/flittService';
-import { fakeAuditStore, fakeLicenseStore, fakeResponse, fakeUsageEvents, fakeWebhookEventStore, proLicense } from './helpers';
+import { PRICES } from '../src/config/pricing.js';
+import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt.js';
+import { signParams } from '../src/services/flittService.js';
+import { fakeAuditStore, fakeLicenseStore, fakeResponse, fakeUsageEvents, fakeWebhookEventStore, proLicense } from './helpers.js';
 
 /**
  * The negative half of the webhook: tampering, replay, and the status

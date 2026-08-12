@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { DURATION_MS } from '../src/config/pricing';
-import { grantCycleEnd, handleLicenseMutation, parseMutation } from '../src/routes/admin/license';
-import type { LicenseAuditStore } from '../src/models/LicenseAudit';
-import { fakeAuditStore, fakeLicenseStore, fakeResponse, proLicense } from './helpers';
+import { DURATION_MS } from '../src/config/pricing.js';
+import { grantCycleEnd, handleLicenseMutation, parseMutation } from '../src/routes/admin/license.js';
+import type { LicenseAuditStore } from '../src/models/LicenseAudit.js';
+import { fakeAuditStore, fakeLicenseStore, fakeResponse, proLicense } from './helpers.js';
 
 const NOW = Date.parse('2026-08-12T12:00:00Z');
 const DAY = 86_400_000;

@@ -8,7 +8,7 @@
 
 import { timingSafeEqual } from 'node:crypto';
 
-import type { ApiRequest, ApiResponse } from '../lib/http';
+import type { ApiRequest, ApiResponse } from '../lib/http.js';
 
 const BEARER_PATTERN = /^Bearer[ ]+(.+)$/i;
 

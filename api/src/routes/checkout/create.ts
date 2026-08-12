@@ -1,10 +1,10 @@
-import { env } from '../../config/env';
-import { isDuration } from '../../config/pricing';
-import type { ApiHandler } from '../../lib/http';
-import { isPlainObject } from '../../lib/validators';
-import { requireAuth } from '../../middleware/auth';
-import { licenseStore, type LicenseStore } from '../../models/License';
-import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
+import { env } from '../../config/env.js';
+import { isDuration } from '../../config/pricing.js';
+import type { ApiHandler } from '../../lib/http.js';
+import { isPlainObject } from '../../lib/validators.js';
+import { requireAuth } from '../../middleware/auth.js';
+import { licenseStore, type LicenseStore } from '../../models/License.js';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.js';
 import {
   buildOrderId,
   createCheckoutUrl,
@@ -13,8 +13,8 @@ import {
   isOrderSafeUserId,
   type CheckoutRequest,
   type FlittConfig,
-} from '../../services/flittService';
-import { renewalState } from '../../services/licenseService';
+} from '../../services/flittService.js';
+import { renewalState } from '../../services/licenseService.js';
 
 const ALLOWED_RETURN_HOSTS = new Set(['legibly.design', 'www.legibly.design']);
 const LOOPBACK_RETURN_HOSTS = new Set(['localhost', '127.0.0.1']);

@@ -10,8 +10,8 @@
  * so "today" in the panel is the UTC day, not the viewer's.
  */
 
-import { CURRENCY, PRICES } from '../config/pricing';
-import { query } from '../lib/db';
+import { CURRENCY, PRICES } from '../config/pricing.js';
+import { query } from '../lib/db.js';
 
 const DAY_MS = 86_400_000;
 

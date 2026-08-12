@@ -18,11 +18,11 @@ vi.mock('pg', () => {
   return { default: { Pool: FakePool } };
 });
 
-vi.mock('../src/config/env', () => ({
+vi.mock('../src/config/env.js', () => ({
   env: () => ({ databaseUrl: 'postgres://user:pass@host/db' }),
 }));
 
-const { closePool, getPool, pingStore, query } = await import('../src/lib/db');
+const { closePool, getPool, pingStore, query } = await import('../src/lib/db.js');
 
 beforeEach(() => {
   poolInstances.length = 0;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { isDuration, PRICES, DURATION_MS, RENEWAL_WINDOW_MS, CURRENCY } from '../src/config/pricing';
-import { asAmountCents, asString, asStringMax, isPlainObject } from '../src/lib/validators';
+import { isDuration, PRICES, DURATION_MS, RENEWAL_WINDOW_MS, CURRENCY } from '../src/config/pricing.js';
+import { asAmountCents, asString, asStringMax, isPlainObject } from '../src/lib/validators.js';
 
 describe('isPlainObject', () => {
   it('accepts an object literal and a parsed JSON object', () => {

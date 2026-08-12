@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { loadEnv } from '../src/config/env';
-import type { ApiHandler } from '../src/lib/http';
-import { flittIpAllowlist, withFlittIpAllowlist } from '../src/middleware/flittIpAllowlist';
-import { fakeResponse } from './helpers';
+import { loadEnv } from '../src/config/env.js';
+import type { ApiHandler } from '../src/lib/http.js';
+import { flittIpAllowlist, withFlittIpAllowlist } from '../src/middleware/flittIpAllowlist.js';
+import { fakeResponse } from './helpers.js';
 
 const baseEnv: NodeJS.ProcessEnv = {
   NODE_ENV: 'production',

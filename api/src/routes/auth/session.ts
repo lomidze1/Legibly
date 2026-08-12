@@ -1,7 +1,7 @@
-import { env } from '../../config/env';
-import { PLUGIN_TOKEN_TTL_SECONDS, signToken } from '../../lib/hmac';
-import type { ApiHandler } from '../../lib/http';
-import { requireAuth } from '../../middleware/auth';
+import { env } from '../../config/env.js';
+import { PLUGIN_TOKEN_TTL_SECONDS, signToken } from '../../lib/hmac.js';
+import type { ApiHandler } from '../../lib/http.js';
+import { requireAuth } from '../../middleware/auth.js';
 
 export interface SessionDeps {
   authSecret: string;

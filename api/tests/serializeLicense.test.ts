@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { serializeLicense } from '../src/lib/serializeLicense';
-import type { LicenseRow } from '../src/models/License';
-import { proLicense } from './helpers';
+import { serializeLicense } from '../src/lib/serializeLicense.js';
+import type { LicenseRow } from '../src/models/License.js';
+import { proLicense } from './helpers.js';
 
 const NOW = 1_700_000_000_000;
 

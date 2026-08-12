@@ -11,7 +11,7 @@
  * Credentialed CORS is never enabled, and must not be.
  */
 
-import type { ApiHandler } from '../lib/http';
+import type { ApiHandler } from '../lib/http.js';
 
 const MAX_AGE_SECONDS = 86_400;
 

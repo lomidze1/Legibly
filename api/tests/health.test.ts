@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { createHealthHandler } from '../src/routes/health';
-import { fakeResponse } from './helpers';
+import { createHealthHandler } from '../src/routes/health.js';
+import { fakeResponse } from './helpers.js';
 
 const get = { method: 'GET', headers: {} };
 

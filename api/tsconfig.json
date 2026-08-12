@@ -2,8 +2,12 @@
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022"],
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    // NodeNext, not "bundler": Vercel runs these files as real Node ESM, where a
+    // relative import without a file extension does not resolve. This setting
+    // makes the compiler enforce the extensions rather than letting a bundler
+    // paper over their absence — the exact gap that crashed the first deploy.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "types": ["node"],
     "strict": true,
     "noUncheckedIndexedAccess": true,

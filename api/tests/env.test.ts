@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { EnvError, loadEnv } from '../src/config/env';
+import { EnvError, loadEnv } from '../src/config/env.js';
 
 const complete: NodeJS.ProcessEnv = {
   NODE_ENV: 'production',

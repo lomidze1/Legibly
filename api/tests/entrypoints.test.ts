@@ -27,7 +27,7 @@ const licenseRow = {
   last_duration: null,
 };
 
-vi.mock('../src/lib/db', () => ({
+vi.mock('../src/lib/db.js', () => ({
   query: vi.fn(async (text: string, params: readonly unknown[] = []) => {
     issued.push({ text, params });
 
@@ -65,18 +65,18 @@ Object.assign(process.env, {
   FLITT_WEBHOOK_IPS: '54.154.216.60',
 });
 
-const { signToken } = await import('../src/lib/hmac');
-const { PRICES } = await import('../src/config/pricing');
-const { signParams } = await import('../src/services/flittService');
-const { fakeResponse } = await import('./helpers');
+const { signToken } = await import('../src/lib/hmac.js');
+const { PRICES } = await import('../src/config/pricing.js');
+const { signParams } = await import('../src/services/flittService.js');
+const { fakeResponse } = await import('./helpers.js');
 
-const health = (await import('../api/health')).default;
-const authMe = (await import('../api/auth/me')).default;
-const licenseMe = (await import('../api/license/me')).default;
-const checkoutCreate = (await import('../api/checkout/create')).default;
-const checkoutReturn = (await import('../api/checkout/[action]')).default;
-const judgeEntry = (await import('../api/judge')).default;
-const flittWebhook = (await import('../api/webhooks/flitt')).default;
+const health = (await import('../api/health.js')).default;
+const authMe = (await import('../api/auth/me.js')).default;
+const licenseMe = (await import('../api/license/me.js')).default;
+const checkoutCreate = (await import('../api/checkout/create.js')).default;
+const checkoutReturn = (await import('../api/checkout/[action].js')).default;
+const judgeEntry = (await import('../api/judge.js')).default;
+const flittWebhook = (await import('../api/webhooks/flitt.js')).default;
 
 /** A fresh address per test keeps one bucket from spilling into the next. */
 let addressCounter = 0;

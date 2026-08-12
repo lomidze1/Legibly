@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { signToken } from '../src/lib/hmac';
-import { createLicenseMeHandler } from '../src/routes/license/me';
-import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
+import { signToken } from '../src/lib/hmac.js';
+import { createLicenseMeHandler } from '../src/routes/license/me.js';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

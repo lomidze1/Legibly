@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
-import { createAdminHandler, segmentsOf } from '../src/routes/admin/router';
+import { createAdminHandler, segmentsOf } from '../src/routes/admin/router.js';
 import type {
   AdminStats,
   AdminStore,
   AdminUserRow,
   FeedQuery,
   UsersQuery,
-} from '../src/models/adminStore';
-import { fakeAuditStore, fakeLicenseStore, fakeResponse, proLicense } from './helpers';
+} from '../src/models/adminStore.js';
+import { fakeAuditStore, fakeLicenseStore, fakeResponse, proLicense } from './helpers.js';
 
 const TOKEN = 'a'.repeat(40);
 const NOW = Date.parse('2026-08-12T12:00:00Z');

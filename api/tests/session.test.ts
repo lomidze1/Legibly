@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import { PLUGIN_TOKEN_TTL_SECONDS, TOKEN_ERROR_MESSAGE, signToken, verifyToken } from '../src/lib/hmac';
-import { createMeHandler, createRefreshHandler } from '../src/routes/auth/session';
-import { fakeResponse } from './helpers';
+import { PLUGIN_TOKEN_TTL_SECONDS, TOKEN_ERROR_MESSAGE, signToken, verifyToken } from '../src/lib/hmac.js';
+import { createMeHandler, createRefreshHandler } from '../src/routes/auth/session.js';
+import { fakeResponse } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

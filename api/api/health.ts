@@ -1,5 +1,5 @@
 // Vercel serverless entry point. With Root Directory = `api/`, this file is
 // served at /api/health. Route logic lives in src/routes so tests can reach it.
-import { healthHandler } from '../src/routes/health';
+import { healthHandler } from '../src/routes/health.js';
 
 export default healthHandler;

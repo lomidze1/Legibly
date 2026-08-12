@@ -4,7 +4,7 @@
  * schedule (2s / 60s / 5m / 10m / 1h / 24h) is prevented from paying twice.
  */
 
-import { query } from '../lib/db';
+import { query } from '../lib/db.js';
 
 export interface WebhookEventRecord {
   transactionId: string;

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { TOKEN_ERROR_MESSAGE, signToken } from '../src/lib/hmac';
-import type { ApiRequest } from '../src/lib/http';
-import { bearerUserId, requireAuth } from '../src/middleware/auth';
-import { fakeResponse } from './helpers';
+import { TOKEN_ERROR_MESSAGE, signToken } from '../src/lib/hmac.js';
+import type { ApiRequest } from '../src/lib/http.js';
+import { bearerUserId, requireAuth } from '../src/middleware/auth.js';
+import { fakeResponse } from './helpers.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

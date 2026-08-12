@@ -10,7 +10,7 @@
 // Cyclic by design: startupChecks reads `EnvError` from here, but only from
 // inside its function body, so both modules are fully evaluated before either
 // binding is touched.
-import { runStartupChecks } from './startupChecks';
+import { runStartupChecks } from './startupChecks.js';
 
 export type NodeEnvName = 'development' | 'test' | 'production';
 

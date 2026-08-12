@@ -14,7 +14,7 @@ const issued: string[] = [];
 let hits = 0;
 let deleteFails = false;
 
-vi.mock('../src/lib/db', () => ({
+vi.mock('../src/lib/db.js', () => ({
   query: vi.fn(async (text: string) => {
     issued.push(text);
     if (/DELETE FROM rate_limits/.test(text)) {
@@ -29,8 +29,8 @@ vi.mock('../src/lib/db', () => ({
   }),
 }));
 
-const { AUTH_RATE_LIMIT, withRateLimit } = await import('../src/middleware/rateLimit');
-const { fakeResponse } = await import('./helpers');
+const { AUTH_RATE_LIMIT, withRateLimit } = await import('../src/middleware/rateLimit.js');
+const { fakeResponse } = await import('./helpers.js');
 
 const reached = vi.fn(async (_req: unknown, res: { status: (c: number) => { json: (b: unknown) => void } }) => {
   res.status(200).json({ ok: true });

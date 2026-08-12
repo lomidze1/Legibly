@@ -6,9 +6,9 @@
  * The counter therefore lives in the store, keyed by scope + caller + window.
  */
 
-import { clientIpFrom } from '../lib/clientIp';
-import { query } from '../lib/db';
-import type { ApiHandler } from '../lib/http';
+import { clientIpFrom } from '../lib/clientIp.js';
+import { query } from '../lib/db.js';
+import type { ApiHandler } from '../lib/http.js';
 
 export interface RateLimitOptions {
   /** Route family the limit applies to, e.g. "auth". Keeps buckets separate. */

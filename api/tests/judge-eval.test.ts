@@ -3,9 +3,9 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_JUDGE_MODEL } from '../src/config/judge';
-import { anthropicRunner, judge, parseJudgeInput } from '../src/services/judgeService';
-import type { JudgeVerdict } from '../src/services/judgeRubric';
+import { DEFAULT_JUDGE_MODEL } from '../src/config/judge.js';
+import { anthropicRunner, judge, parseJudgeInput } from '../src/services/judgeService.js';
+import type { JudgeVerdict } from '../src/services/judgeRubric.js';
 
 /**
  * The rubric eval (backend-spec §8.4). D24 makes this the gate: a judge that

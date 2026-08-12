@@ -1,5 +1,5 @@
-import { pingStore } from '../lib/db';
-import type { ApiHandler } from '../lib/http';
+import { pingStore } from '../lib/db.js';
+import type { ApiHandler } from '../lib/http.js';
 
 export function createHealthHandler(ping: () => Promise<boolean>): ApiHandler {
   return async (req, res) => {

@@ -1,6 +1,6 @@
-import type { Env } from '../config/env';
-import { clientIpFrom } from '../lib/clientIp';
-import type { ApiHandler } from '../lib/http';
+import type { Env } from '../config/env.js';
+import { clientIpFrom } from '../lib/clientIp.js';
+import type { ApiHandler } from '../lib/http.js';
 
 export interface FlittIpAllowlist {
   enabled: boolean;

@@ -1,4 +1,4 @@
-import type { LicenseRow } from '../models/License';
+import type { LicenseRow } from '../models/License.js';
 
 export interface SerializedLicense {
   plan: 'free' | 'pro';

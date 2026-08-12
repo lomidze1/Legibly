@@ -1,6 +1,6 @@
-import { queryParam, type ApiHandler } from '../../lib/http';
-import { authStore, type AuthStore } from '../../models/authStore';
-import { PLUGIN_NONCE_PATTERN } from './login';
+import { queryParam, type ApiHandler } from '../../lib/http.js';
+import { authStore, type AuthStore } from '../../models/authStore.js';
+import { PLUGIN_NONCE_PATTERN } from './login.js';
 
 /**
  * Public by design. The nonce *is* the credential: 32 bytes of entropy, minted

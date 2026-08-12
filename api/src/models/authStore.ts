@@ -7,7 +7,7 @@
  * neither can live in memory.
  */
 
-import { query } from '../lib/db';
+import { query } from '../lib/db.js';
 
 export interface PendingAuth {
   token: string;

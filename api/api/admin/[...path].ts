@@ -4,7 +4,7 @@
 //
 // No CORS wrapper on purpose: the panel is same-origin and nothing else has any
 // business calling these from a browser.
-import { ADMIN_RATE_LIMIT, withRateLimit } from '../../src/middleware/rateLimit';
-import { adminHandler } from '../../src/routes/admin/router';
+import { ADMIN_RATE_LIMIT, withRateLimit } from '../../src/middleware/rateLimit.js';
+import { adminHandler } from '../../src/routes/admin/router.js';
 
 export default withRateLimit(adminHandler, ADMIN_RATE_LIMIT);

@@ -2,7 +2,7 @@ import { createHmac } from 'node:crypto';
 
 import { describe, expect, it } from 'vitest';
 
-import { PLUGIN_TOKEN_TTL_SECONDS, signToken, verifyToken } from '../src/lib/hmac';
+import { PLUGIN_TOKEN_TTL_SECONDS, signToken, verifyToken } from '../src/lib/hmac.js';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;

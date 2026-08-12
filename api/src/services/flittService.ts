@@ -8,9 +8,9 @@
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 
-import type { Env } from '../config/env';
-import { CURRENCY, PRICES, type Duration } from '../config/pricing';
-import { isPlainObject } from '../lib/validators';
+import type { Env } from '../config/env.js';
+import { CURRENCY, PRICES, type Duration } from '../config/pricing.js';
+import { isPlainObject } from '../lib/validators.js';
 
 /** ⚠️ Shares a Flitt merchant account with Web2Wireframe — the prefix is what separates them. */
 export const ORDER_ID_PREFIX = 'lgb_pro_';

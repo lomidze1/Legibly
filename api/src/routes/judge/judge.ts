@@ -1,9 +1,9 @@
-import { env } from '../../config/env';
-import { JudgeDisabledError, judgeConfig, judgeMonth } from '../../config/judge';
-import type { ApiHandler } from '../../lib/http';
-import { requireAuth } from '../../middleware/auth';
-import { licenseStore, type LicenseRow, type LicenseStore } from '../../models/License';
-import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
+import { env } from '../../config/env.js';
+import { JudgeDisabledError, judgeConfig, judgeMonth } from '../../config/judge.js';
+import type { ApiHandler } from '../../lib/http.js';
+import { requireAuth } from '../../middleware/auth.js';
+import { licenseStore, type LicenseRow, type LicenseStore } from '../../models/License.js';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.js';
 import {
   JudgeInputError,
   JudgeRefusedError,
@@ -12,8 +12,8 @@ import {
   judge,
   parseJudgeInput,
   type RunModel,
-} from '../../services/judgeService';
-import { isLivePro } from '../../services/licenseService';
+} from '../../services/judgeService.js';
+import { isLivePro } from '../../services/licenseService.js';
 
 export interface JudgeQuota {
   used: number;

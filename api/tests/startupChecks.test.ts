@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { loadEnv, type Env } from '../src/config/env';
-import { runStartupChecks } from '../src/config/startupChecks';
+import { loadEnv, type Env } from '../src/config/env.js';
+import { runStartupChecks } from '../src/config/startupChecks.js';
 
 function envWith(overrides: NodeJS.ProcessEnv = {}): Env {
   return loadEnv({

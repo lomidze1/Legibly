@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { PRICES } from '../src/config/pricing';
-import { signToken } from '../src/lib/hmac';
-import { createCheckoutCreateHandler } from '../src/routes/checkout/create';
-import { createJudgeHandler } from '../src/routes/judge/judge';
-import { createLicenseMeHandler } from '../src/routes/license/me';
-import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt';
-import { FlittError, signParams, type FlittConfig } from '../src/services/flittService';
-import { JudgeUnavailableError, type RunModel } from '../src/services/judgeService';
+import { PRICES } from '../src/config/pricing.js';
+import { signToken } from '../src/lib/hmac.js';
+import { createCheckoutCreateHandler } from '../src/routes/checkout/create.js';
+import { createJudgeHandler } from '../src/routes/judge/judge.js';
+import { createLicenseMeHandler } from '../src/routes/license/me.js';
+import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt.js';
+import { FlittError, signParams, type FlittConfig } from '../src/services/flittService.js';
+import { JudgeUnavailableError, type RunModel } from '../src/services/judgeService.js';
 import {
   fakeAuditStore,
   fakeLicenseStore,
@@ -15,7 +15,7 @@ import {
   fakeUsageEvents,
   fakeWebhookEventStore,
   proLicense,
-} from './helpers';
+} from './helpers.js';
 
 /**
  * What the admin panel is allowed to know. Each route records the fact that

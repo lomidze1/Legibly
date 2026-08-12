@@ -1,17 +1,17 @@
 import { describe, expect, it } from 'vitest';
 
-import { signToken } from '../src/lib/hmac';
-import type { ApiHandler } from '../src/lib/http';
-import { withCors } from '../src/middleware/cors';
-import { withRateLimit, type BumpBucket } from '../src/middleware/rateLimit';
-import { createExchangeHandler } from '../src/routes/auth/exchange';
-import { createLoginHandler } from '../src/routes/auth/login';
-import { createCheckoutCreateHandler } from '../src/routes/checkout/create';
-import { createJudgeHandler } from '../src/routes/judge/judge';
-import { createLicenseMeHandler } from '../src/routes/license/me';
-import type { FlittConfig } from '../src/services/flittService';
-import type { RunModel } from '../src/services/judgeService';
-import { VALID_NONCE, fakeAuthStore, fakeLicenseStore, fakeResponse, fakeUsageEvents } from './helpers';
+import { signToken } from '../src/lib/hmac.js';
+import type { ApiHandler } from '../src/lib/http.js';
+import { withCors } from '../src/middleware/cors.js';
+import { withRateLimit, type BumpBucket } from '../src/middleware/rateLimit.js';
+import { createExchangeHandler } from '../src/routes/auth/exchange.js';
+import { createLoginHandler } from '../src/routes/auth/login.js';
+import { createCheckoutCreateHandler } from '../src/routes/checkout/create.js';
+import { createJudgeHandler } from '../src/routes/judge/judge.js';
+import { createLicenseMeHandler } from '../src/routes/license/me.js';
+import type { FlittConfig } from '../src/services/flittService.js';
+import type { RunModel } from '../src/services/judgeService.js';
+import { VALID_NONCE, fakeAuthStore, fakeLicenseStore, fakeResponse, fakeUsageEvents } from './helpers.js';
 
 /**
  * What every route does with a request that is shaped wrong: the wrong verb, a

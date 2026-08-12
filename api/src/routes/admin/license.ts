@@ -6,14 +6,14 @@
  * is worse than a change that did not go through.
  */
 
-import { isDuration, type Duration } from '../../config/pricing';
-import type { ApiRequest, ApiResponse } from '../../lib/http';
-import { serializeLicense } from '../../lib/serializeLicense';
-import { isPlainObject } from '../../lib/validators';
-import type { LicenseAuditStore } from '../../models/LicenseAudit';
-import { ADMIN_ORDER_PREFIX } from '../../models/adminStore';
-import type { LicenseRow, LicenseStore } from '../../models/License';
-import { computeCycleEnd, isLivePro } from '../../services/licenseService';
+import { isDuration, type Duration } from '../../config/pricing.js';
+import type { ApiRequest, ApiResponse } from '../../lib/http.js';
+import { serializeLicense } from '../../lib/serializeLicense.js';
+import { isPlainObject } from '../../lib/validators.js';
+import type { LicenseAuditStore } from '../../models/LicenseAudit.js';
+import { ADMIN_ORDER_PREFIX } from '../../models/adminStore.js';
+import type { LicenseRow, LicenseStore } from '../../models/License.js';
+import { computeCycleEnd, isLivePro } from '../../services/licenseService.js';
 
 const DAY_MS = 86_400_000;
 const MAX_USER_ID_LENGTH = 64;

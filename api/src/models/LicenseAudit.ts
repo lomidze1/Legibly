@@ -6,7 +6,7 @@
  * that no change can exist without a record of who made it and why.
  */
 
-import { query } from '../lib/db';
+import { query } from '../lib/db.js';
 
 export type AuditAction = 'purchase' | 'refund' | 'admin_grant' | 'admin_revoke';
 export type AuditActor = 'webhook' | 'admin';

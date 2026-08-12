@@ -4,7 +4,7 @@
  * fail loudly at boot rather than at the first forged request.
  */
 
-import { EnvError, type Env } from './env';
+import { EnvError, type Env } from './env.js';
 
 const MIN_SECRET_LENGTH = 32;
 

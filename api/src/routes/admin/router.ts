@@ -7,15 +7,15 @@
  * and the mutations for the price of one.
  */
 
-import { env } from '../../config/env';
-import type { ApiHandler, ApiRequest, ApiResponse } from '../../lib/http';
-import { html, queryParam } from '../../lib/http';
-import { requireAdmin } from '../../middleware/adminAuth';
-import { licenseAuditStore, type LicenseAuditStore } from '../../models/LicenseAudit';
-import { adminStore, type AdminStore, type UsersQuery } from '../../models/adminStore';
-import { licenseStore, type LicenseStore } from '../../models/License';
-import { handleLicenseMutation } from './license';
-import { PANEL_HTML } from './panelHtml';
+import { env } from '../../config/env.js';
+import type { ApiHandler, ApiRequest, ApiResponse } from '../../lib/http.js';
+import { html, queryParam } from '../../lib/http.js';
+import { requireAdmin } from '../../middleware/adminAuth.js';
+import { licenseAuditStore, type LicenseAuditStore } from '../../models/LicenseAudit.js';
+import { adminStore, type AdminStore, type UsersQuery } from '../../models/adminStore.js';
+import { licenseStore, type LicenseStore } from '../../models/License.js';
+import { handleLicenseMutation } from './license.js';
+import { PANEL_HTML } from './panelHtml.js';
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 200;

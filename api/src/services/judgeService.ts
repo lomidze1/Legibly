@@ -1,13 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 
-import { JUDGE_MAX_TOKENS, MAX_PNG_BYTES, MAX_TREE_NODES, type JudgeConfig } from '../config/judge';
-import { isPlainObject } from '../lib/validators';
+import { JUDGE_MAX_TOKENS, MAX_PNG_BYTES, MAX_TREE_NODES, type JudgeConfig } from '../config/judge.js';
+import { isPlainObject } from '../lib/validators.js';
 import {
   JUDGE_SYSTEM_PROMPT,
   VERDICT_SCHEMA,
   type JudgeFinding,
   type JudgeVerdict,
-} from './judgeRubric';
+} from './judgeRubric.js';
 
 const MAX_TEXT_LENGTH = 200;
 const MAX_NAME_LENGTH = 80;

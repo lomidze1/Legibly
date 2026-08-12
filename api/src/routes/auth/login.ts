@@ -1,7 +1,7 @@
-import { env } from '../../config/env';
-import { queryParam, redirect, type ApiHandler } from '../../lib/http';
-import { authStore, type AuthStore } from '../../models/authStore';
-import { buildAuthorizeUrl, figmaOAuthConfig, type FigmaOAuthConfig } from '../../services/figmaOAuth';
+import { env } from '../../config/env.js';
+import { queryParam, redirect, type ApiHandler } from '../../lib/http.js';
+import { authStore, type AuthStore } from '../../models/authStore.js';
+import { buildAuthorizeUrl, figmaOAuthConfig, type FigmaOAuthConfig } from '../../services/figmaOAuth.js';
 import { randomBytes } from 'node:crypto';
 
 /**
