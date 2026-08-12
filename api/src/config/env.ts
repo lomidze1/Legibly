@@ -7,6 +7,11 @@
  * see `startupChecks.ts`.
  */
 
+// Cyclic by design: startupChecks reads `EnvError` from here, but only from
+// inside its function body, so both modules are fully evaluated before either
+// binding is touched.
+import { runStartupChecks } from './startupChecks';
+
 export type NodeEnvName = 'development' | 'test' | 'production';
 
 export interface Env {
@@ -112,9 +117,18 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
 
 let cached: Env | null = null;
 
-/** Memoised for the lifetime of a serverless instance. */
+/**
+ * Memoised for the lifetime of a serverless instance. The production strength
+ * checks run on the cold start that first reads the env — this is the only path
+ * every handler shares, so a weak secret fails here rather than at the first
+ * forged request.
+ */
 export function env(): Env {
-  if (cached === null) cached = loadEnv();
+  if (cached === null) {
+    const loaded = loadEnv();
+    runStartupChecks(loaded);
+    cached = loaded;
+  }
   return cached;
 }
 
