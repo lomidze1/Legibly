@@ -12,6 +12,8 @@ export interface ApiRequest {
   method?: string;
   headers: HeaderBag;
   query?: QueryBag;
+  /** Parsed by the platform. Always `unknown` — never trusted without a shape check. */
+  body?: unknown;
 }
 
 export interface ApiResponse {

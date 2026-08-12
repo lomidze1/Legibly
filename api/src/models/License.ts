@@ -1,8 +1,9 @@
+import type { Duration } from '../config/pricing';
 import { query } from '../lib/db';
 
 export type Plan = 'free' | 'pro';
 export type LicenseStatus = 'active' | 'expired';
-export type Duration = 'monthly' | 'yearly';
+export type { Duration };
 
 export interface LicenseRow {
   figmaUserId: string;
@@ -16,12 +17,23 @@ export interface LicenseRow {
   lastDuration: Duration | null;
 }
 
+export interface Purchase {
+  cycleStartedAt: Date;
+  cycleEndsAt: Date;
+  flittOrderId: string;
+  duration: Duration;
+  email?: string;
+}
+
 export interface LicenseStore {
   /** Never returns null: a first-time user gets a free row. */
   getOrCreate(figmaUserId: string): Promise<LicenseRow>;
   /** Fills the email only when the row has none — checkout must not be overwritten by a later login. */
   setEmailIfMissing(figmaUserId: string, email: string | undefined): Promise<void>;
   find(figmaUserId: string): Promise<LicenseRow | null>;
+  applyPurchase(figmaUserId: string, purchase: Purchase): Promise<LicenseRow>;
+  /** Reverses a refund or chargeback, but only for the order that is currently in force. */
+  applyRefund(figmaUserId: string, flittOrderId: string, now: Date): Promise<boolean>;
 }
 
 interface LicenseDbRow {
@@ -84,5 +96,45 @@ export const licenseStore: LicenseStore = {
     );
     const row = rows[0];
     return row === undefined ? null : toLicense(row);
+  },
+
+  async applyPurchase(figmaUserId, purchase) {
+    const rows = await query<LicenseDbRow>(
+      `INSERT INTO licenses (figma_user_id, email, plan, status, cycle_started_at, cycle_ends_at,
+                             flitt_order_id, last_duration)
+       VALUES ($1, $2, 'pro', 'active', $3, $4, $5, $6)
+       ON CONFLICT (figma_user_id) DO UPDATE
+         SET plan = 'pro',
+             status = 'active',
+             cycle_started_at = EXCLUDED.cycle_started_at,
+             cycle_ends_at = EXCLUDED.cycle_ends_at,
+             flitt_order_id = EXCLUDED.flitt_order_id,
+             last_duration = EXCLUDED.last_duration,
+             email = COALESCE(NULLIF(licenses.email, ''), EXCLUDED.email),
+             updated_at = now()
+       RETURNING ${COLUMNS}`,
+      [
+        figmaUserId,
+        purchase.email ?? null,
+        purchase.cycleStartedAt,
+        purchase.cycleEndsAt,
+        purchase.flittOrderId,
+        purchase.duration,
+      ],
+    );
+    return toLicense(rows[0]!);
+  },
+
+  async applyRefund(figmaUserId, flittOrderId, now) {
+    // Scoped to the order in force: a refund of an older, already-superseded
+    // purchase must not cancel the licence the user has since paid for again.
+    const rows = await query<{ figma_user_id: string }>(
+      `UPDATE licenses
+          SET plan = 'free', status = 'expired', cycle_ends_at = $3, updated_at = now()
+        WHERE figma_user_id = $1 AND flitt_order_id = $2
+        RETURNING figma_user_id`,
+      [figmaUserId, flittOrderId, now],
+    );
+    return rows.length > 0;
   },
 };

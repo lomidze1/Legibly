@@ -1,6 +1,7 @@
 import type { ApiResponse } from '../src/lib/http';
 import type { AuthStore, PendingAuth } from '../src/models/authStore';
 import type { LicenseRow, LicenseStore } from '../src/models/License';
+import type { WebhookEventRecord, WebhookEventStore } from '../src/models/WebhookEvent';
 
 export interface FakeResponse extends ApiResponse {
   statusCode: number | null;
@@ -97,6 +98,43 @@ export function fakeLicenseStore(seed: LicenseRow[] = []): LicenseStore & { rows
     },
     async find(figmaUserId) {
       return rows.get(figmaUserId) ?? null;
+    },
+    async applyPurchase(figmaUserId, purchase) {
+      const existing = rows.get(figmaUserId);
+      const updated: LicenseRow = {
+        figmaUserId,
+        email: existing?.email ?? purchase.email ?? null,
+        plan: 'pro',
+        status: 'active',
+        cycleStartedAt: purchase.cycleStartedAt,
+        cycleEndsAt: purchase.cycleEndsAt,
+        judgeUsed: existing?.judgeUsed ?? 0,
+        flittOrderId: purchase.flittOrderId,
+        lastDuration: purchase.duration,
+      };
+      rows.set(figmaUserId, updated);
+      return updated;
+    },
+    async applyRefund(figmaUserId, flittOrderId, now) {
+      const existing = rows.get(figmaUserId);
+      if (existing === undefined || existing.flittOrderId !== flittOrderId) return false;
+      rows.set(figmaUserId, { ...existing, plan: 'free', status: 'expired', cycleEndsAt: now });
+      return true;
+    },
+  };
+}
+
+export function fakeWebhookEventStore(): WebhookEventStore & { seen: Map<string, WebhookEventRecord> } {
+  const seen = new Map<string, WebhookEventRecord>();
+  return {
+    seen,
+    async acquire(event) {
+      if (seen.has(event.transactionId)) return false;
+      seen.set(event.transactionId, event);
+      return true;
+    },
+    async release(transactionId) {
+      seen.delete(transactionId);
     },
   };
 }
