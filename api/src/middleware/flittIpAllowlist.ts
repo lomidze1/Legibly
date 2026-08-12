@@ -8,15 +8,22 @@ export interface FlittIpAllowlist {
 }
 
 export function flittIpAllowlist(env: Env): FlittIpAllowlist {
-  return {
-    enabled: env.flittIpAllowlistEnabled !== 'false',
-    ips: new Set(
-      (env.flittWebhookIps ?? '')
-        .split(',')
-        .map((ip) => ip.trim())
-        .filter((ip) => ip !== ''),
-    ),
-  };
+  const enabled = env.flittIpAllowlistEnabled !== 'false';
+  const ips = new Set(
+    (env.flittWebhookIps ?? '')
+      .split(',')
+      .map((ip) => ip.trim())
+      .filter((ip) => ip !== ''),
+  );
+  // An empty list admits everyone. That is the same deployment as a working one
+  // from the outside, so it has to announce itself: turning the allowlist off is
+  // a decision, forgetting to set FLITT_WEBHOOK_IPS is an accident.
+  if (enabled && ips.size === 0) {
+    console.warn(
+      '[flitt-webhook] FLITT_WEBHOOK_IPS is empty — every caller is admitted and only the signature stands',
+    );
+  }
+  return { enabled, ips };
 }
 
 /**

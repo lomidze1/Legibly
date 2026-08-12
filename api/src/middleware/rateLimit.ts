@@ -42,7 +42,16 @@ const bumpInStore: BumpBucket = async (bucketKey, expiresAt) => {
      RETURNING hits`,
     [bucketKey, expiresAt],
   );
-  return rows[0]?.hits ?? 1;
+  const hits = rows[0]?.hits ?? 1;
+  // The first caller into a fresh bucket sweeps the closed windows — nothing
+  // else deletes them, and the table would only ever grow. Fire-and-forget: a
+  // failed sweep is worth a line in the log, not a failed request.
+  if (hits === 1) {
+    void purgeExpiredBuckets().catch((error) => {
+      console.warn(`[rate-limit] sweep failed: ${String(error)}`);
+    });
+  }
+  return hits;
 };
 
 export async function checkRateLimit(

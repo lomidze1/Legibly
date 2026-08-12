@@ -29,9 +29,36 @@ describe('flittIpAllowlist', () => {
   });
 
   it('is switched off only by an explicit false', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(flittIpAllowlist(loadEnv({ ...baseEnv, FLITT_IP_ALLOWLIST_ENABLED: 'false' })).enabled).toBe(false);
     expect(flittIpAllowlist(loadEnv({ ...baseEnv, FLITT_IP_ALLOWLIST_ENABLED: 'true' })).enabled).toBe(true);
     expect(flittIpAllowlist(loadEnv(baseEnv)).enabled).toBe(true);
+    warn.mockRestore();
+  });
+
+  /**
+   * An enabled-but-empty allowlist admits everyone, and from the outside that
+   * deployment looks exactly like a working one. Forgetting FLITT_WEBHOOK_IPS
+   * must not be indistinguishable from deciding not to use it.
+   */
+  it('says so when it is enabled but has nothing to allow', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    flittIpAllowlist(loadEnv(baseEnv));
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(String(warn.mock.calls[0]?.[0])).toContain('FLITT_WEBHOOK_IPS');
+    warn.mockRestore();
+  });
+
+  it('stays quiet when the list is populated, or deliberately switched off', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    flittIpAllowlist(loadEnv({ ...baseEnv, FLITT_WEBHOOK_IPS: '54.154.216.60' }));
+    flittIpAllowlist(loadEnv({ ...baseEnv, FLITT_IP_ALLOWLIST_ENABLED: 'false' }));
+
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
 
