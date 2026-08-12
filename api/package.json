@@ -1,0 +1,21 @@
+{
+  "name": "legibly-api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Legibly API — Figma OAuth, Flitt billing, AI Designer Judge",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.8"
+  }
+}
