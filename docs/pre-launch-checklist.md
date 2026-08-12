@@ -196,11 +196,20 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
 > **Pro-gated + 3 საცდელი free-ზე.** ვერ მოასწრო cutoff-მდე → v1.1 (~2 კვირა post-launch).
 > სრული დასაბუთება → [`approach.md D24`](./approach.md) · [`launch-stack.md §6`](./launch-stack.md)
 
-- [ ] 🤖 `/api/judge` endpoint — OAuth-bound, quota counter License row-ში (⇒ §5-ის backend)
-- [ ] 🤖 rubric + eval pass — **"მზადაა"-ს კრიტერიუმი**: generic ფიდბექი launch-ში არ გადის
-- [ ] 🤖 plugin UI: Judge ღილაკი + Pro gate + trial counter
-- [ ] 🤖 privacy + listing copy: *"your design leaves Figma only when you click Judge"*
-- [ ] 🤖 model-ის არჩევა cost-ით (Haiku vs Opus vision) → quota-ს ეკონომიკა
+- [x] 🤖 `/api/judge` endpoint ✅ (2026-08-12) — OAuth-bound · free 3 (lifetime) / Pro N-თვეში ·
+      quota **მხოლოდ წარმატებულ ზარზე** · structured outputs (enforced სქემა) · retry
+- [x] 🤖 rubric ✅ — [`judgeRubric.ts`](../api/src/services/judgeRubric.ts): a11y-ს არ იმეორებს ·
+      ყოველი finding ციფრს/პოზიციას ასახელებს · სიჩუმე სწორი პასუხია · ქულა არ ბერდება
+- [ ] 👤 **eval pass** — 🔴 **არ გაშვებულა.** სჭირდება `ANTHROPIC_API_KEY` **და 10–15 რეალური
+      Figma fixture** წინასწარ ცნობილი პრობლემებით. harness მზადაა →
+      [`docs/judge-eval.md`](./judge-eval.md). **სანამ არ გაივლის, `JUDGE_ENABLED=false`** (D24)
+- [ ] 🤖 plugin UI: Judge ღილაკი + Pro gate + trial counter — **განზრახ გადადებულია eval-მდე**
+      (გამორთულ endpoint-ზე მიმავალი ღილაკი მომხმარებელს ცრუობს)
+- [ ] 🤖 privacy + listing copy: *"your design leaves Figma only when you click Judge"* — მაშინ,
+      როცა judge რეალურად ჩაირთვება. დღეს privacy სწორად ამბობს, რომ დიზაინი არსად არ იგზავნება
+- [x] 🤖 model-ის ეკონომიკა ✅ — Opus 5-ზე ერთი ზარი **≈ $0.08**. ⚠️ §8.3-ის "მაგ. 100/თვე"
+      **$120-იანი Pro-ს 78%-ს ჭამს** → default `JUDGE_PRO_MONTHLY=30` (~23%). მოდელი განზრახ
+      **არ ჩამომიწევია** — Haiku vs Opus eval-ის კითხვაა ([judge-eval.md §5](./judge-eval.md))
 
 ---
 

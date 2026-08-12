@@ -12,7 +12,11 @@ export interface LicenseRow {
   status: LicenseStatus;
   cycleStartedAt: Date;
   cycleEndsAt: Date;
+  /** Lifetime free-trial counter. Never resets. */
   judgeUsed: number;
+  /** `YYYY-MM` the Pro monthly counter belongs to; null before the first Pro use. */
+  judgeMonth: string | null;
+  judgeMonthUsed: number;
   flittOrderId: string | null;
   lastDuration: Duration | null;
 }
@@ -34,6 +38,11 @@ export interface LicenseStore {
   applyPurchase(figmaUserId: string, purchase: Purchase): Promise<LicenseRow>;
   /** Reverses a refund or chargeback, but only for the order that is currently in force. */
   applyRefund(figmaUserId: string, flittOrderId: string, now: Date): Promise<boolean>;
+  /**
+   * Books one judge call. Called *after* the model answers, never before — a
+   * failed call must not cost the user a trial.
+   */
+  recordJudgeUse(figmaUserId: string, month: string, isPro: boolean): Promise<void>;
 }
 
 interface LicenseDbRow {
@@ -44,6 +53,8 @@ interface LicenseDbRow {
   cycle_started_at: Date;
   cycle_ends_at: Date;
   judge_used: number;
+  judge_month: string | null;
+  judge_month_used: number;
   flitt_order_id: string | null;
   last_duration: string | null;
 }
@@ -57,13 +68,15 @@ function toLicense(row: LicenseDbRow): LicenseRow {
     cycleStartedAt: row.cycle_started_at,
     cycleEndsAt: row.cycle_ends_at,
     judgeUsed: row.judge_used,
+    judgeMonth: row.judge_month,
+    judgeMonthUsed: row.judge_month_used,
     flittOrderId: row.flitt_order_id,
     lastDuration: row.last_duration === 'monthly' || row.last_duration === 'yearly' ? row.last_duration : null,
   };
 }
 
 const COLUMNS = `figma_user_id, email, plan, status, cycle_started_at, cycle_ends_at,
-                 judge_used, flitt_order_id, last_duration`;
+                 judge_used, judge_month, judge_month_used, flitt_order_id, last_duration`;
 
 export const licenseStore: LicenseStore = {
   async getOrCreate(figmaUserId) {
@@ -136,5 +149,28 @@ export const licenseStore: LicenseStore = {
       [figmaUserId, flittOrderId, now],
     );
     return rows.length > 0;
+  },
+
+  async recordJudgeUse(figmaUserId, month, isPro) {
+    if (isPro) {
+      // A new month resets the counter to this call rather than continuing the
+      // old one — that is what makes the Pro cap a monthly cap.
+      await query(
+        `UPDATE licenses
+            SET judge_month = $2,
+                judge_month_used = CASE WHEN judge_month IS DISTINCT FROM $2 THEN 1
+                                        ELSE judge_month_used + 1 END,
+                updated_at = now()
+          WHERE figma_user_id = $1`,
+        [figmaUserId, month],
+      );
+      return;
+    }
+
+    await query(
+      `UPDATE licenses SET judge_used = judge_used + 1, updated_at = now()
+        WHERE figma_user_id = $1`,
+      [figmaUserId],
+    );
   },
 };

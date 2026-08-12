@@ -34,6 +34,9 @@ export interface Env {
   anthropicApiKey?: string;
   judgeModel?: string;
   judgeFreeTrials: number;
+  judgeProMonthly: number;
+  /** Only the literal "true" turns the judge on — see config/judge.ts. */
+  judgeEnabled?: string;
 }
 
 const REQUIRED = [
@@ -46,6 +49,7 @@ const REQUIRED = [
 
 const DEFAULT_FLITT_BASE_URL = 'https://pay.flitt.com';
 const DEFAULT_JUDGE_FREE_TRIALS = 3;
+const DEFAULT_JUDGE_PRO_MONTHLY = 30;
 
 export class EnvError extends Error {
   override name = 'EnvError';
@@ -64,12 +68,12 @@ function readNodeEnv(source: NodeJS.ProcessEnv): NodeEnvName {
   return 'development';
 }
 
-function readJudgeFreeTrials(source: NodeJS.ProcessEnv): number {
-  const value = trimmed(source, 'JUDGE_FREE_TRIALS');
-  if (value === undefined) return DEFAULT_JUDGE_FREE_TRIALS;
+function readCount(source: NodeJS.ProcessEnv, key: string, fallback: number): number {
+  const value = trimmed(source, key);
+  if (value === undefined) return fallback;
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed < 0) {
-    throw new EnvError(`JUDGE_FREE_TRIALS must be a non-negative integer, got "${value}"`);
+    throw new EnvError(`${key} must be a non-negative integer, got "${value}"`);
   }
   return parsed;
 }
@@ -100,7 +104,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
 
     anthropicApiKey: trimmed(source, 'ANTHROPIC_API_KEY'),
     judgeModel: trimmed(source, 'JUDGE_MODEL'),
-    judgeFreeTrials: readJudgeFreeTrials(source),
+    judgeFreeTrials: readCount(source, 'JUDGE_FREE_TRIALS', DEFAULT_JUDGE_FREE_TRIALS),
+    judgeProMonthly: readCount(source, 'JUDGE_PRO_MONTHLY', DEFAULT_JUDGE_PRO_MONTHLY),
+    judgeEnabled: trimmed(source, 'JUDGE_ENABLED'),
   };
 }
 

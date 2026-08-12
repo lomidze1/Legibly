@@ -17,6 +17,8 @@ function freeRow(): LicenseRow {
     cycleStartedAt: new Date(NOW),
     cycleEndsAt: new Date(NOW),
     judgeUsed: 0,
+    judgeMonth: null,
+    judgeMonthUsed: 0,
     flittOrderId: null,
     lastDuration: null,
   };

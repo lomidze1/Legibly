@@ -14,6 +14,8 @@ const freeRow: LicenseRow = {
   cycleStartedAt: new Date(NOW),
   cycleEndsAt: new Date(NOW),
   judgeUsed: 2,
+  judgeMonth: null,
+  judgeMonthUsed: 0,
   flittOrderId: null,
   lastDuration: null,
 };

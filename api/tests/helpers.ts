@@ -84,6 +84,8 @@ export function fakeLicenseStore(seed: LicenseRow[] = []): LicenseStore & { rows
         cycleStartedAt: new Date(0),
         cycleEndsAt: new Date(0),
         judgeUsed: 0,
+        judgeMonth: null,
+        judgeMonthUsed: 0,
         flittOrderId: null,
         lastDuration: null,
       };
@@ -109,6 +111,8 @@ export function fakeLicenseStore(seed: LicenseRow[] = []): LicenseStore & { rows
         cycleStartedAt: purchase.cycleStartedAt,
         cycleEndsAt: purchase.cycleEndsAt,
         judgeUsed: existing?.judgeUsed ?? 0,
+        judgeMonth: existing?.judgeMonth ?? null,
+        judgeMonthUsed: existing?.judgeMonthUsed ?? 0,
         flittOrderId: purchase.flittOrderId,
         lastDuration: purchase.duration,
       };
@@ -120,6 +124,16 @@ export function fakeLicenseStore(seed: LicenseRow[] = []): LicenseStore & { rows
       if (existing === undefined || existing.flittOrderId !== flittOrderId) return false;
       rows.set(figmaUserId, { ...existing, plan: 'free', status: 'expired', cycleEndsAt: now });
       return true;
+    },
+    async recordJudgeUse(figmaUserId, month, isPro) {
+      const existing = rows.get(figmaUserId);
+      if (existing === undefined) return;
+      if (isPro) {
+        const used = existing.judgeMonth === month ? existing.judgeMonthUsed + 1 : 1;
+        rows.set(figmaUserId, { ...existing, judgeMonth: month, judgeMonthUsed: used });
+        return;
+      }
+      rows.set(figmaUserId, { ...existing, judgeUsed: existing.judgeUsed + 1 });
     },
   };
 }
@@ -148,6 +162,8 @@ export function proLicense(figmaUserId: string, cycleEndsAt: Date): LicenseRow {
     cycleStartedAt: new Date(cycleEndsAt.getTime() - 365 * 86_400_000),
     cycleEndsAt,
     judgeUsed: 0,
+    judgeMonth: null,
+    judgeMonthUsed: 0,
     flittOrderId: 'lgb_pro_u1_1',
     lastDuration: 'yearly',
   };
