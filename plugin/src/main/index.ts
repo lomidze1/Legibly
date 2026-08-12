@@ -42,11 +42,19 @@ figma.showUI(__html__, { width: 380, height: 560, themeColors: true });
  * never swallowed indefinitely.
  */
 let selfEdits = 0;
-function markSelfEdit(): void {
-  selfEdits++;
-  setTimeout(() => {
-    if (selfEdits > 0) selfEdits--;
-  }, 500);
+/**
+ * `count` must cover every mutation about to be made: a batch of N fixes
+ * produces N events, and an under-count leaks the remainder as a false "canvas
+ * changed". Over-counting is the safe direction — the timeout below gives back
+ * whatever never arrives.
+ */
+function markSelfEdit(count = 1): void {
+  for (let i = 0; i < count; i++) {
+    selfEdits++;
+    setTimeout(() => {
+      if (selfEdits > 0) selfEdits--;
+    }, 500);
+  }
 }
 /**
  * `documentAccess: "dynamic-page"` refuses a documentchange handler until every
@@ -302,7 +310,7 @@ const handlers = {
     settings: Settings;
   }) => {
     const guard = await buildModeGuard(payload.settings);
-    markSelfEdit();
+    markSelfEdit(payload.fixes.length);
     return applyBatch(payload.fixes, payload.settings, guard);
   },
   /**

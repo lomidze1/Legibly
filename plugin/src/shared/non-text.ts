@@ -12,7 +12,7 @@
 import type { Finding, RGBA } from './types';
 import { NodeLite, PaintLite, isPaintArray, isSolidPaint } from './figma-lite';
 import { resolveBackdrop } from './background';
-import { wcagRatio } from './contrast';
+import { flattenStack, wcagRatio } from './contrast';
 import type { Target } from './target-size';
 
 export const NON_TEXT_SC = '1.4.11';
@@ -24,17 +24,27 @@ function isRendered(n: NodeLite): boolean {
   return n.visible !== false && (typeof n.opacity !== 'number' || n.opacity > 0);
 }
 
-/** Topmost visible solid paint of a stack, or null (empty / non-solid). */
+/**
+ * The visible paint stack flattened to one colour, or null (empty) /
+ * 'non-solid' (unmeasurable). A translucent paint shows the paints *beneath*
+ * it, not the backdrop, so the stack is composited down to the first paint
+ * that hides everything below it — anything under that cannot be seen.
+ */
 function topSolid(paints: unknown): { color: RGBA } | 'non-solid' | null {
   if (!isPaintArray(paints)) return null;
   const visible = (paints as readonly PaintLite[]).filter(
     (p) => p.visible !== false && (typeof p.opacity !== 'number' || p.opacity > 0)
   );
   if (visible.length === 0) return null;
-  const top = visible[visible.length - 1]!;
-  if (!isSolidPaint(top)) return 'non-solid';
-  const alpha = typeof top.opacity === 'number' ? top.opacity : 1;
-  return { color: { ...top.color, a: alpha } };
+  const stack: RGBA[] = []; // back-to-front, as flattenStack wants it
+  for (let i = visible.length - 1; i >= 0; i--) {
+    const p = visible[i]!;
+    if (!isSolidPaint(p)) return 'non-solid'; // still showing through → we cannot measure it
+    const alpha = typeof p.opacity === 'number' ? p.opacity : 1;
+    stack.unshift({ ...p.color, a: alpha });
+    if (alpha >= 1) break;
+  }
+  return { color: flattenStack(stack) };
 }
 
 interface Probe {
@@ -62,7 +72,9 @@ function collectProbes(target: NodeLite): Probe[] {
     }
     if (n.children) for (const c of n.children) walk(c);
   };
-  if (target.children) for (const c of target.children) walk(c);
+  // From the target itself: an interactive icon (a bare VECTOR close button)
+  // is its own probe — walking only its children would skip its fill.
+  walk(target);
   return probes;
 }
 
