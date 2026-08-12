@@ -1,27 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ApiRequest, ApiResponse } from '../src/lib/http';
 import { createHealthHandler } from '../src/routes/health';
+import { fakeResponse } from './helpers';
 
-function fakeResponse(): ApiResponse & { statusCode: number | null; body: unknown } {
-  return {
-    statusCode: null,
-    body: undefined,
-    status(code: number) {
-      this.statusCode = code;
-      return this;
-    },
-    json(body: unknown) {
-      this.body = body;
-      return undefined;
-    },
-    setHeader() {
-      return undefined;
-    },
-  };
-}
-
-const get: ApiRequest = { method: 'GET', headers: {} };
+const get = { method: 'GET', headers: {} };
 
 describe('health handler', () => {
   it('reports the store as up', async () => {
