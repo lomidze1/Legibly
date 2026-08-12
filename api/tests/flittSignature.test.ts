@@ -19,6 +19,23 @@ function expectedSignature(values: string[]): string {
 }
 
 describe('signParams', () => {
+  it('matches the canonical vector from docs.flitt.com', () => {
+    // The same fixture Web2Wireframe's flitt-service test asserts on, carried
+    // over deliberately: it is the one check that does not depend on our own
+    // reading of the rule. Concat is
+    // "test|1000|GEL|1549901|Test payment|TestOrder2|http://myshop/callback/".
+    const params = {
+      merchant_id: 1549901,
+      order_id: 'TestOrder2',
+      amount: 1000,
+      currency: 'GEL',
+      order_desc: 'Test payment',
+      server_callback_url: 'http://myshop/callback/',
+    };
+
+    expect(signParams(params, 'test')).toBe('cd0edb710cbbdb6c2a4d965cdb91fdfabc343215');
+  });
+
   it('matches a hand-computed vector', () => {
     const params = {
       merchant_id: '1396424',
