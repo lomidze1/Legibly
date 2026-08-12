@@ -24,6 +24,7 @@ vi.mock("resend", () => ({
 
 const { POST } = await import("./route");
 const { site } = await import("@/data/site");
+const { WAITLIST_LIMIT, WAITLIST_WINDOW_MS, resetRateLimit } = await import("@/lib/rateLimit");
 
 function request(body: unknown, init: RequestInit = {}) {
   return new Request("http://localhost/api/waitlist", {
@@ -43,6 +44,7 @@ beforeEach(() => {
   process.env.RESEND_API_KEY = "re_test_key";
   process.env.RESEND_AUDIENCE_ID = "aud_123";
   delete process.env.WAITLIST_FROM;
+  resetRateLimit(); // module state, and every request here shares one caller
   errors = vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
@@ -238,5 +240,71 @@ describe("input the endpoint must not act on", () => {
     const res = await POST(request(["designer@studio.com"]));
 
     expect(res.status).toBe(400);
+  });
+});
+
+/**
+ * The endpoint is unauthenticated and every accepted POST costs a Resend
+ * contact write plus an outbound email, so a script looping over addresses
+ * would pollute the launch audience and spend the mail quota. The honeypot
+ * only catches a bot that fills the field in.
+ */
+describe("rate limiting", () => {
+  const from = (ip: string) => ({ headers: { "x-real-ip": ip } });
+
+  it("stops a caller past the limit, without touching Resend", async () => {
+    for (let i = 0; i < WAITLIST_LIMIT; i++) {
+      const ok = await POST(request({ email: `person${i}@studio.com` }, from("203.0.113.7")));
+      expect(ok.status).toBe(200);
+    }
+    contactsCreate.mockClear();
+    emailsSend.mockClear();
+
+    const res = await POST(request({ email: "one-too-many@studio.com" }, from("203.0.113.7")));
+
+    expect(res.status).toBe(429);
+    expect(res.headers.get("Retry-After")).toBe(String(WAITLIST_WINDOW_MS / 1000));
+    expect(await res.json()).toEqual({
+      error: "Too many signups from this connection. Please try again later.",
+    });
+    expect(contactsCreate).not.toHaveBeenCalled();
+    expect(emailsSend).not.toHaveBeenCalled();
+  });
+
+  it("does not punish everyone else for one caller", async () => {
+    for (let i = 0; i <= WAITLIST_LIMIT; i++) {
+      await POST(request({ email: `flood${i}@studio.com` }, from("203.0.113.7")));
+    }
+
+    const other = await POST(request({ email: "designer@studio.com" }, from("198.51.100.1")));
+    expect(other.status).toBe(200);
+  });
+
+  it("counts a honeypot hit too — a bot must not get a free lane", async () => {
+    for (let i = 0; i < WAITLIST_LIMIT; i++) {
+      const ok = await POST(
+        request({ email: "bot@spam.example", company: "Acme" }, from("203.0.113.9")),
+      );
+      expect(ok.status).toBe(200);
+    }
+
+    const res = await POST(request({ email: "bot@spam.example", company: "Acme" }, from("203.0.113.9")));
+    expect(res.status).toBe(429);
+  });
+
+  it("refuses before the body is even parsed", async () => {
+    for (let i = 0; i <= WAITLIST_LIMIT; i++) {
+      await POST(request({ email: `flood${i}@studio.com` }, from("203.0.113.8")));
+    }
+
+    const res = await POST(
+      new Request("http://localhost/api/waitlist", {
+        method: "POST",
+        headers: { "x-real-ip": "203.0.113.8" },
+        body: "not json",
+      }),
+    );
+    // 429, not the 400 malformed-JSON answer: nothing past the limit runs.
+    expect(res.status).toBe(429);
   });
 });

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { resetRateLimit } from "@/lib/rateLimit";
 import { POST } from "./route";
 
 function request(body: unknown) {
@@ -12,6 +13,7 @@ function request(body: unknown) {
 describe("POST /api/waitlist", () => {
   beforeEach(() => {
     delete process.env.RESEND_API_KEY;
+    resetRateLimit(); // module state, and every request here shares one caller
   });
 
   it("rejects malformed JSON", async () => {

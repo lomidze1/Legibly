@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { site } from "@/data/site";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
 const MAX_EMAIL = 200;
 
@@ -18,6 +19,16 @@ function isEmail(value: string) {
 }
 
 export async function POST(req: Request) {
+  // Before the body is even read: this is the cheapest possible refusal, and
+  // everything past it costs a Resend write or an email.
+  const verdict = rateLimit(clientIp(req.headers));
+  if (!verdict.allowed) {
+    return NextResponse.json(
+      { error: "Too many signups from this connection. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(verdict.retryAfterSeconds) } },
+    );
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
