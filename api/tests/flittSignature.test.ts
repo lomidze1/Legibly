@@ -3,8 +3,10 @@ import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 
 import {
+  FlittError,
   ORDER_ID_PREFIX,
   buildOrderId,
+  isOrderSafeUserId,
   orderIdBelongsTo,
   sanitizeUserId,
   signParams,
@@ -161,9 +163,29 @@ describe('order ids', () => {
     expect(buildOrderId('user1', 1700000000000).startsWith('w2w_')).toBe(false);
   });
 
-  it('strips characters that would break the format', () => {
+  /**
+   * Sanitising is lossy, so it can no longer be applied silently: `u|ser1` and
+   * `user1` collapse to one string and would share an order-id namespace while
+   * their licence rows stay keyed on the raw value.
+   */
+  it('refuses an id that sanitising would change', () => {
     expect(sanitizeUserId('u|ser 1@x')).toBe('user1x');
-    expect(buildOrderId('u|ser 1@x', 1)).toBe('lgb_pro_user1x_1');
+    expect(isOrderSafeUserId('u|ser 1@x')).toBe(false);
+    expect(isOrderSafeUserId('')).toBe(false);
+    expect(() => buildOrderId('u|ser 1@x', 1)).toThrow(FlittError);
+  });
+
+  it('accepts the ids Figma actually issues', () => {
+    expect(isOrderSafeUserId('1234567890')).toBe(true);
+    expect(isOrderSafeUserId('user-1_x')).toBe(true);
+    expect(buildOrderId('1234567890', 1)).toBe('lgb_pro_1234567890_1');
+  });
+
+  it('will not tie a collapsible id to someone else’s order', () => {
+    // Before: both sanitise to "user1", so this returned true and one user's
+    // reversal could have been accepted against the other's order.
+    expect(orderIdBelongsTo('lgb_pro_user1_1', 'u|ser1')).toBe(false);
+    expect(orderIdBelongsTo('lgb_pro_user1_1', 'user1')).toBe(true);
   });
 
   it('matches an order id back to its owner', () => {

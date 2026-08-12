@@ -31,6 +31,21 @@ const CONNECTED_PAGE = `<!doctype html>
 </body>
 </html>`;
 
+/**
+ * The state is spent before Figma is called, and re-spending it would defeat
+ * the point of one-shot state — so a failure here costs the user the round
+ * trip. Say that plainly instead of letting the platform's default error page
+ * answer, which tells them nothing about what to do next.
+ */
+const FAILED_PAGE = `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Could not connect to Figma</title></head>
+<body style="font:16px/1.5 system-ui,sans-serif;padding:3rem;text-align:center">
+<h1 style="font-size:1.25rem">Could not connect to Figma</h1>
+<p>Sign-in did not finish. Close this tab and press Connect in Legibly to try again.</p>
+</body>
+</html>`;
+
 export interface CallbackDeps {
   config: FigmaOAuthConfig;
   store: AuthStore;
@@ -43,6 +58,11 @@ export interface CallbackDeps {
 
 export function createCallbackHandler(deps: CallbackDeps): ApiHandler {
   return async (req, res) => {
+    if (req.method !== undefined && req.method !== 'GET') {
+      res.status(405).json({ success: false, error: 'method_not_allowed' });
+      return;
+    }
+
     const code = queryParam(req, 'code');
     if (code === undefined) {
       res.status(400).json({ success: false, error: 'missing_code' });
@@ -56,25 +76,30 @@ export function createCallbackHandler(deps: CallbackDeps): ApiHandler {
       return;
     }
 
-    // The Figma access token is used once and dropped — it is never stored.
-    const accessToken = await deps.exchangeCode(deps.config, code);
-    const user = await deps.fetchUser(accessToken);
+    try {
+      // The Figma access token is used once and dropped — it is never stored.
+      const accessToken = await deps.exchangeCode(deps.config, code);
+      const user = await deps.fetchUser(accessToken);
 
-    // Before the token is handed out: the plugin asks for the licence the moment
-    // it connects, and would otherwise read a row that does not exist yet.
-    await deps.licenses.getOrCreate(user.id);
-    await deps.licenses.setEmailIfMissing(user.id, user.email);
+      // Before the token is handed out: the plugin asks for the licence the moment
+      // it connects, and would otherwise read a row that does not exist yet.
+      await deps.licenses.getOrCreate(user.id);
+      await deps.licenses.setEmailIfMissing(user.id, user.email);
 
-    const now = deps.now();
-    const token = signToken(user.id, deps.authSecret, PLUGIN_TOKEN_TTL_SECONDS, now);
-    await deps.store.savePendingAuth(
-      pending.pluginNonce,
-      token,
-      new Date(now + PLUGIN_TOKEN_TTL_SECONDS * 1000),
-      new Date(now + PENDING_AUTH_TTL_MS),
-    );
+      const now = deps.now();
+      const token = signToken(user.id, deps.authSecret, PLUGIN_TOKEN_TTL_SECONDS, now);
+      await deps.store.savePendingAuth(
+        pending.pluginNonce,
+        token,
+        new Date(now + PLUGIN_TOKEN_TTL_SECONDS * 1000),
+        new Date(now + PENDING_AUTH_TTL_MS),
+      );
 
-    html(res, CONNECTED_PAGE);
+      html(res, CONNECTED_PAGE);
+    } catch (error) {
+      console.error(`[auth-callback] sign-in failed after the state was spent: ${String(error)}`);
+      html(res, FAILED_PAGE, 502);
+    }
   };
 }
 

@@ -10,23 +10,36 @@ import {
   createCheckoutUrl,
   flittConfig,
   FlittError,
+  isOrderSafeUserId,
   type CheckoutRequest,
   type FlittConfig,
 } from '../../services/flittService';
 import { renewalState } from '../../services/licenseService';
 
-const ALLOWED_RETURN_HOSTS = new Set(['legibly.design', 'www.legibly.design', 'localhost', '127.0.0.1']);
+const ALLOWED_RETURN_HOSTS = new Set(['legibly.design', 'www.legibly.design']);
+const LOOPBACK_RETURN_HOSTS = new Set(['localhost', '127.0.0.1']);
 
 /**
  * Open-redirect guard. A bad value falls back to the default instead of
  * failing the request: a typo in a return URL is not a reason to kill a real
  * payment.
+ *
+ * Loopback is a development convenience, so it is allowed only outside
+ * production — sending a real buyer back to their own machine is a dead end,
+ * not a destination.
  */
-export function sanitizeReturnUrl(candidate: unknown, fallback: string): string {
+export function sanitizeReturnUrl(
+  candidate: unknown,
+  fallback: string,
+  allowLoopback = false,
+): string {
   if (typeof candidate !== 'string' || candidate === '') return fallback;
   try {
     const url = new URL(candidate);
-    return ALLOWED_RETURN_HOSTS.has(url.hostname) ? url.toString() : fallback;
+    const allowed =
+      ALLOWED_RETURN_HOSTS.has(url.hostname) ||
+      (allowLoopback && LOOPBACK_RETURN_HOSTS.has(url.hostname));
+    return allowed ? url.toString() : fallback;
   } catch {
     return fallback;
   }
@@ -39,6 +52,12 @@ export interface CheckoutCreateDeps {
   createCheckout: (config: FlittConfig, request: CheckoutRequest) => Promise<string>;
   authSecret: string;
   apiPublicUrl: string;
+  /**
+   * Loopback return URLs are a local-development convenience only. Optional so
+   * that omitting it gives the production answer: a caller that has not thought
+   * about this should not be the one that widens the allowlist.
+   */
+  allowLoopbackReturn?: boolean;
   now: () => number;
 }
 
@@ -75,6 +94,12 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
       return;
     }
 
+    // An id that does not survive sanitising cannot own an order id
+    // unambiguously — see isOrderSafeUserId. Numeric Figma ids always do.
+    if (!isOrderSafeUserId(userId)) {
+      res.status(400).json({ success: false, error: 'unsupported_account' });
+      return;
+    }
     const orderId = buildOrderId(userId, now);
 
     try {
@@ -84,7 +109,11 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
         orderId,
         email: license.email ?? undefined,
         serverCallbackUrl: `${deps.apiPublicUrl}/api/webhooks/flitt`,
-        responseUrl: sanitizeReturnUrl(body.returnUrl, `${deps.apiPublicUrl}/api/checkout/success`),
+        responseUrl: sanitizeReturnUrl(
+          body.returnUrl,
+          `${deps.apiPublicUrl}/api/checkout/success`,
+          deps.allowLoopbackReturn ?? false,
+        ),
       });
       await deps.events.record(
         { figmaUserId: userId, kind: 'checkout_created', detail: duration },
@@ -115,5 +144,6 @@ export const checkoutCreateHandler: ApiHandler = (req, res) =>
     createCheckout: createCheckoutUrl,
     authSecret: env().authSecret,
     apiPublicUrl: env().apiPublicUrl,
+    allowLoopbackReturn: env().nodeEnv !== 'production',
     now: () => Date.now(),
   })(req, res);

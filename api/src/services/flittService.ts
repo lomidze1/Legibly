@@ -90,12 +90,25 @@ export function sanitizeUserId(figmaUserId: string): string {
   return figmaUserId.replace(/[^A-Za-z0-9_-]/g, '');
 }
 
+/**
+ * Sanitising is lossy: `u|ser1` and `user1` collapse to the same string, so
+ * they would share an order-id namespace while their licence rows stay keyed on
+ * the raw value — and `orderIdBelongsTo` would tie one user's order to the
+ * other. Figma user ids are numeric in practice, so an id that does not survive
+ * sanitising unchanged is refused rather than quietly collapsed.
+ */
+export function isOrderSafeUserId(figmaUserId: string): boolean {
+  return figmaUserId !== '' && figmaUserId === sanitizeUserId(figmaUserId);
+}
+
 export function buildOrderId(figmaUserId: string, now: number = Date.now()): string {
-  return `${ORDER_ID_PREFIX}${sanitizeUserId(figmaUserId)}_${now}`;
+  if (!isOrderSafeUserId(figmaUserId)) throw new FlittError('unsupported figma user id');
+  return `${ORDER_ID_PREFIX}${figmaUserId}_${now}`;
 }
 
 export function orderIdBelongsTo(orderId: string, figmaUserId: string): boolean {
-  return orderId.startsWith(`${ORDER_ID_PREFIX}${sanitizeUserId(figmaUserId)}_`);
+  if (!isOrderSafeUserId(figmaUserId)) return false;
+  return orderId.startsWith(`${ORDER_ID_PREFIX}${figmaUserId}_`);
 }
 
 export interface CheckoutRequest {

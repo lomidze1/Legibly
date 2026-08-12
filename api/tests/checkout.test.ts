@@ -166,7 +166,23 @@ describe('sanitizeReturnUrl', () => {
     expect(sanitizeReturnUrl('https://www.legibly.design/thanks', fallback)).toBe(
       'https://www.legibly.design/thanks',
     );
-    expect(sanitizeReturnUrl('http://localhost:3000/thanks', fallback)).toBe('http://localhost:3000/thanks');
+  });
+
+  it('allows loopback only where a developer asked for it', () => {
+    // Production must not send a real buyer back to their own machine: it is a
+    // dead end, not a destination.
+    expect(sanitizeReturnUrl('http://localhost:3000/thanks', fallback)).toBe(fallback);
+    expect(sanitizeReturnUrl('http://127.0.0.1:3000/thanks', fallback)).toBe(fallback);
+    expect(sanitizeReturnUrl('http://localhost:3000/thanks', fallback, true)).toBe(
+      'http://localhost:3000/thanks',
+    );
+    expect(sanitizeReturnUrl('http://127.0.0.1:3000/thanks', fallback, true)).toBe(
+      'http://127.0.0.1:3000/thanks',
+    );
+  });
+
+  it('does not let the loopback flag widen anything else', () => {
+    expect(sanitizeReturnUrl('https://evil.example/steal', fallback, true)).toBe(fallback);
   });
 
   it('falls back on a foreign host instead of failing the payment', () => {
@@ -230,5 +246,26 @@ describe('checkout return', () => {
     await createCheckoutReturnHandler('https://legibly.design')({ method: 'GET', headers: {} }, res);
 
     expect(res.headers.Location).toBe('https://legibly.design/checkout/cancel');
+  });
+});
+
+describe('POST /api/checkout/create — the return URL a buyer is sent to', () => {
+  it('will not send a real buyer to their own machine unless a developer asked', async () => {
+    // The deps here omit allowLoopbackReturn, which is the production answer:
+    // an omitted flag must not be the thing that widens the allowlist.
+    const kit = setup();
+    const res = fakeResponse();
+
+    await kit.handler(
+      {
+        method: 'POST',
+        headers: bearer(),
+        body: { duration: 'yearly', returnUrl: 'http://localhost:3000/thanks' },
+      },
+      res,
+    );
+
+    expect(res.statusCode).toBe(200);
+    expect(kit.requests[0]!.responseUrl).toBe('https://api.legibly.design/api/checkout/success');
   });
 });

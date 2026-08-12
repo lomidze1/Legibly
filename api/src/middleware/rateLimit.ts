@@ -81,6 +81,14 @@ export async function checkRateLimit(
 export const AUTH_RATE_LIMIT: RateLimitOptions = { scope: 'auth', limit: 300, windowMs: 600_000 };
 
 /**
+ * The judge gets its own bucket. Sharing the auth one meant a burst of judging
+ * could spend the budget that the same user's next login or token refresh needs
+ * — locking them out of the product to punish them for using it. Cost is capped
+ * by the per-licence quota anyway; this only has to bound the request rate.
+ */
+export const JUDGE_RATE_LIMIT: RateLimitOptions = { scope: 'judge', limit: 60, windowMs: 600_000 };
+
+/**
  * The admin surface. Loose enough for the panel — one page view is a handful of
  * calls and the founder reloads freely — tight enough that guessing a 32-char
  * token by brute force is not a strategy.

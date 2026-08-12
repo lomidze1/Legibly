@@ -326,3 +326,19 @@ describe('POST /api/webhooks/flitt', () => {
     warn.mockRestore();
   });
 });
+
+describe('rate-limit scopes', () => {
+  it('gives the judge its own budget, separate from auth', async () => {
+    // Sharing one meant a burst of judging could spend the allowance the same
+    // user's next login or token refresh needs.
+    buckets.clear();
+    await judgeEntry(
+      { method: 'POST', headers: { ...fromAddress(), ...bearer() }, body: { png: 'AAAA', nodes: [] } },
+      fakeResponse(),
+    );
+
+    const keys = [...buckets.keys()];
+    expect(keys.some((k) => k.startsWith('judge:'))).toBe(true);
+    expect(keys.some((k) => k.startsWith('auth:'))).toBe(false);
+  });
+});

@@ -254,3 +254,62 @@ describe('GET /api/auth/figma-exchange', () => {
     expect(res.statusCode).toBe(400);
   });
 });
+
+/**
+ * The callback is the one route that spends its state before it calls Figma.
+ * That makes both of these worth pinning: a wrong verb must not reach the
+ * exchange at all, and a Figma outage must not surface as the platform's
+ * default error page after the user's one-shot state is already gone.
+ */
+describe('GET /api/auth/figma/callback — the unhappy paths', () => {
+  function failing(error: Error) {
+    const store = fakeAuthStore(() => NOW);
+    const reached: string[] = [];
+    const handler = createCallbackHandler({
+      config,
+      store,
+      licenses: fakeLicenseStore(),
+      exchangeCode: async () => {
+        reached.push('exchange');
+        throw error;
+      },
+      fetchUser: async (_accessToken: string): Promise<FigmaUser> => {
+        reached.push('me');
+        return { id: 'figma-user-1' };
+      },
+      authSecret: SECRET,
+      now: () => NOW,
+    });
+    return { store, handler, reached };
+  }
+
+  it('refuses a verb it does not serve', async () => {
+    const { handler, reached } = failing(new Error('never reached'));
+
+    for (const method of ['POST', 'PUT', 'DELETE']) {
+      const res = fakeResponse();
+      await handler({ method, headers: {}, query: { code: 'c', state: 's' } }, res);
+      expect(res.statusCode).toBe(405);
+      expect(res.body).toEqual({ success: false, error: 'method_not_allowed' });
+    }
+    expect(reached).toEqual([]);
+  });
+
+  it('answers a Figma outage with a page that says what to do next', async () => {
+    const { store, handler } = failing(new Error('figma timed out'));
+    await store.saveOAuthState('state-xyz', VALID_NONCE, new Date(NOW + 60_000));
+
+    const res = fakeResponse();
+    await handler({ method: 'GET', headers: {}, query: { code: 'auth-code', state: 'state-xyz' } }, res);
+
+    expect(res.statusCode).toBe(502);
+    expect(res.headers['Content-Type']).toBe('text/html; charset=utf-8');
+    expect(res.text).toContain('Could not connect to Figma');
+    expect(res.text).toContain('press Connect in Legibly');
+    // The state stays spent — a retry has to start a fresh round trip — and
+    // nothing was parked for the plugin to collect.
+    expect(await store.consumeOAuthState('state-xyz')).toBeNull();
+    expect(store.pending.get(VALID_NONCE)).toBeUndefined();
+    expect(store.pending.size).toBe(0);
+  });
+});
