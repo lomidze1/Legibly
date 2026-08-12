@@ -1,7 +1,11 @@
 import { env } from '../../config/env.js';
 import { queryParam, redirect, type ApiHandler } from '../../lib/http.js';
 import { authStore, type AuthStore } from '../../models/authStore.js';
-import { buildAuthorizeUrl, figmaOAuthConfig, type FigmaOAuthConfig } from '../../services/figmaOAuth.js';
+import {
+  buildAuthorizeUrl,
+  figmaOAuthConfigOrNull,
+  type FigmaOAuthConfig,
+} from '../../services/figmaOAuth.js';
 import { randomBytes } from 'node:crypto';
 
 /**
@@ -42,10 +46,20 @@ export function createLoginHandler(deps: LoginDeps): ApiHandler {
   };
 }
 
-export const loginHandler: ApiHandler = (req, res) =>
-  createLoginHandler({
-    config: figmaOAuthConfig(env()),
+export const loginHandler: ApiHandler = (req, res) => {
+  // Until Figma's client id and secret are set there is nothing to redirect to.
+  // Say so plainly — an uncaught throw here is an opaque 500 in the one place a
+  // user has just pressed Connect and is waiting on an explanation.
+  const config = figmaOAuthConfigOrNull(env());
+  if (config === null) {
+    res.status(503).json({ success: false, error: 'oauth_not_configured' });
+    return;
+  }
+
+  return createLoginHandler({
+    config,
     store: authStore,
     makeState: () => randomBytes(16).toString('hex'),
     now: () => Date.now(),
   })(req, res);
+};

@@ -41,6 +41,18 @@ export function figmaOAuthConfig(env: Env): FigmaOAuthConfig {
   return { clientId: figmaClientId, clientSecret: figmaClientSecret, redirectUri: figmaRedirectUri };
 }
 
+/**
+ * The same check without the throw, for the two routes that must answer rather
+ * than crash when OAuth has not been configured yet.
+ */
+export function figmaOAuthConfigOrNull(env: Env): FigmaOAuthConfig | null {
+  try {
+    return figmaOAuthConfig(env);
+  } catch {
+    return null;
+  }
+}
+
 export function buildAuthorizeUrl(config: FigmaOAuthConfig, state: string): string {
   const url = new URL(FIGMA_AUTHORIZE_URL);
   url.searchParams.set('client_id', config.clientId);

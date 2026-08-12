@@ -6,7 +6,7 @@ import { licenseStore, type LicenseStore } from '../../models/License.js';
 import {
   exchangeCodeForToken,
   fetchFigmaUser,
-  figmaOAuthConfig,
+  figmaOAuthConfigOrNull,
   type FigmaOAuthConfig,
   type FigmaUser,
 } from '../../services/figmaOAuth.js';
@@ -103,9 +103,18 @@ export function createCallbackHandler(deps: CallbackDeps): ApiHandler {
   };
 }
 
-export const callbackHandler: ApiHandler = (req, res) =>
-  createCallbackHandler({
-    config: figmaOAuthConfig(env()),
+export const callbackHandler: ApiHandler = (req, res) => {
+  // Figma sent the user here, so this is a browser tab with a person in it.
+  // A 500 tells them nothing; the failure page at least says to try again.
+  const config = figmaOAuthConfigOrNull(env());
+  if (config === null) {
+    console.error('[auth-callback] Figma OAuth is not configured');
+    html(res, FAILED_PAGE, 503);
+    return;
+  }
+
+  return createCallbackHandler({
+    config,
     store: authStore,
     licenses: licenseStore,
     exchangeCode: exchangeCodeForToken,
@@ -113,3 +122,4 @@ export const callbackHandler: ApiHandler = (req, res) =>
     authSecret: env().authSecret,
     now: () => Date.now(),
   })(req, res);
+};

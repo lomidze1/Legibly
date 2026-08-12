@@ -155,12 +155,28 @@ export function createFlittWebhookHandler(deps: FlittWebhookDeps): ApiHandler {
   };
 }
 
-export const flittWebhookHandler: ApiHandler = (req, res) =>
-  createFlittWebhookHandler({
-    secretKey: flittConfig(env()).secretKey,
+export const flittWebhookHandler: ApiHandler = async (req, res) => {
+  // ⚠️ The 200-to-everything rule starts here, not inside the handler.
+  //
+  // Building the config throws while Flitt's keys are unset — or if one is ever
+  // rotated away — and an uncaught throw is a 500. Flitt reads 5xx as "retry":
+  // 2s, 60s, 5m, 10m, 1h, 24h, for every delivery. A missing env var would
+  // become a retry storm that also buries the deliveries that genuinely failed.
+  let secretKey: string;
+  try {
+    secretKey = flittConfig(env()).secretKey;
+  } catch (error) {
+    console.warn(`[flitt-webhook] refused: not configured — ${String(error)}`);
+    res.status(200).json({ received: true });
+    return;
+  }
+
+  return createFlittWebhookHandler({
+    secretKey,
     licenses: licenseStore,
     events: webhookEventStore,
     usage: usageEventStore,
     audit: licenseAuditStore,
     now: () => Date.now(),
   })(req, res);
+};
