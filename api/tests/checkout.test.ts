@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { PRICES } from '../src/config/pricing';
 import { signToken } from '../src/lib/hmac';
 import { createCheckoutCreateHandler, sanitizeReturnUrl } from '../src/routes/checkout/create';
-import { createReturnHandler } from '../src/routes/checkout/return';
+import { createCheckoutReturnHandler, createReturnHandler } from '../src/routes/checkout/return';
 import { FlittError, signParams, type CheckoutRequest, type FlittConfig } from '../src/services/flittService';
 import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
 
@@ -193,6 +193,41 @@ describe('checkout return', () => {
   it('sends the cancel path to the website too', async () => {
     const res = fakeResponse();
     await createReturnHandler('https://legibly.design', '/checkout/cancel')({ method: 'GET', headers: {} }, res);
+
+    expect(res.headers.Location).toBe('https://legibly.design/checkout/cancel');
+  });
+
+  it('picks the page from the URL segment, so one function serves both', async () => {
+    const handler = createCheckoutReturnHandler('https://legibly.design');
+
+    for (const [action, path] of [
+      ['success', '/checkout/success'],
+      ['cancel', '/checkout/cancel'],
+    ]) {
+      const res = fakeResponse();
+      await handler({ method: 'POST', headers: {}, query: { action } }, res);
+
+      expect(res.statusCode).toBe(303);
+      expect(res.headers.Location).toBe(`https://legibly.design${path}`);
+    }
+  });
+
+  it('never claims success for a segment nobody issues', async () => {
+    // /api/checkout/anything is not a URL we hand out. Landing it on the
+    // success page would tell a visitor they had paid when nothing says so.
+    const handler = createCheckoutReturnHandler('https://legibly.design');
+
+    for (const action of ['paid', '', 'SUCCESS', '../success']) {
+      const res = fakeResponse();
+      await handler({ method: 'GET', headers: {}, query: { action } }, res);
+
+      expect(res.headers.Location, action).toBe('https://legibly.design/checkout/cancel');
+    }
+  });
+
+  it('falls back to cancel when the segment is missing entirely', async () => {
+    const res = fakeResponse();
+    await createCheckoutReturnHandler('https://legibly.design')({ method: 'GET', headers: {} }, res);
 
     expect(res.headers.Location).toBe('https://legibly.design/checkout/cancel');
   });

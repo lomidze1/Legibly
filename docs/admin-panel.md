@@ -42,10 +42,15 @@ curl -H "X-Admin-Token: $ADMIN_TOKEN" https://api.legibly.design/api/admin/stats
 | `GET /api/admin/activity` | usage events feed — `kind=checkin\|checkout_created\|…` |
 | `POST /api/admin/license` | `{figmaUserId, action: grant\|revoke, duration?, days?, reason}` |
 
-**⚠️ Vercel function budget.** `api/`-ში ახლა **13 ფაილია** — Hobby-ს ჭერი 12-ია. თუ პროექტი
-Hobby-ზეა, deploy-მდე ან Pro-ზე უნდა ავიდეს, ან `checkout/success.ts` + `checkout/cancel.ts`
-უნდა გაერთიანდეს ერთ ფუნქციად (ორივე უკვე ერთ `src/routes/checkout/return.ts`-ს ეძახის).
-სწორედ ამიტომაა მთელი admin ერთ catch-all-ში და არა 8 ცალკე ფაილად.
+**⚠️ Vercel function budget.** Vercel ფუნქციას თითო ფაილზე ითვლის და Hobby-ს ჭერი 12-ია.
+`api/`-ში ზუსტად **12 ფაილია** — ანუ ჭერზე ვდგავართ. ორი რამ ინახავს ამ ბალანსს:
+
+- მთელი admin ერთ catch-all-შია (`api/admin/[...path].ts`), და არა 8 ცალკე ფაილად;
+- `api/checkout/[action].ts` ორივე return URL-ს ემსახურება — `/api/checkout/success` და
+  `/api/checkout/cancel` უცვლელია (Flitt-ს გადაწყობა არ სჭირდება), ფუნქცია კი ერთია.
+  სტატიკური ფაილი დინამიკურს ჯობნის, ამიტომ `/api/checkout/create` ხელუხლებელია.
+
+**ახალი endpoint-ის დამატებამდე** ან ფაილი გააერთიანე არსებულთან, ან Pro-ზე აიწიე.
 
 ---
 
