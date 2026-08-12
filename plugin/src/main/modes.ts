@@ -68,6 +68,7 @@ export async function buildModeProjections(
 
   const selected = wanted.slice(0, cap);
   const projections: ModeProjection[] = [];
+  let unresolvable = 0;
   for (const { collection, modeId, modeName } of selected) {
     const overrides = new Map([[collection.id, modeId]]);
     const colors = new Map<string, RGBA>();
@@ -75,7 +76,12 @@ export async function buildModeProjections(
       const color = await resolveVariableColor(variable, api, overrides);
       if (color) colors.set(variable.id, color);
     }
-    if (colors.size === 0) continue;
+    // A mode nothing resolves in was not swept, so the footer has to say so —
+    // dropping it silently claims coverage the sweep never had.
+    if (colors.size === 0) {
+      unresolvable++;
+      continue;
+    }
     projections.push({
       key: `${collection.id}:${modeId}`,
       label: collection.name ? `${collection.name} · ${modeName}` : modeName,
@@ -84,7 +90,7 @@ export async function buildModeProjections(
       colors,
     });
   }
-  return { projections, skipped: wanted.length - selected.length };
+  return { projections, skipped: wanted.length - selected.length + unresolvable };
 }
 
 /**

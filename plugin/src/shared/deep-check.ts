@@ -27,6 +27,12 @@ export interface DeepVerdict {
   /** Worst / best pixel ratios (absent for unresolved). */
   min?: number;
   max?: number;
+  /**
+   * True when every pixel of the region was read. A large region is probed on
+   * a grid instead, and a thin dark band can fall between probes — so a pass
+   * found that way is evidence, not proof, and must not be worded as proof.
+   */
+  exhaustive?: boolean;
   detail: string;
 }
 
@@ -87,13 +93,17 @@ export function deepVerdict(
     }
   }
   if (min === Infinity) return { kind: 'unresolved', detail: 'No pixels sampled' };
+  const exhaustive = step === 1;
   const fmt = (v: number) => v.toFixed(2);
   if (min >= required) {
     return {
       kind: 'pass',
       min,
       max,
-      detail: `Pixel-checked ✓ — worst spot ${fmt(min)}:1 meets ${required}:1`,
+      exhaustive,
+      detail: exhaustive
+        ? `Pixel-checked ✓ — worst spot ${fmt(min)}:1 meets ${required}:1`
+        : `Pixel-sampled ✓ — worst of every ${step}th pixel is ${fmt(min)}:1, over ${required}:1`,
     };
   }
   if (max < required) {
@@ -101,6 +111,7 @@ export function deepVerdict(
       kind: 'fail',
       min,
       max,
+      exhaustive,
       detail: `Confirmed by pixels — best spot ${fmt(max)}:1 is below ${required}:1`,
     };
   }
@@ -108,6 +119,7 @@ export function deepVerdict(
     kind: 'mixed',
     min,
     max,
+    exhaustive,
     detail: `Real pixels vary ${fmt(min)}:1–${fmt(max)}:1 — some spots fail ${required}:1; check where the text sits`,
   };
 }

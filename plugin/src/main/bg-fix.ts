@@ -65,6 +65,12 @@ function colorsEqual(a: { r: number; g: number; b: number }, b: RGBA): boolean {
 interface FrameState {
   textPasses: Map<string, boolean>;
   probePasses: Map<string, boolean>;
+  /**
+   * How many 1.4.11 probes were re-verified. `probePasses` holds only the
+   * failing ones — it is the regression baseline, not a tally — so counting it
+   * would report fewer layers than were actually checked.
+   */
+  probeCount: number;
 }
 
 /** Snapshot which layers currently pass — the regression baseline. */
@@ -77,7 +83,7 @@ export function frameState(root: NodeLite, settings: Settings): FrameState {
   const targets = collectTargets([root]);
   const result = checkNonTextContrast(targets);
   for (const f of result.findings) probePasses.set(`${f.nodeId}:${f.paintTarget}`, false);
-  return { textPasses, probePasses };
+  return { textPasses, probePasses, probeCount: result.passCount + result.findings.length };
 }
 
 /** True when nothing that passed in `before` fails in `after`. */
@@ -137,7 +143,7 @@ export function planBgFix(
         ownerName: owner.name,
         token,
         verifiedRatio: verdict.ratio,
-        checkedCount: before.textPasses.size + before.probePasses.size,
+        checkedCount: before.textPasses.size + before.probeCount,
       };
     }
     return null;

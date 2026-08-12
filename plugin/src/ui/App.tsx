@@ -385,7 +385,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
   useEffect(() => {
     for (const f of violations) {
       const key = keyOf(f);
-      if (f.sc !== '1.4.3' || !f.fg || f.bgSamples?.length) continue;
+      if (f.sc !== '1.4.3' || !f.fg || f.requiredRatio === undefined || f.bgSamples?.length) continue;
       if (plans[key]?.status !== 'unfixable' || key in bgPlans || applied[key]) continue;
       setBgPlans((p) => ({ ...p, [key]: null })); // mark in-flight
       rpc
@@ -1004,7 +1004,9 @@ function ReviewCard({
         {applied ? (
           <span className="badge badge-fixed">FIXED ✓</span>
         ) : deep?.kind === 'pass' ? (
-          <span className="badge badge-fixed">PIXEL-CHECKED ✓</span>
+          <span className="badge badge-fixed">
+            {deep.exhaustive === false ? 'PIXEL-SAMPLED ✓' : 'PIXEL-CHECKED ✓'}
+          </span>
         ) : deep?.kind === 'fail' ? (
           <span className="badge badge-violation">CONFIRMED ISSUE</span>
         ) : (

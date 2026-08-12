@@ -59,12 +59,15 @@ describe('buildModeProjections — nothing to sweep', () => {
     expect(result).toEqual({ projections: [], skipped: 0 });
   });
 
-  it('drops a mode in which no variable resolves to a colour', async () => {
+  it('drops a mode in which no variable resolves to a colour, and counts it as unswept', async () => {
     // values that are neither a colour nor an alias → resolveVariableColor null
     const result = await buildModeProjections(
       api([UNNAMED], [v('broken', 'anon', { light: 'red', dark: 'blue' })])
     );
     expect(result.projections).toEqual([]);
+    // Dropping it silently would let the honesty footer claim the sweep covered
+    // a mode it never looked at.
+    expect(result.skipped).toBe(1);
   });
 
   it('carries the variable alpha through into the projected colour', async () => {

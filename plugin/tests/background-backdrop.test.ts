@@ -204,3 +204,51 @@ describe('resolveBackdrop — non-text nodes', () => {
     expect((result as { bgs: unknown[] }).bgs).toEqual([{ r: 0, g: 0, b: 0, a: 1 }]);
   });
 });
+
+/**
+ * A node whose parent does not list it among its children cannot be placed in
+ * the z-order — every sibling behind it is unknown. The walk used to take
+ * `indexOf` returning -1 as "no siblings behind me" and answer confidently from
+ * whatever it had already collected. A confident wrong answer is the one
+ * outcome the honesty rule does not allow.
+ */
+describe('resolveBackdrop — a node its parent does not list', () => {
+  it('says the background is unresolved instead of answering from the layers it reached', () => {
+    const orphan = rect([solid(BLACK)]);
+    const behind = node({
+      type: 'RECTANGLE',
+      fills: [solid(BLACK)],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+    });
+    const frame = node({
+      type: 'FRAME',
+      fills: [solid(WHITE)],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [behind], // the orphan is deliberately absent
+    });
+    page([frame]);
+    (orphan as { parent?: unknown }).parent = frame;
+
+    const result = resolveBackdrop(orphan);
+
+    expect(result.ok).toBe(false);
+    expect(result).toMatchObject({ reason: 'unresolved-background' });
+    expect((result as { detail: string }).detail).toContain('not listed among its parent');
+  });
+
+  it('still resolves normally once the parent lists it', () => {
+    const child = rect([solid(BLACK)]);
+    const frame = node({
+      type: 'FRAME',
+      fills: [solid(WHITE)],
+      absoluteBoundingBox: box(0, 0, 200, 100),
+      children: [child],
+    });
+    page([frame]);
+
+    const result = resolveBackdrop(child);
+
+    expect(result.ok).toBe(true);
+    expect(result.ok && result.bgs).toEqual([{ r: 1, g: 1, b: 1, a: 1 }]);
+  });
+});

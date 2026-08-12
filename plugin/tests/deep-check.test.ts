@@ -116,3 +116,38 @@ describe('DEEP_CHECKABLE', () => {
     expect(DEEP_CHECKABLE.has('line-height-floor')).toBe(false);
   });
 });
+
+/**
+ * The sampler reads every pixel of a small region and a grid of a large one.
+ * A pass found on a grid is evidence, not proof — a thin dark band can sit
+ * between two probes — so the verdict has to say which it was, and the badge
+ * has to stop reading as an absolute verdict when it was the grid.
+ */
+describe('deepVerdict — how much of the region was actually read', () => {
+  const white = (): [number, number, number, number] => [255, 255, 255, 255];
+
+  it('reads every pixel of a region at or under the probe budget', () => {
+    const v = deepVerdict(image(64, 64, white), 64, 64, BLACK_FG, 4.5); // 4096 px exactly
+    expect(v.kind).toBe('pass');
+    expect(v.exhaustive).toBe(true);
+    expect(v.detail).toContain('Pixel-checked');
+  });
+
+  it('samples a larger region on a grid, and says so', () => {
+    const v = deepVerdict(image(200, 100, white), 200, 100, BLACK_FG, 4.5); // 20000 px
+    expect(v.kind).toBe('pass');
+    expect(v.exhaustive).toBe(false);
+    expect(v.detail).toContain('Pixel-sampled');
+    expect(v.detail).not.toContain('Pixel-checked');
+  });
+
+  it('finds a dark band that a coarse grid could straddle, when it is read in full', () => {
+    // One black row in a 64×64 white region: exhaustive, so it cannot be missed
+    // — and finding it is what turns a clean pass into an honest range.
+    const data = image(64, 64, (_x, y) => (y === 31 ? [0, 0, 0, 255] : [255, 255, 255, 255]));
+    const v = deepVerdict(data, 64, 64, BLACK_FG, 4.5);
+    expect(v.kind).toBe('mixed');
+    expect(v.min).toBeCloseTo(1, 5); // black text on the black band
+    expect(v.exhaustive).toBe(true);
+  });
+});

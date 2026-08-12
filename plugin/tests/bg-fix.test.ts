@@ -128,3 +128,44 @@ describe('planBgFix', () => {
     expect((card.fills as { color: typeof MID_GRAY }[])[0]!.color).toEqual(MID_GRAY);
   });
 });
+
+/**
+ * `checkedCount` is what the UI turns into "N other layers on this frame
+ * re-verified, none break". It was summing the regression baseline's
+ * probePasses map, which by construction holds only the FAILING probes — so
+ * the number the user read was smaller than the work actually done.
+ */
+describe('planBgFix — the re-verified count', () => {
+  it('counts the 1.4.11 probes that passed, not only the ones that failed', () => {
+    const { target, card } = midGrayScene();
+    // A button with a dark icon on the same card: one probe, and it passes.
+    const icon = node({
+      type: 'VECTOR',
+      name: 'chevron',
+      fills: [solid({ r: 0, g: 0, b: 0 })],
+      absoluteBoundingBox: box(200, 20, 16, 16),
+    });
+    const button = node({
+      type: 'FRAME',
+      name: 'Buy',
+      reactions: [{ trigger: 'ON_CLICK' }],
+      fills: [],
+      absoluteBoundingBox: box(190, 10, 40, 40),
+      children: [icon],
+    });
+    card.children = [...(card.children ?? []), button];
+    page([card]);
+
+    const plan = planBgFix(
+      target,
+      [token('t-white', 'surface/page', '#ffffff')],
+      AA,
+      4.5,
+      hexToRgba('#737373'),
+    );
+
+    expect(plan).not.toBeNull();
+    // 1 text layer + 1 passing probe. Counting probePasses alone would say 1.
+    expect(plan!.checkedCount).toBe(2);
+  });
+});

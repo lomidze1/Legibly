@@ -324,7 +324,9 @@ const handlers = {
     const lite = node as unknown as NodeLite;
 
     const resolved = resolveTextColors(lite);
-    const fg: RGBA | undefined = resolved.ok ? resolved.fg : resolved.fg;
+    // Present on every branch: a failed backdrop resolve still reports the text
+    // colour when the text colour itself resolved, which is what deep check needs.
+    const fg: RGBA | undefined = resolved.fg;
     if (!fg) throw new Error('The text color itself could not be determined');
     if (typeof lite.fontSize !== 'number') throw new Error('Mixed text sizes — check ranges manually');
     const fontWeight = typeof lite.fontWeight === 'number' ? lite.fontWeight : 400;

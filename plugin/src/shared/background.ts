@@ -141,7 +141,7 @@ function collectFills(node: NodeLite, out: Layer[]): CollectError | null {
   for (let i = fills.length - 1; i >= 0; i--) {
     const p = fills[i]!;
     if (!paintVisible(p)) continue;
-    if (!blendOk(p.blendMode) && p.blendMode !== 'NORMAL') {
+    if (!blendOk(p.blendMode)) {
       return { reason: 'blend-mode', detail: `"${node.name}" uses blend mode ${p.blendMode}` };
     }
     if (!isSolidPaint(p)) {
@@ -196,7 +196,7 @@ export function resolveTextColors(text: NodeLite): ResolveResult {
         detail: `Text fill is ${p.type.toLowerCase()} — cannot reduce to one color`,
       };
     }
-    if (!blendOk(p.blendMode) && p.blendMode !== 'NORMAL') {
+    if (!blendOk(p.blendMode)) {
       return { ok: false, reason: 'blend-mode', detail: `Text fill uses blend mode ${p.blendMode}` };
     }
   }
@@ -247,6 +247,16 @@ export function resolveBackdrop(node: NodeLite): BackdropResult {
     }
     const siblings = parent.children ?? [];
     const idx = siblings.indexOf(cur);
+    // A node its own parent does not list cannot be placed in the z-order, so
+    // every layer behind it is unknown. Say so rather than answer confidently
+    // from the layers we happened to reach.
+    if (idx === -1) {
+      return {
+        ok: false,
+        reason: 'unresolved-background',
+        detail: `"${cur.name}" is not listed among its parent's children — the layers behind it cannot be determined`,
+      };
+    }
     // Figma children are back-to-front: lower index renders behind.
     for (let i = idx - 1; i >= 0; i--) {
       const sib = siblings[i]!;
