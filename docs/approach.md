@@ -278,6 +278,19 @@ license state-ს store სჭირდება. სამაგიეროდ
 - **ხარისხის რისკი (cutoff-ის კრიტერიუმი):** generic-ფიდბექიანი judge უარესია, ვიდრე მისი არქონა. rubric + eval pass სავალდებულოა "მზადაა"-ს განსაზღვრებაში.
 ---
 
+### D25 — 2026-08-12 — სახელი **"Legibly" რჩება** + mitigation; rename-ის trigger-ები წინასწარაა დაფიქსირებული — user-approved
+
+- **Context:** D9-ის lock ეყრდნობოდა ინდიკატურ web-check-ს. Track F-ის ფორმალურმა ძებნამ ([`research/trademark-legibly.md`](./research/trademark-legibly.md), TMview = USPTO + EUIPO + WIPO + ~75 ოფისი, USPTO TSDR, RDAP) სურათი **შეაბრუნა**.
+- **რისკი, რომელსაც ველოდით, არ არსებობს:** "legibly"-ს შემცველი განაცხადი მსოფლიოში **ნულია**. `legibly.app` (Legibly Inc.) 2025-10-22-ს დარეგისტრირდა, არქივში ერთი capture-იც არ აქვს, forwarding-ზეა, ნიშანი არ შეუტანია. მისი common-law scope = ოჯახური სამართლის დოკუმენტები, არა დიზაინის ხელსაწყოები.
+- **რეალური რისკი სხვაა — სახელს ვერ დავიკავებთ:** 🇪🇺 **Logibly** = **რეგისტრირებული** EUTM `019231527`, **კლ. 9 + 42**, 27 ქვეყანა, opposition დახურული (რეგ. 2026-01-17). 🇺🇸 **LEGIBLE PLATFORM** (`99627721`, კლ. 42) published for opposition 2026-07-14, "PLATFORM" disclaimed ⇒ დაცული ელემენტი **LEGIBLE**; + `LEGIBLE` (`97227987`, კლ. 9 + 42, LIVE). ე.ი. LEGIBLY-ის განაცხადს ორივე მხარეს სანდო დაბრკოლება ხვდება.
+- **Decision:** ვრჩებით **Legibly**-ზე. განხილული ალტერნატივები: (ა) გადარქმევა ახლავე **Conformly**-ზე (0 TM hit მსოფლიოში, `conformly.design` თავისუფალი) — უარყოფილია, რადგან ვცვლით სახელს, რომელსაც არავინ გვედავება, სახელზე, რომლის brand equity ნულიდან იწყება; (ბ) clearance opinion publish-მდე — გადადებულია შემოსავლამდე.
+- **⚠️ რაც გეგმიდან ამოდის:** LEGIBLY-ის trademark-ის **რეგისტრაცია აღარ იგეგმება**. უარი სრულ ბაჟს ჯდება და წერილობით ჩანაწერს ტოვებს ჩვენს წინააღმდეგ; ფული clearance opinion-ს ჯობია მოხმარდეს.
+- **Mitigation (M1–M8, სრულად → `research/trademark-legibly.md §6`):** ყველგან **"Legibly for Figma"** (Figma-ს მიერ ნებადართული ფორმულირება, და სწორედ ის market-qualifier-ია, რაც co-parenting აპისგან გვმიჯნავს) · footer-ის disclaimer · `hello@legibly.design` plugin-შიც და ქვითარზეც (მათი `hello@legibly.com` mail-misdirection-ის ვექტორია) · TMview-ს კვარტალური გადამოწმება.
+- **🚨 Rename trigger-ები — წინასწარ შეთანხმებული, ხელახლა არ განიხილება:** **T1** LEGIBLY-ის განაცხადი/რეგისტრაცია კლ. 9 ან 42-ში სადმე გამოჩნდა · **T2** cease-and-desist ან Figma-ს IP complaint · **T3** `legibly.app` general-purpose software-ის პოზიციონირებაზე გადავიდა · **T4** clearance opinion უარყოფითია. ⇒ **Conformly** (სათადარიგო: **Squintly**).
+- **რატომ ახლა და არა მერე:** გადარქმევა დღეს ~1 დღეა და <$100 (84 ფაილი, 360 შემთხვევა, **0 მომხმარებელი**). Launch-ის შემდეგ — 10–20×, პლუს ქვითრები/card-descriptor-ები ძველი სახელით და chargeback-ის ექსპოზიცია GE ინდ. მეწარმის checkout-ზე. თუ trigger ჩაირთვება, ვმოქმედებთ დაუყოვნებლივ — სწორედ ამიტომაა (ბ) დასაცავი პოზიცია და არა უბრალოდ ინერცია.
+- **გადაუმოწმებელი, რაც გადაწყვეტილებას ცვლიდა:** Logibly-ის **რეალური goods & services** კლ. 9/42-ში (EUIPO მიუწვდომელი იყო) — ყველაზე ღირებული უცნობი; და შეინარჩუნებს თუ არა Figma Community URL slug-ს გადარქმევისას.
+---
+
 ## 4. Risk Register (ბიზნესის რისკები)
 
 | # | რისკი | ალბათობა | ზიანი | Mitigation |
@@ -285,7 +298,7 @@ license state-ს store სჭირდება. სამაგიეროდ
 | R1 | Figma მოიცავს ჩვენი wedge-ს Design Agent-ში | მაღალი | მაღალი | Speed (MVP < 12 weeks); MCP-first portability |
 | R2 | Anthropic-ი ცვლის pricing/API | საშუალო | მაღალი | Backend proxy abstracts model choice; multi-model ready |
 | R3 | Figma plugin store review reject | დაბალი | მაღალი | Strict `allowedDomains`, no `"*"`, transparent telemetry |
-| R4 | სახელის trademark conflict | საშუალო | საშუალო | Brand search USPTO/EUIPO before naming lock |
+| R4 | სახელის trademark conflict | დაბალი (შეტევა) · **მაღალი (ვერ დავირეგისტრირებთ)** | საშუალო | ✅ ძებნა შესრულდა (D25): "LEGIBLY" არსად არაა შეტანილი, მაგრამ EU-ს `Logibly` (კლ. 9+42) და US-ის LEGIBLE-ის ოჯახი ჩვენს რეგისტრაციას კეტავს. Mitigation = "Legibly for Figma" + T1–T4 trigger-ები → Conformly |
 | R5 | A11y false positives frustrate users | საშუალო | საშუალო | Allow user to override with explicit confirm; learn from overrides |
 | R6 | MCP spec breaks (2025-11-25 → 2026-07-28 migration) | მაღალი | საშუალო | Versioned transport; test against both during migration window |
 | R7 | Backend cost runaway (cache miss storm) | დაბალი | მაღალი | Tier 3 limits, per-user rate limits, cost dashboard |

@@ -23,7 +23,7 @@ DOMAIN: legibly.design              # ✅ acquired 2026-08-01 (Namecheap, WHOIS 
 ## რატომ "Legibly"
 
 - **ფუნქციას ამბობს** — "legible / clear / readable" = accessibility-first correctness-ის გული; scales მთელ "correctness layer"-ზე (a11y → system-strict → brand-QA).
-- **Clean** — არ მოიძებნა არსებული "Legibly" software brand; Figma Community-ზე თავისუფალია; trademark indicative-ად სუფთა.
+- **Clean** — ⚠️ **ეს ფორმულირება მოძველდა (D25, 2026-08-12).** ზუსტი სურათი: "LEGIBLY" **არსად არაა შეტანილი როგორც ნიშანი** (TMview: 0 შედეგი), მაგრამ **არსებობს იმავე სახელის ცოცხალი პროდუქტი** `legibly.app` (co-parenting legal-tech, დაურეგისტრირებელი), და **ჩვენ სახელს ვერ დავირეგისტრირებთ** — EU-ში `Logibly` (კლ. 9+42) და US-ში LEGIBLE-ის ოჯახი გვიკეტავს კლ. 42-ს. სრულად → [`research/trademark-legibly.md`](./research/trademark-legibly.md).
 - **Brandable** — coined-ish adverb, მოკლე, pronounceable, friendly.
 
 ### Rejected candidates (2026-06-14)
@@ -47,10 +47,12 @@ DOMAIN: legibly.design              # ✅ acquired 2026-08-01 (Namecheap, WHOIS 
 | `legibly.com` | ⚠️ registered but parked/empty (403, no active brand) |
 | **`legibly.app`** | 🔴 **LIVE PRODUCT, same name** — "Legibly \| Legal clarity for peaceful parenting" (Vercel, 200 OK, checked 2026-08-01). Different sector (legal services ≈ Nice class 45) than ours (software ≈ class 9/42), so coexistence is plausible — **but this is no longer "no existing brand found"** |
 | `legibly.io` · `legibly.ai` · `getlegibly.com` | ⚠️ all registered by third parties, parked (2025–2026) |
-| **Formal USPTO/EUIPO clearance** | ⏳ **Track F — moved earlier: must run BEFORE Figma Community publish, not "before public launch".** If the `.app` holder owns or has applied for a mark in class 9 or 42, rename is forced |
+| **Formal USPTO/EUIPO clearance** | ✅ **შესრულდა 2026-08-12** → [`research/trademark-legibly.md`](./research/trademark-legibly.md). `.app`-ის მფლობელს **ნიშანი არ შეუტანია** — გადარქმევა იძულებითი **არაა** (D25). სამაგიეროდ აღმოჩნდა, რომ ჩვენც ვერ დავირეგისტრირებთ: 🇪🇺 `Logibly` EUTM `019231527` (კლ. **9+42**, რეგისტრირებული) · 🇺🇸 `LEGIBLE PLATFORM` `99627721` (კლ. 42, published for opposition) |
 | **Domain acquisition** | ✅ **`legibly.design` acquired 2026-08-01** |
 
-> ⚠️ ზემოთა web-checks **ინდიკატორია, არა legal clearance.** launch-ამდე საჭიროა proper trademark search + domain lock (`research/trademark-search.md`, `research/domains.md`).
+> ⚠️ ზემოთა web-checks **ინდიკატორია, არა legal clearance.** ფორმალური registry-ძებნა შესრულებულია
+> ([`research/trademark-legibly.md`](./research/trademark-legibly.md)), მაგრამ **არც ის არის attorney-ს clearance opinion.**
+> გადაწყვეტილება (**keep + mitigate**, rename trigger-ებით T1–T4 → **Conformly**) → [`approach.md` D25](./approach.md).
 
 ---
 

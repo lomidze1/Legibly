@@ -82,9 +82,9 @@ ARCHITECTURE.md უკვე გვაძლევს არქიტექტ�
 
 | საკითხი | რა გვინდა ვიცოდეთ | სტატუსი | ფაილი |
 |---------|--------------------|---------|-------|
-| Trademark search USPTO/EUIPO | candidate name conflicts | TODO | `research/trademark-search.md` |
-| Domain availability check | .com .app .io for finalists | TODO | `research/domains.md` |
-| Figma plugin name policy | naming restrictions in store | TODO | `research/figma-naming.md` |
+| Trademark search USPTO/EUIPO | candidate name conflicts | ✅ **DONE 2026-08-12** → [D25](./approach.md) | [`research/trademark-legibly.md`](./research/trademark-legibly.md) |
+| Domain availability check | .com .app .io for finalists | ✅ DONE — `legibly.design` აღებულია; rename-კანდიდატების TLD-ები იმავე ფაილშია | [`research/trademark-legibly.md`](./research/trademark-legibly.md) §5.1 |
+| Figma plugin name policy | naming restrictions in store | ✅ DONE — სახელს არ ბლოკავს, მაგრამ IP policy takedown-ის ბერკეტია; **"Fig" აკრძალულია** პროდუქტის სახელში | [`research/trademark-legibly.md`](./research/trademark-legibly.md) §4.2 |
 | EU AI Act / Accessibility Act implications | what we must disclose/comply | TODO | `research/eu-regulations.md` |
 | Anthropic ToS for resellers | can we BYO key vs hosted | TODO | `research/anthropic-tos.md` |
 

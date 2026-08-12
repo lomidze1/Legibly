@@ -55,9 +55,21 @@
       `TXT send` + **`MX send` → `feedback-smtp.eu-west-1.amazonses.com` (pri 10)**.
       root-ის SPF ახლა Cloudflare-ისაა (`include:_spf.mx.cloudflare.net`), დუბლიკატის გარეშე
 - [ ] 🤖 DMARC (`_dmarc` → `v=DMARC1; p=none;`) — არასავალდებულო, Cloudflare გვირჩევს
-- [ ] 👤 **Trademark clearance (Track F)** — ⬆️ **პრიორიტეტი გაიზარდა.** `legibly.app`-ის აღმოჩენის
-      შემდეგ ეს აღარაა ფორმალობა: ფორმალური USPTO/EUIPO ძებნა **Figma Community publish-ამდე.**
-      თუ `.app`-ის მფლობელს აქვს ნიშანი class 9/42-ში — rename იძულებითია
+- [x] 🤖 **Trademark clearance (Track F)** — ✅ **შესრულდა 2026-08-12** →
+      [`research/trademark-legibly.md`](./research/trademark-legibly.md), გადაწყვეტილება
+      [D25](./approach.md). `.app`-ის მფლობელს ნიშანი **არ შეუტანია** (TMview: "legibly" = 0 შედეგი
+      მსოფლიოში) ⇒ **rename იძულებითი არაა, სახელი რჩება.** მაგრამ ჩვენც ვერ დავირეგისტრირებთ:
+      🇪🇺 `Logibly` EUTM `019231527` (კლ. 9+42, რეგისტრირებული) · 🇺🇸 `LEGIBLE PLATFORM` (კლ. 42,
+      published for opposition). ⚠️ ეს **attorney-ს clearance opinion არაა**
+- [ ] 🤖 **M1 — "Legibly for Figma"** ყველგან: Figma store title, საიტის H1, OG tags, checkout descriptor
+- [ ] 🤖 **M5 — footer-ის disclaimer:** "Legibly is a Figma plugin for accessibility. Not affiliated
+      with any other product named Legibly."
+- [ ] 🤖 **M6 — `hello@legibly.design`** plugin-ის UI-შიც და ქვითარზეც (მათი `hello@legibly.com`
+      mail-misdirection-ის ვექტორია)
+- [ ] 👤 **M7 — TMview-ის გადამოწმება** (`contains: legibly`): publish-ის დღეს, +90 დღეზე, და
+      ნებისმიერი ფასიანი მარკეტინგის წინ. **T1 trigger** = კლ. 9/42-ში განაცხადი გამოჩნდა → Conformly
+- [ ] ❌ **LEGIBLY-ის trademark რეგისტრაცია — გეგმიდან ამოღებულია** (D25). უარი ბაჟს ჯდება და
+      ჩანაწერს ტოვებს ჩვენს წინააღმდეგ; ფული clearance opinion-ს მოხმარდეს, როცა შემოსავალი გაამართლებს
 
 ---
 
