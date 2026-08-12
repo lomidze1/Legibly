@@ -6,6 +6,7 @@
 import { createRpcServer } from '../shared/rpc';
 import { byTier, scanNodes } from '../shared/scan';
 import { ALT_KEY, ALT_NS, DECORATIVE_KEY, validateAltText } from '../shared/alt-text';
+import { AUTH_TOKEN_KEY, type StoredToken } from '../shared/license';
 import type { NodeLite } from '../shared/figma-lite';
 import type { Finding, RGBA, ScanReport, Settings } from '../shared/types';
 import { DEFAULT_SETTINGS } from '../shared/types';
@@ -454,6 +455,15 @@ const handlers = {
     return stored ? { ...DEFAULT_SETTINGS, ...(stored as Settings) } : DEFAULT_SETTINGS;
   },
   'set-settings': (payload: Settings) => figma.clientStorage.setAsync(SETTINGS_KEY, payload),
+  /**
+   * `clientStorage` exists only on the main thread, so the licence token has to
+   * round-trip through RPC. Stored as an object — a bare string would lose the
+   * expiry the UI checks before every call.
+   */
+  'get-auth-token': async (): Promise<unknown> =>
+    (await figma.clientStorage.getAsync(AUTH_TOKEN_KEY)) ?? null,
+  'set-auth-token': (payload: StoredToken) => figma.clientStorage.setAsync(AUTH_TOKEN_KEY, payload),
+  'clear-auth-token': () => figma.clientStorage.deleteAsync(AUTH_TOKEN_KEY),
 };
 
 const route = createRpcServer(handlers, (msg) => figma.ui.postMessage(msg));

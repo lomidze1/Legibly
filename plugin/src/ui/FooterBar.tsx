@@ -3,12 +3,14 @@ import { Modal } from './Modal';
 import { GUIDE_TABS } from './guide';
 import { LINKS } from './links';
 import { IconExternal, IconGear, IconHelp } from './icons';
+import type { LicenseApi } from './useLicense';
 
 type Panel = 'guide' | 'plans' | 'help' | null;
 
 interface Props {
   /** Opens a URL in the browser — the UI iframe cannot navigate on its own. */
   onOpenUrl: (url: string) => void;
+  license: LicenseApi;
 }
 
 /** A row in the help sheet that leaves Figma. */
@@ -87,8 +89,21 @@ function GuidePanel(): React.ReactElement {
   );
 }
 
-/** Plans sheet. Presentational only — nothing is gated yet (F20: fix is free during beta). */
-function PlansPanel({ onOpenUrl }: Props): React.ReactElement {
+/**
+ * Plans sheet. Fixing is still unlocked for everyone (F20) — this sells Pro,
+ * it does not yet gate anything.
+ */
+function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
+  const working = license.busy !== 'idle';
+  const buyLabel =
+    license.busy === 'connecting'
+      ? 'Waiting for Figma…'
+      : license.busy === 'checkout'
+        ? 'Waiting for payment…'
+        : license.connected
+          ? 'Get Pro — $120/yr'
+          : 'Connect to Figma';
+
   return (
     <div className="modal-body">
       <p>
@@ -125,22 +140,49 @@ function PlansPanel({ onOpenUrl }: Props): React.ReactElement {
         </p>
       </div>
 
+      {license.notice && (
+        <p className="microtext" role="status">
+          {license.notice}
+        </p>
+      )}
+
       <div className="modal-actions">
-        <button className="btn btn-primary btn-sm" onClick={() => onOpenUrl(LINKS.subscribe)}>
-          Subscribe
+        <button
+          className="btn btn-primary btn-sm"
+          disabled={working}
+          onClick={() => void (license.connected ? license.subscribe('yearly') : license.connect())}
+        >
+          {buyLabel}
         </button>
+        {license.connected && (
+          <button className="btn btn-sm" disabled={working} onClick={() => void license.subscribe('monthly')}>
+            $12 / 30 days
+          </button>
+        )}
         <button className="btn btn-sm" onClick={() => onOpenUrl(LINKS.feedback)}>
           Send feedback →
         </button>
       </div>
+
+      <p className="microtext">
+        Connecting uses Figma’s own sign-in and reads nothing but your user id. There is no account
+        to create and no password.
+      </p>
     </div>
   );
 }
 
 /** Footer strip: guide on the left, plans in the middle, help on the right. */
-export function FooterBar({ onOpenUrl }: Props): React.ReactElement {
+export function FooterBar({ onOpenUrl, license }: Props): React.ReactElement {
   const [panel, setPanel] = useState<Panel>(null);
   const close = () => setPanel(null);
+
+  function openPlans(): void {
+    setPanel('plans');
+    // One of the three moments the licence is re-read (the others are plugin
+    // open and a gate error). There is no polling loop.
+    void license.refresh();
+  }
 
   return (
     <>
@@ -155,9 +197,9 @@ export function FooterBar({ onOpenUrl }: Props): React.ReactElement {
           <IconGear />
         </button>
 
-        <button className="plan-pill" aria-haspopup="dialog" onClick={() => setPanel('plans')}>
+        <button className="plan-pill" aria-haspopup="dialog" onClick={openPlans}>
           <span className="plan-dot" aria-hidden="true" />
-          Free &amp; Pro
+          {license.label}
         </button>
 
         <button
@@ -179,7 +221,7 @@ export function FooterBar({ onOpenUrl }: Props): React.ReactElement {
 
       {panel === 'plans' && (
         <Modal title="Free & Pro" onClose={close}>
-          <PlansPanel onOpenUrl={onOpenUrl} />
+          <PlansPanel onOpenUrl={onOpenUrl} license={license} />
         </Modal>
       )}
 
@@ -192,7 +234,8 @@ export function FooterBar({ onOpenUrl }: Props): React.ReactElement {
             <LinkRow label="Contact us" url={LINKS.contact} onOpenUrl={onOpenUrl} />
             <LinkRow label="Subscribe to updates" url={LINKS.subscribe} onOpenUrl={onOpenUrl} />
             <p className="microtext modal-foot">
-              Legibly runs on your device. Nothing ever leaves Figma.
+              Every check and every fix runs on your device. The network is used only to verify a
+              Pro licence — your design is never sent anywhere.
             </p>
           </div>
         </Modal>

@@ -18,6 +18,7 @@ import { buildCsv, csvFileName } from '../shared/report-csv';
 import type { RectLite } from '../shared/figma-lite';
 import { FooterBar } from './FooterBar';
 import { IconClose } from './icons';
+import { useLicense } from './useLicense';
 
 interface Props {
   rpc: RpcClient;
@@ -116,6 +117,8 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
   const [deep, setDeep] = useState<Record<string, DeepVerdict>>({});
   const [bgPlans, setBgPlans] = useState<Record<string, BgFixPlan | null>>({});
   const [altDrafts, setAltDrafts] = useState<Record<string, string>>({});
+  /** Pro state. Never blocks scanning or fixing — see useLicense. */
+  const license = useLicense(rpc);
   /** Which "Check by eye" groups are expanded — all collapsed by default to kill the scroll. */
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   /** A group-wide batch in flight: which kind, and how far along. */
@@ -712,7 +715,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
               <li>Fix issues</li>
             </ol>
             <div className="microtext">
-              Runs on your device. Nothing ever leaves Figma.
+              Runs on your device. Your design is never sent anywhere.
             </div>
           </div>
         )}
@@ -871,6 +874,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
       )}
 
       <FooterBar
+        license={license}
         onOpenUrl={(url) => {
           void rpc.call('open-url', { url }).catch(() => setError('That link could not be opened.'));
         }}
