@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/Container";
 import { site } from "@/data/site";
 import styles from "../prose.module.css";
@@ -41,7 +42,7 @@ export default function DocsPage() {
         <p>
           Nine deterministic checks against WCAG 2.2 (AA/AAA), plus advisory
           notices where the standard requires judgement.{" "}
-          <a href="/#checks">The full list with details is on the home page</a>
+          <Link href="/#checks">The full list with details is on the home page</Link>
           — in short: text contrast (1.4.3), line spacing (1.4.12), target
           size (2.5.8 · 2.5.5), icon and border contrast (1.4.11), image alt
           text (1.1.1), color-only links (1.4.1), clipped text (1.4.10), field
@@ -65,7 +66,7 @@ export default function DocsPage() {
         <h2>Free and Pro</h2>
         <p>
           Scanning is free. During the beta, fixes are free too. Plans are
-          compared <a href="/#pricing">on the pricing section</a>.
+          compared <Link href="/#pricing">on the pricing section</Link>.
         </p>
 
         <h2>Something missing?</h2>
