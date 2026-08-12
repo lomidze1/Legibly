@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { resetEnvCache } from '../src/config/env.js';
+import { signToken } from '../src/lib/hmac.js';
 import { callbackHandler } from '../src/routes/auth/callback.js';
 import { loginHandler } from '../src/routes/auth/login.js';
+import { checkoutCreateHandler } from '../src/routes/checkout/create.js';
 import { flittWebhookHandler } from '../src/routes/webhooks/flitt.js';
 import { fakeResponse } from './helpers.js';
 
@@ -60,6 +62,27 @@ describe('routes whose vendor is not configured yet', () => {
 
     expect(res.statusCode).toBe(503);
     expect(res.text).toContain('Could not connect to Figma');
+  });
+
+  it('still answers checkout 401 before it answers 503', async () => {
+    // Order matters: an anonymous caller should be turned away as anonymous,
+    // not told which vendor we have finished wiring up.
+    const res = fakeResponse();
+    await checkoutCreateHandler({ method: 'POST', headers: {}, body: { duration: 'yearly' } }, res);
+
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('tells a signed-in user that checkout is unavailable', async () => {
+    const token = signToken('figma-user-1', CORE.AUTH_SECRET!, 3600);
+    const res = fakeResponse();
+    await checkoutCreateHandler(
+      { method: 'POST', headers: { authorization: `Bearer ${token}` }, body: { duration: 'yearly' } },
+      res,
+    );
+
+    expect(res.statusCode).toBe(503);
+    expect(res.body).toMatchObject({ error: 'checkout_unavailable' });
   });
 
   it('answers the Flitt webhook 200, even with no secret to verify against', async () => {

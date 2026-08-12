@@ -38,6 +38,18 @@ export function flittConfig(env: Env): FlittConfig {
   return { merchantId: env.flittMerchantId, secretKey: env.flittSecretKey, baseUrl: env.flittBaseUrl };
 }
 
+/**
+ * The same check without the throw, for routes that must answer rather than
+ * crash while Flitt's keys are still unset.
+ */
+export function flittConfigOrNull(env: Env): FlittConfig | null {
+  try {
+    return flittConfig(env);
+  } catch {
+    return null;
+  }
+}
+
 const EXCLUDED_KEYS = new Set(['signature', 'response_signature_string']);
 
 function isSigned(key: string, value: unknown): boolean {

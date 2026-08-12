@@ -8,7 +8,7 @@ import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.j
 import {
   buildOrderId,
   createCheckoutUrl,
-  flittConfig,
+  flittConfigOrNull,
   FlittError,
   isOrderSafeUserId,
   type CheckoutRequest,
@@ -46,7 +46,12 @@ export function sanitizeReturnUrl(
 }
 
 export interface CheckoutCreateDeps {
-  config: FlittConfig;
+  /**
+   * Null while Flitt's keys are unset. Nullable rather than resolved eagerly so
+   * the route keeps its order: an unauthenticated caller gets 401, and only a
+   * real user learns that checkout is unavailable.
+   */
+  config: FlittConfig | null;
   licenses: LicenseStore;
   events: UsageEventStore;
   createCheckout: (config: FlittConfig, request: CheckoutRequest) => Promise<string>;
@@ -73,6 +78,12 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
     // exists here, so there is no reason to carry the weaker version over.
     const userId = requireAuth(req, res, deps.authSecret, now);
     if (userId === null) return;
+
+    if (deps.config === null) {
+      console.warn('[checkout] Flitt is not configured');
+      res.status(503).json({ success: false, error: 'checkout_unavailable' });
+      return;
+    }
 
     const body = isPlainObject(req.body) ? req.body : {};
     const duration = body.duration;
@@ -138,7 +149,7 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
 
 export const checkoutCreateHandler: ApiHandler = (req, res) =>
   createCheckoutCreateHandler({
-    config: flittConfig(env()),
+    config: flittConfigOrNull(env()),
     licenses: licenseStore,
     events: usageEventStore,
     createCheckout: createCheckoutUrl,
