@@ -4,6 +4,7 @@ import type { ApiHandler } from '../../lib/http';
 import { isPlainObject } from '../../lib/validators';
 import { requireAuth } from '../../middleware/auth';
 import { licenseStore, type LicenseStore } from '../../models/License';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
 import {
   buildOrderId,
   createCheckoutUrl,
@@ -34,6 +35,7 @@ export function sanitizeReturnUrl(candidate: unknown, fallback: string): string 
 export interface CheckoutCreateDeps {
   config: FlittConfig;
   licenses: LicenseStore;
+  events: UsageEventStore;
   createCheckout: (config: FlittConfig, request: CheckoutRequest) => Promise<string>;
   authSecret: string;
   apiPublicUrl: string;
@@ -84,9 +86,19 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
         serverCallbackUrl: `${deps.apiPublicUrl}/api/webhooks/flitt`,
         responseUrl: sanitizeReturnUrl(body.returnUrl, `${deps.apiPublicUrl}/api/checkout/success`),
       });
+      await deps.events.record(
+        { figmaUserId: userId, kind: 'checkout_created', detail: duration },
+        new Date(now),
+      );
       res.status(200).json({ success: true, checkoutUrl, orderId });
     } catch (error) {
       if (error instanceof FlittError) {
+        // Recorded as a failed attempt, not a started one: the user never saw a
+        // payment form, and the funnel should say so.
+        await deps.events.record(
+          { figmaUserId: userId, kind: 'checkout_created', ok: false, detail: 'checkout_unavailable' },
+          new Date(now),
+        );
         res.status(502).json({ success: false, error: 'checkout_unavailable' });
         return;
       }
@@ -99,6 +111,7 @@ export const checkoutCreateHandler: ApiHandler = (req, res) =>
   createCheckoutCreateHandler({
     config: flittConfig(env()),
     licenses: licenseStore,
+    events: usageEventStore,
     createCheckout: createCheckoutUrl,
     authSecret: env().authSecret,
     apiPublicUrl: env().apiPublicUrl,

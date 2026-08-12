@@ -1,6 +1,8 @@
 import type { ApiResponse } from '../src/lib/http';
 import type { AuthStore, PendingAuth } from '../src/models/authStore';
 import type { LicenseRow, LicenseStore } from '../src/models/License';
+import type { LicenseAuditInput, LicenseAuditStore } from '../src/models/LicenseAudit';
+import type { UsageEventInput, UsageEventStore } from '../src/models/UsageEvent';
 import type { WebhookEventRecord, WebhookEventStore } from '../src/models/WebhookEvent';
 
 export interface FakeResponse extends ApiResponse {
@@ -135,6 +137,31 @@ export function fakeLicenseStore(seed: LicenseRow[] = []): LicenseStore & { rows
       }
       rows.set(figmaUserId, { ...existing, judgeUsed: existing.judgeUsed + 1 });
     },
+    async adminGrant(figmaUserId, grant) {
+      const existing = rows.get(figmaUserId);
+      const updated: LicenseRow = {
+        figmaUserId,
+        email: existing?.email ?? null,
+        plan: 'pro',
+        status: 'active',
+        cycleStartedAt: grant.cycleStartedAt,
+        cycleEndsAt: grant.cycleEndsAt,
+        judgeUsed: existing?.judgeUsed ?? 0,
+        judgeMonth: existing?.judgeMonth ?? null,
+        judgeMonthUsed: existing?.judgeMonthUsed ?? 0,
+        flittOrderId: grant.orderId,
+        lastDuration: grant.duration ?? existing?.lastDuration ?? null,
+      };
+      rows.set(figmaUserId, updated);
+      return updated;
+    },
+    async adminRevoke(figmaUserId, now) {
+      const existing = rows.get(figmaUserId);
+      if (existing === undefined) return null;
+      const updated: LicenseRow = { ...existing, plan: 'free', status: 'expired', cycleEndsAt: now };
+      rows.set(figmaUserId, updated);
+      return updated;
+    },
   };
 }
 
@@ -149,6 +176,27 @@ export function fakeWebhookEventStore(): WebhookEventStore & { seen: Map<string,
     },
     async release(transactionId) {
       seen.delete(transactionId);
+    },
+  };
+}
+
+/** Records what the route asked to log, so instrumentation can be asserted. */
+export function fakeUsageEvents(): UsageEventStore & { recorded: (UsageEventInput & { at: Date })[] } {
+  const recorded: (UsageEventInput & { at: Date })[] = [];
+  return {
+    recorded,
+    async record(event, now) {
+      recorded.push({ ...event, at: now });
+    },
+  };
+}
+
+export function fakeAuditStore(): LicenseAuditStore & { entries: (LicenseAuditInput & { at: Date })[] } {
+  const entries: (LicenseAuditInput & { at: Date })[] = [];
+  return {
+    entries,
+    async record(entry, now) {
+      entries.push({ ...entry, at: now });
     },
   };
 }

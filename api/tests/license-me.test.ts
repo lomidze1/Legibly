@@ -2,16 +2,18 @@ import { describe, expect, it } from 'vitest';
 
 import { signToken } from '../src/lib/hmac';
 import { createLicenseMeHandler } from '../src/routes/license/me';
-import { fakeLicenseStore, fakeResponse, proLicense } from './helpers';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;
 
 function setup(seed = [proLicense('victim', new Date(NOW + 300 * 86_400_000))]) {
   const licenses = fakeLicenseStore(seed);
+  const usage = fakeUsageEvents();
   return {
     licenses,
-    handler: createLicenseMeHandler({ licenses, authSecret: SECRET, now: () => NOW }),
+    usage,
+    handler: createLicenseMeHandler({ licenses, events: usage, authSecret: SECRET, now: () => NOW }),
   };
 }
 

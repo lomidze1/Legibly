@@ -5,7 +5,7 @@ import { signToken } from '../src/lib/hmac';
 import { createCheckoutCreateHandler, sanitizeReturnUrl } from '../src/routes/checkout/create';
 import { createReturnHandler } from '../src/routes/checkout/return';
 import { FlittError, signParams, type CheckoutRequest, type FlittConfig } from '../src/services/flittService';
-import { fakeLicenseStore, fakeResponse, proLicense } from './helpers';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
 
 const SECRET = 'k'.repeat(40);
 const NOW = 1_700_000_000_000;
@@ -20,14 +20,17 @@ const config: FlittConfig = {
 
 function setup(seed: Parameters<typeof fakeLicenseStore>[0] = [], checkoutUrl = 'https://pay.flitt.com/c/abc') {
   const licenses = fakeLicenseStore(seed);
+  const usage = fakeUsageEvents();
   const requests: CheckoutRequest[] = [];
 
   return {
     licenses,
+    usage,
     requests,
     handler: createCheckoutCreateHandler({
       config,
       licenses,
+      events: usage,
       createCheckout: async (_config, request) => {
         requests.push(request);
         return checkoutUrl;
@@ -117,9 +120,11 @@ describe('POST /api/checkout/create', () => {
 
   it('answers 502 when Flitt is unavailable', async () => {
     const licenses = fakeLicenseStore();
+    const usage = fakeUsageEvents();
     const handler = createCheckoutCreateHandler({
       config,
       licenses,
+      events: usage,
       createCheckout: async () => {
         throw new FlittError('Flitt checkout failed with status 500');
       },

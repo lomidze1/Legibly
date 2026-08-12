@@ -32,6 +32,18 @@ describe("privacy policy", () => {
     expect(text).toMatch(/discarded/i);
   });
 
+  it("discloses the usage records the admin panel's numbers come from", () => {
+    // The panel counts daily-active users and the checkout funnel. That is a
+    // record of behaviour, thin as it is, and the policy has to say so — this
+    // page's whole claim is that it matches what the code does.
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toMatch(/usage records/i);
+    expect(text).toMatch(/at most one line\s+per day/i);
+    expect(text).toMatch(/legitimate interest/i);
+  });
+
   it("discloses the rate-limit counters, which are keyed by IP", () => {
     render(<PrivacyPage />);
     expect(document.body.textContent).toMatch(/per IP address/i);

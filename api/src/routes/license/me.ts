@@ -3,9 +3,11 @@ import type { ApiHandler } from '../../lib/http';
 import { serializeLicense } from '../../lib/serializeLicense';
 import { requireAuth } from '../../middleware/auth';
 import { licenseStore, type LicenseStore } from '../../models/License';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
 
 export interface LicenseMeDeps {
   licenses: LicenseStore;
+  events: UsageEventStore;
   authSecret: string;
   now: () => number;
 }
@@ -29,6 +31,11 @@ export function createLicenseMeHandler(deps: LicenseMeDeps): ApiHandler {
     if (userId === null) return;
 
     const license = await deps.licenses.getOrCreate(userId);
+
+    // The plugin asks on open, so this is the one signal we have that anyone is
+    // using it at all. The store collapses it to one row per user per day.
+    await deps.events.record({ figmaUserId: userId, kind: 'checkin', detail: license.plan }, new Date(now));
+
     res.status(200).json({ success: true, license: serializeLicense(license, now) });
   };
 }
@@ -36,6 +43,7 @@ export function createLicenseMeHandler(deps: LicenseMeDeps): ApiHandler {
 export const licenseMeHandler: ApiHandler = (req, res) =>
   createLicenseMeHandler({
     licenses: licenseStore,
+    events: usageEventStore,
     authSecret: env().authSecret,
     now: () => Date.now(),
   })(req, res);

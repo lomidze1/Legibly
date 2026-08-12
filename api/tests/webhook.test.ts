@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { DURATION_MS, PRICES, RENEWAL_WINDOW_MS } from '../src/config/pricing';
 import { signParams } from '../src/services/flittService';
 import { createFlittWebhookHandler } from '../src/routes/webhooks/flitt';
-import { fakeLicenseStore, fakeResponse, fakeWebhookEventStore, proLicense } from './helpers';
+import { fakeAuditStore, fakeLicenseStore, fakeResponse, fakeUsageEvents, fakeWebhookEventStore, proLicense } from './helpers';
 
 const SECRET = 'test_secret_key';
 const NOW = 1_700_000_000_000;
@@ -27,16 +27,22 @@ function payload(overrides: Record<string, unknown> = {}): Record<string, unknow
 function setup(seed: Parameters<typeof fakeLicenseStore>[0] = []) {
   const licenses = fakeLicenseStore(seed);
   const events = fakeWebhookEventStore();
+  const usage = fakeUsageEvents();
+  const audit = fakeAuditStore();
   const logs: string[] = [];
 
   return {
     licenses,
     events,
+    usage,
+    audit,
     logs,
     handler: createFlittWebhookHandler({
       secretKey: SECRET,
       licenses,
       events,
+      usage,
+      audit,
       now: () => NOW,
       log: (message) => logs.push(message),
     }),

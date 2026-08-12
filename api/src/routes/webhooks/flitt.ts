@@ -3,6 +3,8 @@ import { CURRENCY, PRICES, isDuration } from '../../config/pricing';
 import type { ApiHandler } from '../../lib/http';
 import { asAmountCents, asString, asStringMax, isPlainObject } from '../../lib/validators';
 import { licenseStore, type LicenseStore } from '../../models/License';
+import { licenseAuditStore, recordAuditQuietly, type LicenseAuditStore } from '../../models/LicenseAudit';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
 import { webhookEventStore, type WebhookEventStore } from '../../models/WebhookEvent';
 import { flittConfig, orderIdBelongsTo, verifyCallback } from '../../services/flittService';
 import { computeCycleEnd } from '../../services/licenseService';
@@ -13,6 +15,8 @@ export interface FlittWebhookDeps {
   secretKey: string;
   licenses: LicenseStore;
   events: WebhookEventStore;
+  usage: UsageEventStore;
+  audit: LicenseAuditStore;
   now: () => number;
   log?: (message: string) => void;
 }
@@ -96,19 +100,51 @@ export function createFlittWebhookHandler(deps: FlittWebhookDeps): ApiHandler {
       heldLease = transactionId;
 
       const now = deps.now();
+      const at = new Date(now);
       if (orderStatus === 'approved') {
         const existing = await deps.licenses.find(figmaUserId);
+        const cycleEndsAt = new Date(computeCycleEnd(existing, duration, now));
         await deps.licenses.applyPurchase(figmaUserId, {
-          cycleStartedAt: new Date(now),
-          cycleEndsAt: new Date(computeCycleEnd(existing, duration, now)),
+          cycleStartedAt: at,
+          cycleEndsAt,
           flittOrderId: orderId,
           duration,
           email: asString(payload.sender_email),
         });
+        await deps.usage.record({ figmaUserId, kind: 'checkout_paid', detail: duration }, at);
+        await recordAuditQuietly(
+          deps.audit,
+          {
+            figmaUserId,
+            action: 'purchase',
+            actor: 'webhook',
+            detail: `${duration} ${amountCents}c → ends ${cycleEndsAt.toISOString().slice(0, 10)}`,
+          },
+          at,
+        );
       } else if (orderStatus === 'reversed') {
-        await deps.licenses.applyRefund(figmaUserId, orderId, new Date(now));
+        const applied = await deps.licenses.applyRefund(figmaUserId, orderId, at);
+        await deps.usage.record({ figmaUserId, kind: 'checkout_refunded', ok: applied, detail: duration }, at);
+        await recordAuditQuietly(
+          deps.audit,
+          {
+            figmaUserId,
+            action: 'refund',
+            actor: 'webhook',
+            // A reversal of an order the user has already superseded revokes
+            // nothing — the trail has to say which of the two happened.
+            detail: applied ? `${amountCents}c reversed, licence ended` : `${amountCents}c reversed, licence untouched`,
+          },
+          at,
+        );
+      } else {
+        // declined and expired change nothing — the record of the attempt is
+        // the lease, and now also a funnel data point.
+        await deps.usage.record(
+          { figmaUserId, kind: 'checkout_failed', ok: false, detail: orderStatus },
+          at,
+        );
       }
-      // declined and expired change nothing — the record of the attempt is the lease.
 
       res.status(200).json({ received: true });
     } catch (error) {
@@ -124,5 +160,7 @@ export const flittWebhookHandler: ApiHandler = (req, res) =>
     secretKey: flittConfig(env()).secretKey,
     licenses: licenseStore,
     events: webhookEventStore,
+    usage: usageEventStore,
+    audit: licenseAuditStore,
     now: () => Date.now(),
   })(req, res);

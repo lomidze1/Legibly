@@ -3,6 +3,7 @@ import { JudgeDisabledError, judgeConfig, judgeMonth } from '../../config/judge'
 import type { ApiHandler } from '../../lib/http';
 import { requireAuth } from '../../middleware/auth';
 import { licenseStore, type LicenseRow, type LicenseStore } from '../../models/License';
+import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent';
 import {
   JudgeInputError,
   JudgeRefusedError,
@@ -46,6 +47,7 @@ export function quotaFor(
 
 export interface JudgeDeps {
   licenses: LicenseStore;
+  events: UsageEventStore;
   runModel: RunModel;
   authSecret: string;
   freeTrials: number;
@@ -96,11 +98,21 @@ export function createJudgeHandler(deps: JudgeDeps): ApiHandler {
       verdict = await judge(input, deps.runModel);
     } catch (error) {
       // The quota is untouched on every path here — a failed call costs nothing.
+      // The attempt is still recorded: an outage the founder cannot see is one
+      // nobody fixes.
       if (error instanceof JudgeRefusedError) {
+        await deps.events.record(
+          { figmaUserId: userId, kind: 'judge_call', ok: false, detail: 'judge_refused' },
+          new Date(now),
+        );
         res.status(422).json({ success: false, error: 'judge_refused' });
         return;
       }
       if (error instanceof JudgeUnavailableError) {
+        await deps.events.record(
+          { figmaUserId: userId, kind: 'judge_call', ok: false, detail: 'judge_unavailable' },
+          new Date(now),
+        );
         res.status(503).json({ success: false, error: 'judge_unavailable' });
         return;
       }
@@ -109,6 +121,10 @@ export function createJudgeHandler(deps: JudgeDeps): ApiHandler {
 
     // Booked only now, after a verdict exists.
     await deps.licenses.recordJudgeUse(userId, month, pro);
+    await deps.events.record(
+      { figmaUserId: userId, kind: 'judge_call', detail: pro ? 'pro' : 'free' },
+      new Date(now),
+    );
 
     res.status(200).json({
       success: true,
@@ -133,6 +149,7 @@ export const judgeHandler: ApiHandler = async (req, res) => {
 
   return createJudgeHandler({
     licenses: licenseStore,
+    events: usageEventStore,
     runModel: anthropicRunner(config),
     authSecret: current.authSecret,
     freeTrials: config.freeTrials,

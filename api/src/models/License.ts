@@ -29,6 +29,18 @@ export interface Purchase {
   email?: string;
 }
 
+/**
+ * A licence handed out from the admin panel rather than bought. `orderId`
+ * carries the `adm_` prefix so revenue and conversion never count it, and
+ * `duration` is null when the grant was an arbitrary number of days.
+ */
+export interface AdminGrant {
+  cycleStartedAt: Date;
+  cycleEndsAt: Date;
+  orderId: string;
+  duration: Duration | null;
+}
+
 export interface LicenseStore {
   /** Never returns null: a first-time user gets a free row. */
   getOrCreate(figmaUserId: string): Promise<LicenseRow>;
@@ -43,6 +55,10 @@ export interface LicenseStore {
    * failed call must not cost the user a trial.
    */
   recordJudgeUse(figmaUserId: string, month: string, isPro: boolean): Promise<void>;
+  /** Comps a licence from the admin panel. Creates the row if the user has never connected. */
+  adminGrant(figmaUserId: string, grant: AdminGrant): Promise<LicenseRow>;
+  /** Ends a licence now. Null when there is no such user — the panel reports that rather than inventing one. */
+  adminRevoke(figmaUserId: string, now: Date): Promise<LicenseRow | null>;
 }
 
 interface LicenseDbRow {
@@ -172,5 +188,38 @@ export const licenseStore: LicenseStore = {
         WHERE figma_user_id = $1`,
       [figmaUserId],
     );
+  },
+
+  async adminGrant(figmaUserId, grant) {
+    const rows = await query<LicenseDbRow>(
+      `INSERT INTO licenses (figma_user_id, plan, status, cycle_started_at, cycle_ends_at,
+                             flitt_order_id, last_duration)
+       VALUES ($1, 'pro', 'active', $2, $3, $4, $5)
+       ON CONFLICT (figma_user_id) DO UPDATE
+         SET plan = 'pro',
+             status = 'active',
+             cycle_started_at = EXCLUDED.cycle_started_at,
+             cycle_ends_at = EXCLUDED.cycle_ends_at,
+             flitt_order_id = EXCLUDED.flitt_order_id,
+             -- A grant of N days keeps whatever duration was last bought: the
+             -- column records what the user paid for, and a comp is not that.
+             last_duration = COALESCE(EXCLUDED.last_duration, licenses.last_duration),
+             updated_at = now()
+       RETURNING ${COLUMNS}`,
+      [figmaUserId, grant.cycleStartedAt, grant.cycleEndsAt, grant.orderId, grant.duration],
+    );
+    return toLicense(rows[0]!);
+  },
+
+  async adminRevoke(figmaUserId, now) {
+    const rows = await query<LicenseDbRow>(
+      `UPDATE licenses
+          SET plan = 'free', status = 'expired', cycle_ends_at = $2, updated_at = now()
+        WHERE figma_user_id = $1
+        RETURNING ${COLUMNS}`,
+      [figmaUserId, now],
+    );
+    const row = rows[0];
+    return row === undefined ? null : toLicense(row);
   },
 };

@@ -60,6 +60,15 @@ export default function PrivacyPage() {
             No layers, no images, no measurements, no file names.
           </li>
           <li>
+            <strong>Usage records:</strong> so we can tell whether anyone is
+            using Legibly, we keep a line saying that your licence was checked
+            on a given day, that a checkout was started, paid, refused or
+            refunded, and that an AI Judge review ran. Each line holds the date,
+            your Figma user id, which of those events it was, and whether it
+            succeeded — nothing else. A licence check writes at most one line
+            per day, however many times you open the plugin.
+          </li>
+          <li>
             <strong>Card details:</strong> handled by Flitt, a PCI-DSS Level 1
             payment provider, and never seen by us.
           </li>
@@ -67,6 +76,12 @@ export default function PrivacyPage() {
             <strong>Legal basis (GDPR Art. 6):</strong> performance of our
             contract with you — we cannot give you the licence you paid for
             without recording that you have one.
+          </li>
+          <li>
+            <strong>Legal basis for the usage records (GDPR Art. 6):</strong>{" "}
+            our legitimate interest in knowing whether the product works and is
+            used. They are read by us alone, are never combined into a profile,
+            and are never sold or shared.
           </li>
           <li>
             <strong>Retention:</strong> the licence record is kept while the

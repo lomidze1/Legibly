@@ -5,7 +5,7 @@ import { DEFAULT_JUDGE_MODEL, JudgeDisabledError, judgeConfig, judgeEnabled } fr
 import { signToken } from '../src/lib/hmac';
 import { createJudgeHandler, quotaFor } from '../src/routes/judge/judge';
 import { JudgeRefusedError, JudgeUnavailableError, type RunModel } from '../src/services/judgeService';
-import { fakeLicenseStore, fakeResponse, proLicense } from './helpers';
+import { fakeLicenseStore, fakeResponse, fakeUsageEvents, proLicense } from './helpers';
 
 const SECRET = 'k'.repeat(40);
 const NOW = Date.parse('2026-08-12T12:00:00Z');
@@ -27,10 +27,13 @@ const goodModel: RunModel = async () => ({ text: JSON.stringify(verdict), stopRe
 
 function setup(seed: Parameters<typeof fakeLicenseStore>[0] = [], runModel: RunModel = goodModel) {
   const licenses = fakeLicenseStore(seed);
+  const usage = fakeUsageEvents();
   return {
     licenses,
+    usage,
     handler: createJudgeHandler({
       licenses,
+      events: usage,
       runModel,
       authSecret: SECRET,
       freeTrials: 3,
