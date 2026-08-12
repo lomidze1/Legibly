@@ -153,7 +153,11 @@ async function applyColorFix(
   const paintTarget: PaintTarget = instruction.paintTarget ?? 'text-fill';
   const prop = paintTarget === 'stroke' ? 'strokes' : 'fills';
   const prev = node[prop];
-  const prevSnapshot = prev === figma.mixed ? figma.mixed : [...((prev as readonly Paint[]) ?? [])];
+  // Per-range paints cannot be put back by assignment, so a fix that failed
+  // commit-time verification could not be reverted. Refuse the node instead of
+  // risking a one-way change (F12/NF1).
+  if (prev === figma.mixed) throw new Error('Mixed paints on this layer — fix the ranges manually');
+  const prevSnapshot = [...((prev as readonly Paint[]) ?? [])];
   const fromDescription = describeTopPaint(prev);
 
   let changeDescription: string;
@@ -200,7 +204,7 @@ async function applyColorFix(
 
     return { nodeId: node.id, nodeName: node.name, sc: '', before, after, target, changeDescription };
   } catch (e) {
-    if (prevSnapshot !== figma.mixed) (node as Mutable)[prop] = prevSnapshot as never;
+    (node as Mutable)[prop] = prevSnapshot as never;
     throw e;
   }
 }
