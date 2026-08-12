@@ -16,15 +16,19 @@
 ```
 ✅ დომენი ──┬──✅ website deploy ──✅ plugin-ის ხუთივე ლინკი ცოცხალია
             ├──✅ Resend domain verification ──✅ waitlist form მუშაობს
-            └──🔴 Figma OAuth redirect URI
+            └──🔴 Figma OAuth redirect URI  ← 👤
 
-🔴 backend (Flitt + OAuth + License) ──> paywall ჩართვა ──> Pro რეალურად იყიდება
-                                     └──> /api/judge (D24, cutoff 1 სექტ.)
+✅ backend-ის კოდი (Flitt + OAuth + License + plugin + Terms/Privacy)
+   └──🔴 deploy: Vercel-ის მე-2 პროექტი · Postgres · მიგრაციები · env vars  ← 👤
+      └──> paywall ჩართვა (F20) ──> Pro რეალურად იყიდება
+      └──> /api/judge (D24, cutoff 1 სექტ.) — launch-ს არ ბლოკავს
 ```
 
-**ერთი წინადადებით (განახლდა 2026-08-12):** დომენი, deploy და **email/waitlist** — სამივე
-დახურულია. `https://legibly.design` ცოცხალია, plugin-ის ხუთივე ლინკი მუშაობს, waitlist იღებს
-მისამართებს. დარჩა **ერთი ფესვი: backend** (Pro-ს ყიდვის გზა ჯერ არ არსებობს).
+**ერთი წინადადებით (განახლდა 2026-08-12):** დომენი, deploy, email/waitlist — დახურულია.
+**Backend-ის კოდიც დაწერილია** (`api/` — 186 ტესტი; plugin-ში Connect/checkout — 354 ტესტი;
+Terms/Privacy ასახავს რეალობას). დარჩა **ერთადერთი რგოლი: ეს კოდი არსად არ არის გაშვებული** —
+Vercel-ის მე-2 პროექტი, Postgres, მიგრაციები და credential-ები ყველა 👤-ია (§13 `backend-spec.md`).
+სანამ ეს არ მოხდება, `api.legibly.design` არ არსებობს და plugin-ის Connect ღილაკი ჩავარდება.
 
 ---
 
@@ -100,8 +104,14 @@
       Footer-სა და sitemap-ში ჩასმულია.
       ⚠️ **TODO launch-მდე:** გამყიდველის იურიდიული სახელი, ფორმა და მისამართი — იგივე ხარვეზი,
       რაც privacy-ზეა (EU consumer-information + GDPR Art. 13(1)(a))
-- [x] 🤖 Privacy policy — ✅ განახლდა (D22, 2026-08-02): BYOK სექცია წაიშალა, ჩანაცვლდა
-      "the plugin makes no network requests of any kind" + manifest-ის ციტატით
+- [x] 🤖 Privacy policy — ✅ **ხელახლა დაიწერა 2026-08-12 (Phase 6).** D22-ის *"the plugin makes
+      no network requests of any kind"* **აღარაა სიმართლე** — paywall-მა manifest შეცვალა.
+      ახლა წერია: ქსელი მხოლოდ ლიცენზიისთვის · ახალი manifest-ის ციტატა · რას ვინახავთ Pro-ს
+      ყიდვისას (`figmaUserId`, email, ციკლის თარიღები, webhook-ის ჩანაწერი) · rate-limit-ის
+      IP-counter-ები · სამი processor (Vercel, Flitt, Resend) და "სხვა არავინ"
+- [x] 🤖 **`/checkout/success` და `/checkout/cancel`** ✅ (2026-08-12) — API ამათზე ამისამართებს
+      გადახდის შემდეგ (backend-spec §7.7). მათ გარეშე წარმატებული ყიდვის ბოლო ნაბიჯი **404 იყო**.
+      ორივე `noindex`
 
 ---
 
@@ -159,10 +169,19 @@
 - [x] ~~ფასის სტრუქტურა~~ — ✅ `$120/წელი` + `$12/30 დღე`, ორივე ერთჯერადი (D23)
 - [ ] 👤 **Flitt merchant portal:** Legibly-ის ცალკე product + `order_id` prefix (w2w-სგან გასამიჯნად)
 - [ ] 👤 **`server_callback_url`** რეგისტრაცია → `https://api.legibly.design/api/webhooks/flitt`
-- [ ] 🤖 env: `FLITT_MERCHANT_ID` · `FLITT_SECRET_KEY` · `FLITT_BASE_URL=https://pay.flitt.com`
-- [ ] 🤖 **w2w-დან გადმოტანა:** `flittService` (checkout + SHA1 signature) · webhook handler (verify + dedup) · `License` model · admin override endpoint-ები
-- [ ] 🤖 **Figma OAuth** (`current_user:read`) → HMAC token → `figma.clientStorage` ([`launch-stack §5`](./launch-stack.md))
-- [ ] 🤖 **Terms გვერდი:** refund policy · **tax-exclusive disclaimer** (VAT ჩვენზეა — Flitt PSP-ია) · statutory-rights clause
+- [x] 🤖 env: ✅ ყველა ცვლადი [`api/.env.example`](../api/.env.example)-ში, boot-time ვალიდაციით.
+      **რეალური მნიშვნელობები Vercel-ზე — 👤**
+- [x] 🤖 **w2w-დან გადმოტანა:** ✅ `flittService` (checkout + SHA1, კანონიკურ ვექტორზე ტესტით) ·
+      webhook handler (verify + dedup + lease) · `License` model · stacking-ის ჭერი და იატაკი.
+      admin override endpoint-ები **განზრახ არ გადმოვიტანე** — backend-spec-ში არ წერია
+- [x] 🤖 **Figma OAuth** (`current_user:read`) → HMAC token → `figma.clientStorage` ✅
+      ([`launch-stack §5`](./launch-stack.md)). ⚠️ **მიგრაციები ჯერ არ გაშვებულა** — `psql` ელოდება DB-ს
+- [x] 🤖 **Terms გვერდი:** ✅ refund policy · tax-exclusive disclaimer · statutory-rights clause
+      (2026-08-03). Phase 6-ში დაემატა ერთი აბზაცი: **Pro-ს ყიდვა Figma-ს ანგარიშის დაკავშირებას
+      ითხოვს** — ეს ყიდვამდე უნდა იცოდე. ⚠️ გამყიდველის იურიდიული სახელი/მისამართი კვლავ TODO (👤)
+- [x] 🤖 **plugin-ის integration** ✅ (Phase 5, 2026-08-12): Connect · licence pill · checkout →
+      `figma.openExternal`. manifest = `["https://api.legibly.design"]`. **Judge-ის ღილაკი არ შედის**
+      — მას Phase 4 სჭირდება
 - [ ] 🤖 paywall-ის ჩართვა — დღეს fix **უფასოა beta-ში** (F20). განზრახაა, მაგრამ `Plans` modal-შიც ასე წერია: ორივე ერთდროულად უნდა შეიცვალოს
 - [ ] 👤 **chargeback rate მონიტორინგი** — target **<0.5%** (ინდუსტრიის სტანდარტი). $12-ზე refund ($12) ყოველთვის იაფია, ვიდრე chargeback (~$42 + rate)
 
@@ -188,8 +207,9 @@
 ## 6. 🟠 Figma Community listing
 
 - [ ] 👤 **publish = user action** (Figma ანგარიშის მფლობელი). Claude ვერ გამოაქვეყნებს
-- [ ] 🤖 listing copy → [`listing-v0.1.md`](./listing-v0.1.md) განახლდეს v0.4-ის რეალობაზე
-      (10 SC, advisory tier — draft ჯერ v0.1-ის ტექსტია)
+- [x] 🤖 listing copy → ✅ [`listing-v0.1.md`](./listing-v0.1.md) განახლდა v0.4-ზე (2026-08-12):
+      10 SC ცხრილად, advisory tier, mode-sweep. **"100% private, no network" წაიშალა** —
+      ჩანაცვლდა ვიწრო და მაინც ძლიერი დაპირებით. Judge განზრახ არაა ნახსენები (არ არსებობს)
 - [ ] 🤖 cover art + screenshots (Figma Community-ს სავალდებულო აქვს)
 - [ ] 🤖 `site.figmaCommunityUrl` = `null` → რეალური URL. სანამ null-ია, hero-ს CTA waitlist-ია
 - [x] 🤖 manifest-ის `networkAccess.allowedDomains` = **`["none"]`** (D22) — კოდის დღევანდელი მდგომარეობა.
@@ -245,9 +265,18 @@
 
 ## 10. მოკლე პასუხი — "დღეს რომ დავაჭიროთ publish-ს, რა მოხდება?"
 
-**განახლდა 2026-08-12.** Plugin იმუშავებს, საიტი ცოცხალია საკუთარ დომენზე, ხუთივე ლინკი მუშაობს,
-email მისამართები ჩვენია და **waitlist რეალურად იღებს მისამართებს.** დარჩა ერთი:
+**განახლდა 2026-08-12 (Phase 6-ის შემდეგ).** საიტი ცოცხალია, ხუთივე ლინკი მუშაობს, waitlist
+იღებს მისამართებს, backend-ის კოდი დაწერილია და plugin-ს Connect/checkout აქვს.
 
-- 🔴 **Pro-ს ყიდვის გზა არ არსებობს** — backend + Flitt + OAuth (§5)
+⚠️ **მაგრამ დღეს publish-ს თუ დავაჭერთ, Pro-ს ყიდვა ჩავარდება** — და ახლა უარესად, ვიდრე
+ადრე: manifest უკვე ითხოვს `api.legibly.design`-ს, რომელიც **ჯერ არ არსებობს.** Connect-ის
+დაჭერა შეცდომას მისცემს (სკანირება და fix არ ზარალდება — ისინი ტოკენს არ კითხულობენ).
 
-ე.ი. launch-ის ყველა infrastructure-ული წინაპირობა დახურულია. **დარჩენილი ერთადერთი ბლოკერი backend-ია.**
+დარჩენილი რგოლი აღარაა კოდი — **deploy-ია, და მთლიანად 👤-ზეა:**
+
+- 🔴 Vercel-ის მე-2 პროექტი `api/`-სთვის + `CNAME api` (Cloudflare-ზე, **MX-ს ხელი არ ახლო**)
+- 🔴 Postgres + `psql -f migrations/001_init.sql` და `002_auth.sql`
+- 🔴 `AUTH_SECRET` · `ADMIN_TOKEN` · `FIGMA_CLIENT_ID/SECRET` · `FLITT_MERCHANT_ID/SECRET_KEY`
+- 🔴 Figma app registration + redirect URI · Flitt portal: product + `server_callback_url`
+
+**სანამ ეს არ გაკეთდება, Community publish არ უნდა მოხდეს.**

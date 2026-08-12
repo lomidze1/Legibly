@@ -44,6 +44,15 @@ export default function TermsPage() {
           feature and the plugin will say so before anything changes.
         </p>
 
+        <p>
+          Buying Pro means connecting your Figma account once, through
+          Figma&apos;s own sign-in. That is how a licence knows whose it is —
+          there is no account to create here and no password to choose, and the
+          permission requested reads your Figma user id and nothing else. What
+          we then store is listed on the{" "}
+          <a href="/privacy">privacy page</a>.
+        </p>
+
         <h2>Payment</h2>
         <ul>
           <li>
