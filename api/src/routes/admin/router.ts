@@ -29,12 +29,36 @@ export interface AdminDeps {
   now: () => number;
 }
 
-/** Vercel hands `[...path].ts` its segments in `query.path`. */
+const ADMIN_PREFIX = '/api/admin';
+
+function split(path: string): string[] {
+  return path.split('/').filter((part) => part !== '');
+}
+
+/**
+ * ⚠️ The URL is not a nicety here, it is the working path in production.
+ *
+ * Vercel is supposed to hand `[...path].ts` its segments in `query.path`, and
+ * in this deployment it hands over nothing: every /api/admin/<route> arrived
+ * with an empty query, `segmentsOf` returned `[]`, and the router fell through
+ * to `panel` — so the panel served itself instead of its own data and the
+ * whole admin surface was unreachable. A single dynamic segment
+ * (`/api/checkout/[action]`) is filled in correctly, so this is specific to
+ * the catch-all. The path always carries the route, so read it from there when
+ * the query is empty rather than answering with a shell nobody asked for.
+ */
 export function segmentsOf(req: ApiRequest): string[] {
   const raw = req.query?.path;
   if (Array.isArray(raw)) return raw.filter((part) => part !== '');
-  if (typeof raw === 'string' && raw !== '') return raw.split('/').filter((part) => part !== '');
-  return [];
+  if (typeof raw === 'string' && raw !== '') return split(raw);
+
+  const url = req.url;
+  if (url === undefined) return [];
+  // `indexOf` rather than `startsWith`: the platform may hand over an absolute
+  // URL, and a prefix test would quietly fall back to the panel again.
+  const path = url.split('?', 1)[0] ?? '';
+  const at = path.indexOf(ADMIN_PREFIX);
+  return at === -1 ? [] : split(path.slice(at + ADMIN_PREFIX.length));
 }
 
 function intParam(req: ApiRequest, name: string, fallback: number, min: number, max: number): number {

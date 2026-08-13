@@ -93,6 +93,40 @@ describe('admin route dispatch', () => {
     expect(segmentsOf({ headers: {}, query: {} })).toEqual([]);
   });
 
+  it('falls back to the URL when Vercel fills in no segment at all', () => {
+    // Production did exactly this: an empty query on every admin route, which
+    // dropped the router onto `panel` and made the panel serve itself.
+    expect(segmentsOf({ headers: {}, query: {}, url: '/api/admin/stats' })).toEqual(['stats']);
+    expect(segmentsOf({ headers: {}, url: '/api/admin/users.csv?page=2' })).toEqual(['users.csv']);
+    expect(segmentsOf({ headers: {}, url: 'https://api.legibly.design/api/admin/payments' })).toEqual([
+      'payments',
+    ]);
+    expect(segmentsOf({ headers: {}, url: '/api/admin' })).toEqual([]);
+    expect(segmentsOf({ headers: {}, url: '/api/health' })).toEqual([]);
+  });
+
+  it('prefers the query segment over the URL, so the platform still wins', () => {
+    expect(segmentsOf({ headers: {}, query: { path: 'stats' }, url: '/api/admin/users' })).toEqual([
+      'stats',
+    ]);
+  });
+
+  it('serves the panel from /api/admin/panel, not from every admin URL', async () => {
+    // The regression this whole fallback exists for: `stats` must reach the
+    // auth gate, and only `panel` may answer with HTML.
+    const { handler } = setup();
+
+    const stats = fakeResponse();
+    await handler({ method: 'GET', headers: {}, query: {}, url: '/api/admin/stats' }, stats);
+    expect(stats.statusCode).toBe(401);
+    expect(stats.text).toBeNull();
+
+    const panel = fakeResponse();
+    await handler({ method: 'GET', headers: {}, query: {}, url: '/api/admin/panel' }, panel);
+    expect(panel.statusCode).toBe(200);
+    expect(panel.text).toContain('<title>Legibly — admin</title>');
+  });
+
   it('serves the panel shell without a token — the fragment never reaches us', async () => {
     const { handler } = setup();
     const res = fakeResponse();

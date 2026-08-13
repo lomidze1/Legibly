@@ -195,13 +195,14 @@ merchant `legibly.design`). დარჩა **ერთადერთი ბლ
       ([`flittIpAllowlist.ts:36`](../api/src/middleware/flittIpAllowlist.ts:36)). ე.ი. მყიდველი
       გადაიხდიდა და ვერაფერს მიიღებდა. SHA1 ხელმოწერა მაინც მუშაობს — ის არის ნამდვილი დაცვა.
       **გეგმა:** პირველი რეალური გადახდის შემდეგ Vercel-ის ლოგებიდან ავიღოთ ფაქტობრივი IP და ჩავრთოთ
-- [ ] 🤖 **admin panel prod-ზე გატეხილია** — `/api/admin/*`-ის catch-all სეგმენტი Vercel-ზე
-      `req.query.path`-ში **არ ჩნდება**, `segmentsOf()` ცარიელს აბრუნებს და router ყოველთვის
-      `panel`-ზე ვარდება. მტკიცებულება: `/api/admin/stats` → `200` panel HTML, ხოლო
-      `/api/admin/stats?path=stats` → `401` JSON; `/api/admin/a/b` → `404`. ერთსეგმენტიანი dynamic
-      route (`/api/checkout/success`) სწორად მუშაობს ⇒ პრობლემა კონკრეტულად `[...path]`-შია.
-      უსაფრთხოებას არ ვნებს (fail-closed — მხოლოდ ცარიელი shell გაიცემა), მაგრამ პანელი მკვდარია.
-      შემოვლა: `?path=<route>`
+- [x] 🤖 **admin panel-ის routing ✅ გასწორდა (2026-08-13)** — `/api/admin/*`-ის catch-all სეგმენტი
+      Vercel-ზე `req.query.path`-ში **არ ჩნდებოდა**, `segmentsOf()` ცარიელს აბრუნებდა და router
+      ყოველთვის `panel`-ზე ვარდებოდა — ე.ი. პანელი საკუთარ თავს აბრუნებდა მონაცემების ნაცვლად.
+      მტკიცებულება იყო: `/api/admin/stats` → `200` panel HTML, ხოლო `?path=stats` → `401` JSON.
+      ერთსეგმენტიანი dynamic route (`/api/checkout/success`) სწორად მუშაობდა ⇒ ხარვეზი
+      კონკრეტულად `[...path]`-ში იყო. **გამოსწორება:** query-ს ცარიელობისას `segmentsOf()` ახლა
+      `req.url`-იდან კითხულობს მისამართს ([`router.ts`](../api/src/routes/admin/router.ts)).
+      query კვლავ პრიორიტეტულია — პლატფორმა თუ ოდესმე გამოასწორებს, ჩვენი fallback ჩუმად ჩამოსცილდება
 
 ---
 

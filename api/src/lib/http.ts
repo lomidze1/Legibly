@@ -12,6 +12,9 @@ export interface ApiRequest {
   method?: string;
   headers: HeaderBag;
   query?: QueryBag;
+  /** Path and query as the platform received them. The admin router falls back
+   *  to this when Vercel does not fill in a dynamic segment — see `segmentsOf`. */
+  url?: string;
   /** Parsed by the platform. Always `unknown` — never trusted without a shape check. */
   body?: unknown;
 }
