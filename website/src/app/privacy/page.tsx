@@ -160,14 +160,12 @@ export default function PrivacyPage() {
         </p>
 
         <h2>Contact</h2>
-        {/*
-          TODO before launch: add the controller's registered legal name, legal
-          form and postal address here. GDPR Art. 13(1)(a) requires the
-          controller's identity, and an email address alone does not satisfy it.
-        */}
         <p>
-          Legibly is built by Glinc, which is the data controller. Questions
-          about this policy, or any request above:{" "}
+          The data controller is {site.seller.entity}. Registered address:{" "}
+          {site.seller.address}.
+        </p>
+        <p>
+          Questions about this policy, or any request above:{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>.
         </p>
       </Container>

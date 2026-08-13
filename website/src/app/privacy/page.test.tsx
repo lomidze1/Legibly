@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { site } from "@/data/site";
 import PrivacyPage, { metadata } from "./page";
 
 describe("privacy policy", () => {
@@ -57,6 +58,18 @@ describe("privacy policy", () => {
       expect(text).toContain(processor);
     }
     expect(text).toMatch(/no analytics service, no error\s+tracker/i);
+  });
+
+  it("identifies the controller by legal name and postal address", () => {
+    // GDPR Art. 13(1)(a): an email address alone does not identify a
+    // controller. Flitt asks for the same thing before it activates a
+    // merchant, so this text is load-bearing twice over.
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain(site.seller.entity);
+    expect(text).toContain(site.seller.address);
+    expect(text).toMatch(/data controller/i);
   });
 
   it("keeps a canonical URL", () => {

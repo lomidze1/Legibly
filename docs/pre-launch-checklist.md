@@ -102,8 +102,9 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
       **tax-exclusive disclaimer** (D23) · refund policy (`billing@`) · EU-ს 14-დღიანი withdrawal +
       statutory-rights clause · პასუხისმგებლობის ზღვარი · "არაა audit/certification/legal advice".
       Footer-სა და sitemap-ში ჩასმულია.
-      ⚠️ **TODO launch-მდე:** გამყიდველის იურიდიული სახელი, ფორმა და მისამართი — იგივე ხარვეზი,
-      რაც privacy-ზეა (EU consumer-information + GDPR Art. 13(1)(a))
+      ✅ **გამყიდველის იდენტობა დაემატა 2026-08-13** — იურიდიული სახელი, ფორმა და მისამართი
+      `site.seller`-ში, ერთი წყაროდან terms-სა და privacy-ზე (EU consumer-information +
+      GDPR Art. 13(1)(a) + Flitt-ის აქტივაციის მოთხოვნა)
 - [x] 🤖 Privacy policy — ✅ **ხელახლა დაიწერა 2026-08-12 (Phase 6).** D22-ის *"the plugin makes
       no network requests of any kind"* **აღარაა სიმართლე** — paywall-მა manifest შეცვალა.
       ახლა წერია: ქსელი მხოლოდ ლიცენზიისთვის · ახალი manifest-ის ციტატა · რას ვინახავთ Pro-ს
@@ -178,7 +179,7 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
       ([`launch-stack §5`](./launch-stack.md)). ⚠️ **მიგრაციები ჯერ არ გაშვებულა** — `psql` ელოდება DB-ს
 - [x] 🤖 **Terms გვერდი:** ✅ refund policy · tax-exclusive disclaimer · statutory-rights clause
       (2026-08-03). Phase 6-ში დაემატა ერთი აბზაცი: **Pro-ს ყიდვა Figma-ს ანგარიშის დაკავშირებას
-      ითხოვს** — ეს ყიდვამდე უნდა იცოდე. ⚠️ გამყიდველის იურიდიული სახელი/მისამართი კვლავ TODO (👤)
+      ითხოვს** — ეს ყიდვამდე უნდა იცოდე. ✅ გამყიდველის იურიდიული სახელი/მისამართი დაემატა (2026-08-13)
 - [x] 🤖 **plugin-ის integration** ✅ (Phase 5, 2026-08-12): Connect · licence pill · checkout →
       `figma.openExternal`. manifest = `["https://api.legibly.design"]`. **Judge-ის ღილაკი არ შედის**
       — მას Phase 4 სჭირდება

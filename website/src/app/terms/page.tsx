@@ -136,14 +136,13 @@ export default function TermsPage() {
         </p>
 
         <h2>Contact</h2>
-        {/*
-          TODO before launch, same gap as the privacy page: the seller's
-          registered legal name, legal form and postal address belong here.
-          An email address alone does not satisfy EU consumer-information
-          rules, and this page is the one a buyer reads.
-        */}
         <p>
-          Legibly is built by Glinc. Questions about these terms:{" "}
+          Legibly is operated by {site.seller.entity}. Registered address:{" "}
+          {site.seller.address}. That is the seller of record for a Pro
+          purchase.
+        </p>
+        <p>
+          Questions about these terms:{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>. Anything about a
           payment:{" "}
           <a href="mailto:billing@legibly.design">billing@legibly.design</a>.
