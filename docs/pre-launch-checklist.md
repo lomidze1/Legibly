@@ -16,19 +16,20 @@
 ```
 ✅ დომენი ──┬──✅ website deploy ──✅ plugin-ის ხუთივე ლინკი ცოცხალია
             ├──✅ Resend domain verification ──✅ waitlist form მუშაობს
-            └──🔴 Figma OAuth redirect URI  ← 👤
+            └──✅ Figma OAuth redirect URI
 
 ✅ backend-ის კოდი (Flitt + OAuth + License + plugin + Terms/Privacy)
-   └──🔴 deploy: Vercel-ის მე-2 პროექტი · Postgres · მიგრაციები · env vars  ← 👤
-      └──> paywall ჩართვა (F20) ──> Pro რეალურად იყიდება
+   └──✅ deploy: api.legibly.design · Neon Postgres · მიგრაციები 001–004 · env vars
+      └──🔴 Flitt merchant-ის აქტივაცია (დღეს Test mode)  ← 👤, ტელეფონით
+         └──> paywall ჩართვა (F20) ──> Pro რეალურად იყიდება
       └──> /api/judge (D24, cutoff 1 სექტ.) — launch-ს არ ბლოკავს
 ```
 
-**ერთი წინადადებით (განახლდა 2026-08-12):** დომენი, deploy, email/waitlist — დახურულია.
-**Backend-ის კოდიც დაწერილია** (`api/` — 186 ტესტი; plugin-ში Connect/checkout — 354 ტესტი;
-Terms/Privacy ასახავს რეალობას). დარჩა **ერთადერთი რგოლი: ეს კოდი არსად არ არის გაშვებული** —
-Vercel-ის მე-2 პროექტი, Postgres, მიგრაციები და credential-ები ყველა 👤-ია (§13 `backend-spec.md`).
-სანამ ეს არ მოხდება, `api.legibly.design` არ არსებობს და plugin-ის Connect ღილაკი ჩავარდება.
+**ერთი წინადადებით (განახლდა 2026-08-13):** deploy-ის რგოლი **დაიხურა** — `api.legibly.design`
+ცოცხალია, Figma OAuth ბოლომდე გატესტილია, Flitt რეალურ checkout-ს ქმნის (`12.00 USD`,
+merchant `legibly.design`). დარჩა **ერთადერთი ბლოკერი: Flitt-ის merchant ჯერ Test mode-შია** —
+აქტივაცია ტელეფონით ხდება (portal-ში ღილაკი არაა). სანამ ეს არ მოხდება, გადახდა რეალურ
+ბარათზე ჩავარდება; ყველა დანარჩენი რგოლი მუშაობს.
 
 ---
 
@@ -45,8 +46,15 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
 - [x] 👤 **Email forwarding ✅** (2026-08-12, **მიგრირდა Cloudflare-ზე**) — `hello@` · `support@` ·
       `billing@` → პირად Gmail-ზე, **Cloudflare Email Routing**-ით. MX = `route1/2/3.mx.cloudflare.net`.
       Catch-all განზრახ `Disabled`. საიტზე მხოლოდ `hello@` ჩანს; `billing@` Terms-სა და ქვითრებისთვისაა
-      - ⚠️ forwarding მხოლოდ **მიღებაა** — პასუხი პირადი Gmail-იდან წავა. გამოსწორება:
-        Gmail → Accounts → *Send mail as* → `hello@legibly.design`
+      - ✅ **გაგზავნაც მოგვარდა (2026-08-13)** — Gmail → *Send mail as*, სამივე მისამართი
+        (`hello@` · `billing@` · `support@`) **Resend-ის SMTP-ით** (`smtp.resend.com:465`,
+        user `resend`). Cloudflare Email Routing გაგზავნას **ვერ ახერხებს** — ის მხოლოდ
+        forwarding-ია; ამიტომ შემოსვლა Cloudflare-ზეა, გასვლა Resend-ზე.
+        ⚠️ key **`legibly` workspace-იდან** უნდა იყოს — w2w-ის key ამ დომენს არ ხედავს.
+        `Reply from the same address` ჩართულია, თორემ პასუხი `@gmail.com`-იდან წავიდოდა
+      - ✅ Gmail-ის labels: `Legibly/Billing` · `Legibly/Hey` · `Legibly/Support`, სამი ფილტრით
+        (`To:` → label + `Never send it to Spam`). `Never send it to Spam` **სავალდებულოა** —
+        დავის შეტყობინებას ბანკის ვადა აქვს და Spam-ში ჩავარდნა ავტომატურ წაგებას ნიშნავს
       - ❌ **ძველი Namecheap Redirect Email მიტოვებულია.** მიზეზი: ის სერვისია, არა უბრალოდ MX —
         მუშაობს მხოლოდ `Mail Settings = Email Forwarding` რეჟიმში, რომელიც MX-ს ბოქლომით კეტავს.
         `Custom MX`-ზე გადასვლა forwarding-ს **თიშავს** (ვცადეთ, ჩავარდა). ე.ი. Namecheap-ზე
@@ -159,6 +167,44 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
 
 ---
 
+## 4.1 ✅ API deploy — ცოცხალია (2026-08-13)
+
+`api.legibly.design` ის რგოლია, რომელსაც ეს ფაილი თვეზე მეტი ხნის განმავლობაში 🔴-ით ნიშნავდა.
+
+- [x] 👤 **Vercel-ის მე-2 პროექტი** `legibly-api` — Root Directory `api`, region `fra1`
+- [x] 👤 **DNS ✅** — `CNAME api` → `18456cdd313afe92.vercel-dns-017.com`, **`DNS only` (proxy OFF)**.
+      Vercel-მა თვითონ ამოიცნო Cloudflare და `Proxy: Disabled` ცხრილშივე მოგვცა. proxy ჩართული
+      Vercel-ს TLS-ის გამოწერას **უკრძალავს** — დომენი სამუდამოდ `Invalid Configuration`-ში დარჩებოდა.
+      MX-ს ხელი არ შევხებივართ. Let's Encrypt სერტიფიკატი 50 წამში გამოიწერა (→ 2026-11-10)
+- [x] 👤 **Neon Postgres + მიგრაციები 001–004 ✅** — გადამოწმებულია `/api/admin/stats`-ით, რომელიც
+      ერთი მოთხოვნით სამ ცხრილს ეხება (`licenses` · `usage_events` · `license_audit`).
+      `200` + `success:true` ⇒ ოთხივე მიგრაცია გაშვებულია; ერთის დაკლებაზე `relation does not exist` იქნებოდა
+- [x] 👤 **env vars ✅** — `AUTH_SECRET` · `ADMIN_TOKEN` · `DATABASE_*` · `FIGMA_*` · `FLITT_*` ·
+      `API_PUBLIC_URL` · `WEBSITE_BASE_URL` (Production + Preview).
+      ⚠️ env-ის ცვლილება მხოლოდ **ახალ deployment-ში** ჩაიტვირთება — Redeploy სავალდებულოა
+- [x] 👤 **Figma app registration ✅** — [figma.com/developers/apps](https://www.figma.com/developers/apps),
+      redirect URI `https://api.legibly.design/api/auth/figma/callback`, scope **მხოლოდ**
+      `current_user:read`. ცოცხლად გატესტილია: „Connected to Figma" ⇒ `client_secret`-ით კოდის
+      გაცვლა, user-ის წამოღება, `licenses`-ში ჩაწერა და ტოკენის დაპარკვა — ოთხივე მუშაობს
+
+### 4.2 🟠 ორი გადადებული ხარვეზი
+
+- [ ] 🤖 **`FLITT_WEBHOOK_IPS` ცარიელია, allowlist გამორთულია** (`FLITT_IP_ALLOWLIST_ENABLED=false`).
+      `.env.example`-ის IP-ები დოკუმენტაციიდანაა და შეიძლება მოძველებული იყოს; არასწორ IP-ზე webhook
+      **ჩუმად** უარიყოფა — Flitt-ს `200 received` უბრუნდება, ლიცენზია კი არ გაიცემა
+      ([`flittIpAllowlist.ts:36`](../api/src/middleware/flittIpAllowlist.ts:36)). ე.ი. მყიდველი
+      გადაიხდიდა და ვერაფერს მიიღებდა. SHA1 ხელმოწერა მაინც მუშაობს — ის არის ნამდვილი დაცვა.
+      **გეგმა:** პირველი რეალური გადახდის შემდეგ Vercel-ის ლოგებიდან ავიღოთ ფაქტობრივი IP და ჩავრთოთ
+- [ ] 🤖 **admin panel prod-ზე გატეხილია** — `/api/admin/*`-ის catch-all სეგმენტი Vercel-ზე
+      `req.query.path`-ში **არ ჩნდება**, `segmentsOf()` ცარიელს აბრუნებს და router ყოველთვის
+      `panel`-ზე ვარდება. მტკიცებულება: `/api/admin/stats` → `200` panel HTML, ხოლო
+      `/api/admin/stats?path=stats` → `401` JSON; `/api/admin/a/b` → `404`. ერთსეგმენტიანი dynamic
+      route (`/api/checkout/success`) სწორად მუშაობს ⇒ პრობლემა კონკრეტულად `[...path]`-შია.
+      უსაფრთხოებას არ ვნებს (fail-closed — მხოლოდ ცარიელი shell გაიცემა), მაგრამ პანელი მკვდარია.
+      შემოვლა: `?path=<route>`
+
+---
+
 ## 5. 🔴 გადახდები — **Flitt** (D23)
 
 > გადაწყვეტილი: **Flitt · ერთჯერადი გადახდა · `$120/წელი` (მთავარი) + `$12/30 დღე`.**
@@ -168,15 +214,35 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
 
 - [x] ~~ვენდორის არჩევა~~ — ✅ Flitt (D23, 2026-08-02)
 - [x] ~~ფასის სტრუქტურა~~ — ✅ `$120/წელი` + `$12/30 დღე`, ორივე ერთჯერადი (D23)
-- [ ] 👤 **Flitt merchant portal:** Legibly-ის ცალკე product + `order_id` prefix (w2w-სგან გასამიჯნად)
-- [ ] 👤 **`server_callback_url`** რეგისტრაცია → `https://api.legibly.design/api/webhooks/flitt`
+- [x] 👤 **Flitt merchant portal ✅ (2026-08-13)** — შეიქმნა **ცალკე merchant `legibly.design`**
+      (არა უბრალოდ ცალკე product). იგივე იურიდიული პირი, ცალკე merchant.
+      **რატომ ცალკე:** merchant-ის სახელი ვებგვერდიდან წარმოიქმნება და **ბარათის ამონაწერში ხვდება.**
+      w2w-ის merchant-ზე დარჩენა ნიშნავდა, რომ Legibly-ს მყიდველი ამონაწერში `web2wireframe`-ს
+      ნახავდა — „friendly fraud"-ის №1 მიზეზი. დამატებით: chargeback rate **merchant-ზე** ითვლება,
+      ე.ი. ერთ ანგარიშზე ორი პროდუქტის დავები ერთმანეთს აზიანებდა
+- [x] 👤 **`server_callback_url` ✅** → `https://api.legibly.design/api/webhooks/flitt`.
+      Payment settings-ში ჩაწერილია, თუმცა კოდი მას **ყოველ მოთხოვნაშიც** აგზავნის — portal-ისა სარეზერვოა
+- [x] 👤 **Flitt-ის კონფიგურაცია ✅** — `Redirect method: POST` (⚠️ არ შეიცვალოს: საიტი სტატიკურია და
+      POST-ზე 405-ს დააბრუნებდა; `[action].ts` სწორედ ამიტომ იღებს POST-ს და 303-ით ისვრის საიტზე) ·
+      Success/Decline → `api.`-ზე, არა საიტზე · `Checkout language priority: API language` (თორემ ძველი
+      ქართული cookie გადაფარავდა ჩვენს `lang: 'en'`-ს) · Save card და Pre-auth გამორთული ·
+      Subscription/Chargeback callback ცარიელი (chargeback-ს handler არ აქვს — მისამართის მიცემა
+      404-ს ნიშნავდა) · notifications `billing@legibly.design`, ენა **English**
+- [x] 🤖 **checkout ცოცხლად გატესტილია ✅ (2026-08-13)** — რეალური Flitt-ის გვერდი აჩვენებს:
+      `legibly.design` · `Legibly Pro - 30 days` · **`12.00 USD`**. ე.ი. merchant id ჩაიტვირთა,
+      `Payment key`-ით SHA1 ხელმოწერა სწორია, და USD მიიღება GEL-ის settlement ანგარიშის მიუხედავად.
+      `orderId` = `lgb_pro_…` — w2w-ს შეკვეთებს ვერასდროს აირევს
+- [ ] 👤 🔴 **merchant ჯერ `Test mode`-შია — აქტივაცია ტელეფონით** (portal-ში ღილაკი არ არსებობს).
+      **დარეკვისას ცალკე ახსენე: Google Pay `Environment TEST`-შია** და production-ზე უნდა გადავიდეს —
+      ეს ის დეტალია, რომელიც აქტივაციის შემდეგ რჩება გამორჩენილი და პირველივე Google Pay-ით
+      გადამხდელი კარგავს. Apple Pay-ის სერტიფიკატი ატვირთულია (ვადა 2027-12-05)
 - [x] 🤖 env: ✅ ყველა ცვლადი [`api/.env.example`](../api/.env.example)-ში, boot-time ვალიდაციით.
       **რეალური მნიშვნელობები Vercel-ზე — 👤**
 - [x] 🤖 **w2w-დან გადმოტანა:** ✅ `flittService` (checkout + SHA1, კანონიკურ ვექტორზე ტესტით) ·
       webhook handler (verify + dedup + lease) · `License` model · stacking-ის ჭერი და იატაკი.
       admin override endpoint-ები **განზრახ არ გადმოვიტანე** — backend-spec-ში არ წერია
 - [x] 🤖 **Figma OAuth** (`current_user:read`) → HMAC token → `figma.clientStorage` ✅
-      ([`launch-stack §5`](./launch-stack.md)). ⚠️ **მიგრაციები ჯერ არ გაშვებულა** — `psql` ელოდება DB-ს
+      ([`launch-stack §5`](./launch-stack.md)). ✅ **მიგრაციები გაშვებულია (2026-08-13)** — §4.1
 - [x] 🤖 **Terms გვერდი:** ✅ refund policy · tax-exclusive disclaimer · statutory-rights clause
       (2026-08-03). Phase 6-ში დაემატა ერთი აბზაცი: **Pro-ს ყიდვა Figma-ს ანგარიშის დაკავშირებას
       ითხოვს** — ეს ყიდვამდე უნდა იცოდე. ✅ გამყიდველის იურიდიული სახელი/მისამართი დაემატა (2026-08-13)
@@ -275,18 +341,24 @@ Vercel-ის მე-2 პროექტი, Postgres, მიგრაციე
 
 ## 10. მოკლე პასუხი — "დღეს რომ დავაჭიროთ publish-ს, რა მოხდება?"
 
-**განახლდა 2026-08-12 (Phase 6-ის შემდეგ).** საიტი ცოცხალია, ხუთივე ლინკი მუშაობს, waitlist
-იღებს მისამართებს, backend-ის კოდი დაწერილია და plugin-ს Connect/checkout აქვს.
+**განახლდა 2026-08-13 (deploy-ის დღის შემდეგ).** პასუხი პირველად შეიცვალა: `api.legibly.design`
+**არსებობს**, Connect **მუშაობს**, და checkout რეალურ Flitt-ის გვერდს ქმნის.
 
-⚠️ **მაგრამ დღეს publish-ს თუ დავაჭერთ, Pro-ს ყიდვა ჩავარდება** — და ახლა უარესად, ვიდრე
-ადრე: manifest უკვე ითხოვს `api.legibly.design`-ს, რომელიც **ჯერ არ არსებობს.** Connect-ის
-დაჭერა შეცდომას მისცემს (სკანირება და fix არ ზარალდება — ისინი ტოკენს არ კითხულობენ).
+დღეს publish-ს რომ დავაჭიროთ:
 
-დარჩენილი რგოლი აღარაა კოდი — **deploy-ია, და მთლიანად 👤-ზეა:**
+- ✅ სკანირება, fix, ხუთივე ლინკი — მუშაობს
+- ✅ **Connect** — ბოლომდე გატესტილი (OAuth → ლიცენზია → ტოკენი)
+- ✅ **checkout-ის ბმულის შექმნა** — `12.00 USD`, merchant `legibly.design`
+- 🔴 **გადახდის დასრულება ჩავარდება** — merchant `Test mode`-შია. რეალური ბარათი ვერ გადაიხდის
 
-- 🔴 Vercel-ის მე-2 პროექტი `api/`-სთვის + `CNAME api` (Cloudflare-ზე, **MX-ს ხელი არ ახლო**)
-- 🔴 Postgres + `psql -f migrations/001_init.sql` და `002_auth.sql`
-- 🔴 `AUTH_SECRET` · `ADMIN_TOKEN` · `FIGMA_CLIENT_ID/SECRET` · `FLITT_MERCHANT_ID/SECRET_KEY`
-- 🔴 Figma app registration + redirect URI · Flitt portal: product + `server_callback_url`
+ე.ი. ბლოკერი აღარაა არც კოდი და არც deploy — **ერთი სატელეფონო ზარია Flitt-თან.**
 
-**სანამ ეს არ გაკეთდება, Community publish არ უნდა მოხდეს.**
+დარჩენილი 👤-სია:
+
+1. 🔴 **Flitt-ის აქტივაცია** (+ Google Pay production environment-ზე) — §5
+2. 🟠 `FLITT_WEBHOOK_IPS` პირველი რეალური გადახდის შემდეგ — §4.2
+3. 🟠 admin panel-ის catch-all routing — §4.2
+4. 🟠 paywall-ის ჩართვა (F20) — დღეს fix განზრახ უფასოა beta-ში
+
+**Community publish აქტივაციამდე არ უნდა მოხდეს** — გადამხდელი მყიდველი უარესია, ვიდრე
+არავითარი მყიდველი.

@@ -109,7 +109,9 @@
 - **Measure ტოკენები** — `--measure-narrow/body/wide`; `ch` აღარ გამოიყენება (Atkinson-ში `1ch` = 11.02px vs საშუალო სიმბოლო 7.25px, ე.ი. `64ch` → 95 სიმბოლო). ახლა ყველა ბლოკი 48–72 სიმბოლოშია
 - **Verdict ფერები semantic-only** — pricing checkmarks და beta banner accent-ზე გადავიდა (§7-ის წესი)
 
-**გადაუწყვეტელი (user decision):** dark mode (brand identity-ს ცვლის — §7 "ღია, მაღალკონტრასტული"); OG card-ის ტიპოგრაფია (Atkinson woff/ttf binary სჭირდება Satori-სთვის); privacy §Contact-ში controller-ის იურიდიული მისამართი (GDPR Art. 13(1)(a) — კოდში TODO).
+**გადაუწყვეტელი (user decision):** dark mode (brand identity-ს ცვლის — §7 "ღია, მაღალკონტრასტული"); OG card-ის ტიპოგრაფია (Atkinson woff/ttf binary სჭირდება Satori-სთვის).
+
+✅ **დაიხურა 2026-08-13:** privacy §Contact-ში controller-ის იურიდიული სახელი და მისამართი — `site.seller`-ში, ერთი წყაროდან terms-სა და privacy-ზე. კოდში TODO-ები აღარაა.
 
 ---
 
