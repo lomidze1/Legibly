@@ -258,12 +258,13 @@ merchant `legibly.design`). დარჩა **ერთადერთი ბლ
 > 🔧 **Backend-ის სრული სამუშაო სპეციფიკაცია → [`backend-spec.md`](./backend-spec.md)**
 > (Flitt + Figma OAuth + AI Judge, ფაზებად, ტესტებით და ხაფანგებით — self-contained)
 
-## 5.1 🟡 AI Designer Judge (D24) — cutoff **1 სექტემბერი**, launch-ს **არ ბლოკავს**
+## 5.1 ✅ AI Designer Judge — **cutoff დახურულია ([D27](./approach.md)); launch-ის სამუშაო აღარ არის**
 
-> მონიშნული frame → snapshot → `/api/judge` → Claude vision + rubric → verdict.
-> **Pro-gated + 3 საცდელი free-ზე.** ვერ მოასწრო cutoff-მდე → v1.1 (~2 კვირა post-launch).
-> სრული დასაბუთება → [`approach.md D24`](./approach.md) · [`launch-stack.md §6`](./launch-stack.md)
-
+> **გადაწყვეტილება 2026-08-18:** Judge **launch-ში არ შედის.** კოდი რჩება, გამორთული
+> (`JUDGE_ENABLED` default = false, `api/src/config/judge.ts:64`); plugin-ის UI არ არსებობს;
+> საიტი მას არსად არ ჰპირდება — ე.ი. **ფუნქცია უკვე ბნელი იყო, გამორთვა კოდს არ საჭიროებდა.**
+> ქვემოთ დარჩენილი უმონიშნავი პუნქტები **გადადის [D26](./approach.md)-ის 🟢 შედეგზე.**
+> ⚠️ **launch-ის ერთადერთი პირობა:** `JUDGE_ENABLED` prod-ზე **არ დაყენდეს**.
 - [x] 🤖 `/api/judge` endpoint ✅ (2026-08-12) — OAuth-bound · free 3 (lifetime) / Pro N-თვეში ·
       quota **მხოლოდ წარმატებულ ზარზე** · structured outputs (enforced სქემა) · retry
 - [x] 🤖 rubric ✅ — [`judgeRubric.ts`](../api/src/services/judgeRubric.ts): a11y-ს არ იმეორებს ·

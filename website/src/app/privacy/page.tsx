@@ -63,7 +63,7 @@ export default function PrivacyPage() {
             <strong>Usage records:</strong> so we can tell whether anyone is
             using Legibly, we keep a line saying that your licence was checked
             on a given day, that a checkout was started, paid, refused or
-            refunded, and that an AI Judge review ran. Each line holds the date,
+            refunded. Each line holds the date,
             your Figma user id, which of those events it was, and whether it
             succeeded — nothing else. A licence check writes at most one line
             per day, however many times you open the plugin.
