@@ -12,17 +12,21 @@ type Billing = "year" | "month";
 
 /**
  * Monthly leads (D28): $12 is the price of entry, and the year is the upgrade
- * offered beside it rather than the first number a visitor meets. The yearly
- * view still leads with its per-month figure, so the two compare like for like.
+ * offered beside it rather than the first number a visitor meets.
+ *
+ * The headline is always the amount actually charged — the number the buyer
+ * will see on their card statement. The yearly card used to lead with "$10 per
+ * month · billed yearly": a figure nobody is ever charged, beside a word that
+ * implies a renewal that does not exist. The per-month figure lives in the note.
  *
  * The money itself is unchanged (D23): $120 per year or $12 per 30 days, both
  * one-time. $12 × 12 = $144, so the year saves 17%.
  */
 const pro: Record<Billing, { price: string; cadence: string; note: string }> = {
   year: {
-    price: "$10",
-    cadence: "per month · billed yearly",
-    note: "$120 once for 365 days — 17% off the monthly rate.",
+    price: "$120",
+    cadence: "per 365 days",
+    note: "$120 once for 365 days — $10 a month, 17% off the monthly rate.",
   },
   month: {
     price: "$12",

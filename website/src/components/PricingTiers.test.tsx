@@ -27,10 +27,21 @@ describe("the billing toggle", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
 
-    expect(screen.getByText("$10")).toBeInTheDocument();
+    expect(screen.getByText("$120")).toBeInTheDocument();
     expect(screen.queryByText("$12")).not.toBeInTheDocument();
-    expect(screen.getByText(/billed yearly/)).toBeInTheDocument();
+    expect(screen.getByText(/per 365 days/)).toBeInTheDocument();
     expect(screen.getByText(/\$120 once for 365 days/)).toBeInTheDocument();
+  });
+
+  it("headlines the amount actually charged, never a per-month figure nobody pays", () => {
+    // What the card statement will say is what the card says. A "$10" headline
+    // over a $120 charge is a chargeback waiting to happen, and "billed yearly"
+    // promises a renewal that does not exist.
+    render(<PricingTiers />);
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
+
+    expect(screen.queryByText("$10")).not.toBeInTheDocument();
+    expect(screen.queryByText(/billed/i)).not.toBeInTheDocument();
   });
 
   it("moves the pressed state with it, so the switch reads as a switch", () => {
@@ -112,7 +123,7 @@ describe("what each tier claims", () => {
 
 describe("the arithmetic behind the copy", () => {
   it("the advertised 17% saving is the one the two rates actually produce", () => {
-    // $10/month billed yearly against $12/month: 1 - 120/144 ≈ 16.7%, which
+    // $120 for the year against $12 × 12 = $144: 1 - 120/144 ≈ 16.7%, which
     // rounds to the 17% printed on the switch and in the yearly note.
     const saving = 1 - (10 * 12) / (12 * 12);
     expect(Math.round(saving * 100)).toBe(17);
