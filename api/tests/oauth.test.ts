@@ -35,6 +35,7 @@ function setup(user: FigmaUser = { id: 'figma-user-1', email: 'designer@example.
       return user;
     },
     authSecret: SECRET,
+    websiteBaseUrl: 'https://legibly.design',
     now,
   });
   const exchange = createExchangeHandler({ store });
@@ -278,6 +279,7 @@ describe('GET /api/auth/figma/callback — the unhappy paths', () => {
         return { id: 'figma-user-1' };
       },
       authSecret: SECRET,
+      websiteBaseUrl: 'https://legibly.design',
       now: () => NOW,
     });
     return { store, handler, reached };

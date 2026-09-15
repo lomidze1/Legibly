@@ -1,6 +1,14 @@
 import { env } from '../../config/env.js';
 import { PLUGIN_TOKEN_TTL_SECONDS, signToken } from '../../lib/hmac.js';
-import { html, queryParam, type ApiHandler } from '../../lib/http.js';
+import { html, queryParam, redirect, type ApiHandler, type ApiResponse } from '../../lib/http.js';
+import {
+  OAUTH_COOKIE,
+  SESSION_COOKIE,
+  WEB_SESSION_TTL_SECONDS,
+  clearedCookieHeader,
+  cookieHeader,
+  webLoginFrom,
+} from '../../lib/webSession.js';
 import { authStore, type AuthStore } from '../../models/authStore.js';
 import { licenseStore, type LicenseStore } from '../../models/License.js';
 import {
@@ -46,6 +54,15 @@ const FAILED_PAGE = `<!doctype html>
 </body>
 </html>`;
 
+const WEB_FAILED_PAGE = (websiteBaseUrl: string): string => `<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Could not sign in with Figma</title></head>
+<body style="font:16px/1.5 system-ui,sans-serif;padding:3rem;text-align:center">
+<h1 style="font-size:1.25rem">Could not sign in with Figma</h1>
+<p>Sign-in did not finish, and nothing was charged. <a href="${websiteBaseUrl}/checkout">Go back to checkout</a> and try again.</p>
+</body>
+</html>`;
+
 export interface CallbackDeps {
   config: FigmaOAuthConfig;
   store: AuthStore;
@@ -53,7 +70,37 @@ export interface CallbackDeps {
   exchangeCode: (config: FigmaOAuthConfig, code: string) => Promise<string>;
   fetchUser: (accessToken: string) => Promise<FigmaUser>;
   authSecret: string;
+  /** Where a website sign-in lands afterwards. */
+  websiteBaseUrl: string;
   now: () => number;
+}
+
+/**
+ * The website's half: the same code exchange, then a session cookie and a
+ * redirect back to the page that asked, instead of a token parked for a poll.
+ * The state cookie is cleared on both outcomes — it is good for one round trip.
+ */
+async function completeWebSignIn(
+  deps: CallbackDeps,
+  code: string,
+  returnTo: string,
+  res: ApiResponse,
+): Promise<void> {
+  const spent = clearedCookieHeader(OAUTH_COOKIE);
+  try {
+    const accessToken = await deps.exchangeCode(deps.config, code);
+    const user = await deps.fetchUser(accessToken);
+    await deps.licenses.getOrCreate(user.id);
+    await deps.licenses.setEmailIfMissing(user.id, user.email);
+
+    const token = signToken(user.id, deps.authSecret, WEB_SESSION_TTL_SECONDS, deps.now());
+    res.setHeader('Set-Cookie', [spent, cookieHeader(SESSION_COOKIE, token, WEB_SESSION_TTL_SECONDS)]);
+    redirect(res, `${deps.websiteBaseUrl}${returnTo}`);
+  } catch (error) {
+    console.error(`[auth-callback] website sign-in failed: ${String(error)}`);
+    res.setHeader('Set-Cookie', spent);
+    html(res, WEB_FAILED_PAGE(deps.websiteBaseUrl), 502);
+  }
 }
 
 export function createCallbackHandler(deps: CallbackDeps): ApiHandler {
@@ -70,6 +117,12 @@ export function createCallbackHandler(deps: CallbackDeps): ApiHandler {
     }
 
     const state = queryParam(req, 'state');
+    const web = state === undefined ? null : webLoginFrom(req, state);
+    if (web !== null) {
+      await completeWebSignIn(deps, code, web.returnTo, res);
+      return;
+    }
+
     const pending = state === undefined ? null : await deps.store.consumeOAuthState(state);
     if (pending === null) {
       res.status(400).json({ success: false, error: 'Invalid state' });
@@ -120,6 +173,7 @@ export const callbackHandler: ApiHandler = (req, res) => {
     exchangeCode: exchangeCodeForToken,
     fetchUser: fetchFigmaUser,
     authSecret: env().authSecret,
+    websiteBaseUrl: env().websiteBaseUrl,
     now: () => Date.now(),
   })(req, res);
 };

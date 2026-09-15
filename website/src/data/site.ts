@@ -30,6 +30,8 @@ export const site = {
    * While null, the primary CTA is the waitlist form.
    */
   figmaCommunityUrl: null as string | null,
+  /** Where the website's own calls go: Figma sign-in, the licence, checkout. */
+  apiUrl: "https://api.legibly.design",
   links: {
     glinc: "https://glinc.io",
     web2wireframe: "https://web2wireframe.design",

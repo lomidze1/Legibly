@@ -24,6 +24,13 @@ export default function CheckoutSuccessPage() {
           have left.
         </p>
 
+        <p>
+          Bought on this website? Open Legibly in Figma, choose{" "}
+          <strong>Free &amp; Pro</strong> and press{" "}
+          <strong>Connect to Figma</strong> with the same Figma account you
+          signed in with here — Pro is already waiting on it.
+        </p>
+
         <h2>If it still says Free</h2>
         <p>
           Card networks sometimes take a minute to confirm. Open the{" "}

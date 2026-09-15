@@ -1,5 +1,6 @@
 import { env } from '../../config/env.js';
 import { queryParam, redirect, type ApiHandler } from '../../lib/http.js';
+import { OAUTH_COOKIE, cookieHeader, isValidReturnTo, oauthCookieValue } from '../../lib/webSession.js';
 import { authStore, type AuthStore } from '../../models/authStore.js';
 import {
   buildAuthorizeUrl,
@@ -32,6 +33,24 @@ export function createLoginHandler(deps: LoginDeps): ApiHandler {
     }
 
     const nonce = queryParam(req, 'plugin_nonce');
+    const returnTo = queryParam(req, 'return_to');
+    if (nonce === undefined && returnTo !== undefined) {
+      // The website's sign-in. Its state is bound to this browser by a cookie
+      // rather than a row, so a callback URL lifted from someone else's
+      // sign-in cannot be finished here.
+      if (!isValidReturnTo(returnTo)) {
+        res.status(400).json({ success: false, error: 'invalid_return_to' });
+        return;
+      }
+      const state = deps.makeState();
+      res.setHeader(
+        'Set-Cookie',
+        cookieHeader(OAUTH_COOKIE, oauthCookieValue(state, returnTo), OAUTH_STATE_TTL_MS / 1000),
+      );
+      redirect(res, buildAuthorizeUrl(deps.config, state));
+      return;
+    }
+
     if (nonce === undefined || !PLUGIN_NONCE_PATTERN.test(nonce)) {
       res.status(400).json({ success: false, error: 'invalid_plugin_nonce' });
       return;

@@ -32,6 +32,7 @@ describe('GET /api/license/me', () => {
     expect(res.body).toEqual({
       success: true,
       license: { plan: 'pro', status: 'active', cycleEndsAt: expect.any(String), daysLeft: 300, judgeUsed: 0 },
+      email: 'buyer@example.com',
     });
   });
 

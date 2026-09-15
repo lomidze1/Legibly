@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { PricingTiers } from "./PricingTiers";
+import { site } from "@/data/site";
 
 /**
  * The money. D23 is one-time purchases: $120 per year or $12 per 30 days,
@@ -85,12 +86,22 @@ describe("what each tier claims", () => {
     expect(within(tierNamed("Pro")).getByText(/nothing renews, nothing to cancel/i)).toBeInTheDocument();
   });
 
-  it("gives both tiers somewhere to click", () => {
+  it("sends Pro to checkout with the billing period the visitor picked", () => {
     render(<PricingTiers />);
-    const ctas = screen.getAllByRole("link", { name: "Join the waitlist" });
+    expect(screen.getByRole("link", { name: "Get Pro" })).toHaveAttribute("href", "/checkout?billing=monthly");
 
-    expect(ctas).toHaveLength(2);
-    for (const cta of ctas) expect(cta).toHaveAttribute("href", "/#early");
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
+    expect(screen.getByRole("link", { name: "Get Pro" })).toHaveAttribute("href", "/checkout?billing=yearly");
+  });
+
+  it("gives the free tier a way in that exists today", () => {
+    // Until the Community listing is live there is nothing to install, so the
+    // free card points at the launch list instead of a dead link.
+    render(<PricingTiers />);
+    const free = within(tierNamed("Free")).getByRole("link");
+
+    expect(free).toHaveAttribute("href", site.figmaCommunityUrl ?? "/#early");
+    expect(screen.queryByText("Join the waitlist")).not.toBeInTheDocument();
   });
 
   it("says Pro includes Free rather than listing the same lines twice", () => {

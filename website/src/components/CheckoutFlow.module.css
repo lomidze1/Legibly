@@ -1,0 +1,106 @@
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--space-3);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-neutral-700);
+}
+
+/* Same card language as the pricing tiers: a hairline, the accent when chosen. */
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+/* Border and wash, not colour alone, carry which card is chosen. */
+.planActive {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+}
+
+/* The radio stays in the accessibility tree and the tab order; the card is its face. */
+.radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.plan:has(.radio:focus-visible) {
+  outline: 2px solid var(--color-accent-700);
+  outline-offset: 2px;
+}
+
+.planPrice {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.planLabel {
+  font-size: 14px;
+  color: var(--color-neutral-700);
+}
+
+.account {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+/* Two classes deep so they outrank the prose page's `.page p`. */
+.flow .line {
+  margin: 0;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--color-accent-700);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.flow .error {
+  margin: 0;
+  font-weight: 500;
+  color: var(--color-neutral-800);
+}
+
+.flow .fine {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+}
+
+@media (max-width: 600px) {
+  .plans {
+    grid-template-columns: 1fr;
+  }
+}

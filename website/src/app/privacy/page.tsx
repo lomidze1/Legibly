@@ -73,6 +73,16 @@ export default function PrivacyPage() {
             payment provider, and never seen by us.
           </li>
           <li>
+            <strong>Buying on this website:</strong> signing in with Figma here
+            sets one cookie, <code>lgb_session</code>, on api.legibly.design. It
+            holds a signed token with your Figma user id, cannot be read by any
+            script, and expires after 24 hours or when you sign out. A second
+            cookie, <code>lgb_oauth</code>, lasts the ten minutes of the sign-in
+            and only proves that the sign-in began in your browser. Both are
+            strictly necessary for the purchase you asked for, and nothing else
+            is set.
+          </li>
+          <li>
             <strong>Legal basis (GDPR Art. 6):</strong> performance of our
             contract with you — we cannot give you the licence you paid for
             without recording that you have one.

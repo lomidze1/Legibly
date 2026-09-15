@@ -1,6 +1,7 @@
 import { env } from '../../config/env.js';
 import type { ApiHandler } from '../../lib/http.js';
 import { serializeLicense } from '../../lib/serializeLicense.js';
+import { liveWebsiteOrigin } from '../../lib/webSession.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { licenseStore, type LicenseStore } from '../../models/License.js';
 import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.js';
@@ -10,6 +11,8 @@ export interface LicenseMeDeps {
   events: UsageEventStore;
   authSecret: string;
   now: () => number;
+  /** Opts this route in to the website's session cookie. */
+  websiteOrigin?: string;
 }
 
 /**
@@ -27,7 +30,7 @@ export function createLicenseMeHandler(deps: LicenseMeDeps): ApiHandler {
     }
 
     const now = deps.now();
-    const userId = requireAuth(req, res, deps.authSecret, now);
+    const userId = requireAuth(req, res, deps.authSecret, now, deps.websiteOrigin);
     if (userId === null) return;
 
     const license = await deps.licenses.getOrCreate(userId);
@@ -36,7 +39,9 @@ export function createLicenseMeHandler(deps: LicenseMeDeps): ApiHandler {
     // using it at all. The store collapses it to one row per user per day.
     await deps.events.record({ figmaUserId: userId, kind: 'checkin', detail: license.plan }, new Date(now));
 
-    res.status(200).json({ success: true, license: serializeLicense(license, now) });
+    // The email is the caller's own. The website shows it so a buyer notices the
+    // wrong Figma account before paying rather than after.
+    res.status(200).json({ success: true, license: serializeLicense(license, now), email: license.email });
   };
 }
 
@@ -46,4 +51,5 @@ export const licenseMeHandler: ApiHandler = (req, res) =>
     events: usageEventStore,
     authSecret: env().authSecret,
     now: () => Date.now(),
+    websiteOrigin: liveWebsiteOrigin(),
   })(req, res);

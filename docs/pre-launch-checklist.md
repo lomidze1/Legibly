@@ -250,6 +250,8 @@ merchant `legibly.design`). დარჩა **ერთადერთი ბლ
 - [x] 🤖 **plugin-ის integration** ✅ (Phase 5, 2026-08-12): Connect · licence pill · checkout →
       `figma.openExternal`. manifest = `["https://api.legibly.design"]`. **Judge-ის ღილაკი არ შედის**
       — მას Phase 4 სჭირდება
+- [x] 🤖 **საიტიდან ყიდვა (D29) ✅ კოდში (2026-09-16)** — `/checkout` + Figma-ით შესვლა ვებზე, w2w-ის მოდელით.
+      ⚠️ **ცოცხალზე ჯერ არაა** — API და საიტი **ერთად** უნდა წავიდეს main-ზე (საიტის `/checkout` ახალ API-ს ელოდება)
 - [ ] 🤖 paywall-ის ჩართვა — დღეს fix **უფასოა beta-ში** (F20). განზრახაა, მაგრამ `Plans` modal-შიც ასე წერია: ორივე ერთდროულად უნდა შეიცვალოს
 - [ ] 👤 **chargeback rate მონიტორინგი** — target **<0.5%** (ინდუსტრიის სტანდარტი). $12-ზე refund ($12) ყოველთვის იაფია, ვიდრე chargeback (~$42 + rate)
 

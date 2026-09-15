@@ -338,6 +338,15 @@ license state-ს store სჭირდება. სამაგიეროდ
 - **Outcome:** `plugin/src/ui/FooterBar.tsx` · `website/src/components/PricingTiers.tsx` (+ ტესტები) · `website/src/app/terms/page.tsx` · `launch-stack.md §4` · `backend-spec.md` · `requirements.md` F19/F20 · `pre-launch-checklist.md §5`. **Backend-ს ცვლილება არ სჭირდება** — ორივე duration უკვე მიიღება.
 ---
 
+### D29 — 2026-09-16 — Pro იყიდება **საიტიდანაც**, web2wireframe-ის მოდელით — user-approved
+- **Context:** საიტის Pricing-ზე ორივე ბარათს „Join the waitlist" ეწერა, ყიდვა კი მხოლოდ plugin-ის შიგნით ხდებოდა. user-ის მითითება: „შეამოწმე როგორ არის აწყობილი web2wireframe.design და ისე გააკეთე".
+- **w2w-ის მოდელი:** Pricing → **Install free** (Community) / **Get Pro** → `/checkout` → Figma-ით შესვლა **ვებზე** → Flitt. ლიცენზია `figmaUserId`-ზეა მიბმული, ამიტომ plugin მას იმავე ანგარიშით დაკავშირებისას თავად პოულობს.
+- **Legibly-ის ადაპტაცია (serverless, express-session-ის გარეშე):** OAuth state → httpOnly `lgb_oauth` cookie (ბრაუზერზეა მიბმული, DB-ში row არ იწერება) · სესია → `lgb_session` cookie (იგივე HMAC ტოკენი, 24 სთ, host-only `api.legibly.design` — w2w-ის „Invalid state" ბაგის გაკვეთილი) · cookie მიიღება **მხოლოდ** `Origin: https://legibly.design`-ზე და მხოლოდ opt-in route-ებზე (`license/me`, `checkout/create`, `auth/me`); judge და refresh კვლავ მხოლოდ Bearer-ს იღებს · CORS credentials **მხოლოდ ამ ერთ origin-ზე**, სხვებს `*` რჩება · sign-out = `DELETE /api/auth/me`. **ახალი serverless ფუნქცია არ დამატებულა (12/12 ჭერი), მიგრაცია არ სჭირდება.**
+- **Free-ის ღილაკი:** სანამ `site.figmaCommunityUrl` null-ია → „Get notified at launch" (`/#early`); URL-ის ჩაწერისთანავე ავტომატურად „Install free".
+- **⚠️ ღია შეუსაბამობა, გადასაწყვეტი:** საიტი წერს „Everything is free during the beta" (F20), Get Pro კი ყიდის — ე.ი. მყიდველი დღეს იხდის იმაში, რაც ჯერ უფასოა. plugin-ის Plans modal-საც იგივე აქვს. წყდება paywall-ის ჩართვასთან (F20) ერთად, არა ცალკე.
+- **Outcome:** `api/src/lib/webSession.ts` (ახალი) · `middleware/{auth,cors}.ts` · `routes/auth/{login,callback,session}.ts` · `routes/{license/me,checkout/create}.ts` · `tests/webSession.test.ts` · `website/src/components/CheckoutFlow.tsx` + `app/checkout/page.tsx` (ახალი) · `PricingTiers.tsx` · checkout success/cancel · privacy (ორივე cookie დასახელებულია).
+---
+
 ## 4. Risk Register (ბიზნესის რისკები)
 
 | # | რისკი | ალბათობა | ზიანი | Mitigation |

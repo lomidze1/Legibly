@@ -45,6 +45,17 @@ describe("privacy policy", () => {
     expect(text).toMatch(/legitimate interest/i);
   });
 
+  it("discloses the website's sign-in cookies and how long they live", () => {
+    // Buying on the website sets a session cookie on the API host. This page
+    // claims to match what the code does, so the cookie is named here.
+    render(<PrivacyPage />);
+    const text = document.body.textContent ?? "";
+
+    expect(text).toContain("lgb_session");
+    expect(text).toContain("lgb_oauth");
+    expect(text).toMatch(/24 hours/);
+  });
+
   it("discloses the rate-limit counters, which are keyed by IP", () => {
     render(<PrivacyPage />);
     expect(document.body.textContent).toMatch(/per IP address/i);

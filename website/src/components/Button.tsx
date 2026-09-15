@@ -6,6 +6,7 @@ type ButtonProps = {
   href?: string;
   type?: "button" | "submit";
   disabled?: boolean;
+  onClick?: () => void;
   /** "primary" is the page's one real action: the waitlist submit. */
   variant?: "default" | "primary";
 };
@@ -20,6 +21,7 @@ export function Button({
   href,
   type = "button",
   disabled,
+  onClick,
   variant = "default",
 }: ButtonProps) {
   const className = [styles.button, variant === "primary" ? styles.primary : ""]
@@ -47,7 +49,7 @@ export function Button({
     );
   }
   return (
-    <button className={className} type={type} disabled={disabled}>
+    <button className={className} type={type} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );

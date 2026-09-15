@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/Button";
+import { site } from "@/data/site";
 import styles from "./PricingTiers.module.css";
 
 /** One source of truth for the badge and the card's accent treatment. */
@@ -54,8 +55,21 @@ export function PricingTiers() {
       cadence: "forever",
       note: null,
       items: freeItems,
+      // Nothing to install until the Community listing is live, so until then
+      // the free card points at the launch list rather than a dead link.
+      cta: site.figmaCommunityUrl
+        ? { href: site.figmaCommunityUrl, label: "Install free" }
+        : { href: "/#early", label: "Get notified at launch" },
     },
-    { name: RECOMMENDED_PLAN, ...pro[billing], items: proItems },
+    {
+      name: RECOMMENDED_PLAN,
+      ...pro[billing],
+      items: proItems,
+      cta: {
+        href: `/checkout?billing=${billing === "year" ? "yearly" : "monthly"}`,
+        label: "Get Pro",
+      },
+    },
   ];
 
   return (
@@ -112,7 +126,7 @@ export function PricingTiers() {
               </ul>
               {/* A reader who picks a tier had nowhere to click before this. */}
               <div className={styles.tierAction}>
-                <Button href="/#early">Join the waitlist</Button>
+                <Button href={tier.cta.href}>{tier.cta.label}</Button>
               </div>
             </div>
           );

@@ -24,7 +24,8 @@ export default function CheckoutCancelPage() {
         <h2>If you meant to buy</h2>
         <p>
           Open the <strong>Free &amp; Pro</strong> panel in the plugin footer
-          and start again. If the payment page itself was the problem — it
+          and start again — or go back to <a href="/checkout">checkout</a>.
+          If the payment page itself was the problem — it
           refused the card, or never loaded — tell us at{" "}
           <a href="mailto:billing@legibly.design">billing@legibly.design</a>{" "}
           and we will find out why.

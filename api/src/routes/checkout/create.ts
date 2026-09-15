@@ -2,6 +2,7 @@ import { env } from '../../config/env.js';
 import { isDuration } from '../../config/pricing.js';
 import type { ApiHandler } from '../../lib/http.js';
 import { isPlainObject } from '../../lib/validators.js';
+import { liveWebsiteOrigin } from '../../lib/webSession.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { licenseStore, type LicenseStore } from '../../models/License.js';
 import { usageEventStore, type UsageEventStore } from '../../models/UsageEvent.js';
@@ -63,6 +64,8 @@ export interface CheckoutCreateDeps {
    * about this should not be the one that widens the allowlist.
    */
   allowLoopbackReturn?: boolean;
+  /** Opts checkout in to the website's session cookie, for buying on legibly.design. */
+  websiteOrigin?: string;
   now: () => number;
 }
 
@@ -76,7 +79,7 @@ export function createCheckoutCreateHandler(deps: CheckoutCreateDeps): ApiHandle
     const now = deps.now();
     // ⚠️ Bearer-protected, unlike w2w's public /checkout/create. OAuth already
     // exists here, so there is no reason to carry the weaker version over.
-    const userId = requireAuth(req, res, deps.authSecret, now);
+    const userId = requireAuth(req, res, deps.authSecret, now, deps.websiteOrigin);
     if (userId === null) return;
 
     if (deps.config === null) {
@@ -156,5 +159,6 @@ export const checkoutCreateHandler: ApiHandler = (req, res) =>
     authSecret: env().authSecret,
     apiPublicUrl: env().apiPublicUrl,
     allowLoopbackReturn: env().nodeEnv !== 'production',
+    websiteOrigin: liveWebsiteOrigin(),
     now: () => Date.now(),
   })(req, res);
