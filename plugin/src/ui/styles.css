@@ -396,8 +396,9 @@ summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   align-items: center;
   justify-content: center;
   padding: 14px;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
+  /* Light enough that Figma's own dark surface still reads through behind the sheet. */
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(3px);
 }
 .modal {
   display: flex;
