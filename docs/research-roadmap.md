@@ -64,7 +64,7 @@ ARCHITECTURE.md უკვე გვაძლევს არქიტექტ�
 | Cloudflare Workers vs Fly vs Vercel | latency, cost at scale, SSE support | TODO | `research/backend-hosting.md` |
 | Auth: Clerk vs Auth.js vs custom JWT | Figma user identity flow | TODO | `research/auth-providers.md` |
 | Telemetry: PostHog vs Plausible vs custom | PII handling, cost | TODO | `research/telemetry.md` |
-| ~~Billing provider~~ | ✅ **DONE (D23): Flitt** — ერთჯერადი, წლიური-first | DONE | [`launch-stack.md §4`](./launch-stack.md) |
+| ~~Billing provider~~ | ✅ **DONE (D23): Flitt** — ერთჯერადი, თვიური-first (D28) | DONE | [`launch-stack.md §4`](./launch-stack.md) |
 | Vector DB (if needed for memory) | pgvector vs Pinecone vs Turbopuffer | TODO | `research/vector-db.md` |
 
 ### Track E — Free Libraries / Assets

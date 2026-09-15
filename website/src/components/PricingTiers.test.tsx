@@ -4,49 +4,50 @@ import { PricingTiers } from "./PricingTiers";
 
 /**
  * The money. D23 is one-time purchases: $120 per year or $12 per 30 days,
- * nothing renews. The card is the only place a visitor reads those numbers, so
- * the toggle has to move both the figure and the sentence under it.
+ * nothing renews. D28 puts the monthly rate first. The card is the only place a
+ * visitor reads those numbers, so the toggle has to move both the figure and
+ * the sentence under it.
  */
 
 const tierNamed = (name: string) => screen.getByRole("heading", { name }).closest("div")!.parentElement!;
 
 describe("the billing toggle", () => {
-  it("opens on the yearly rate, which is the one being recommended", () => {
+  it("opens on the monthly rate, which is the one being recommended (D28)", () => {
     render(<PricingTiers />);
 
-    expect(screen.getByRole("button", { name: /Yearly/ })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Monthly" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByText("$10")).toBeInTheDocument();
-    expect(screen.getByText(/billed yearly/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Monthly" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: /Yearly/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("$12")).toBeInTheDocument();
+    expect(screen.getByText(/per 30 days/)).toBeInTheDocument();
   });
 
   it("switches the figure and the note together", () => {
     render(<PricingTiers />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
 
-    expect(screen.getByText("$12")).toBeInTheDocument();
-    expect(screen.queryByText("$10")).not.toBeInTheDocument();
-    expect(screen.getByText(/per 30 days/)).toBeInTheDocument();
-    expect(screen.getByText(/\$12 once for 30 days/)).toBeInTheDocument();
+    expect(screen.getByText("$10")).toBeInTheDocument();
+    expect(screen.queryByText("$12")).not.toBeInTheDocument();
+    expect(screen.getByText(/billed yearly/)).toBeInTheDocument();
+    expect(screen.getByText(/\$120 once for 365 days/)).toBeInTheDocument();
   });
 
   it("moves the pressed state with it, so the switch reads as a switch", () => {
     render(<PricingTiers />);
-    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
 
-    expect(screen.getByRole("button", { name: "Monthly" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: /Yearly/ })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: /Yearly/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Monthly" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("switches back", () => {
     render(<PricingTiers />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
     fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
 
-    expect(screen.getByText("$10")).toBeInTheDocument();
-    expect(screen.getByText(/\$120 once for 365 days/)).toBeInTheDocument();
+    expect(screen.getByText("$12")).toBeInTheDocument();
+    expect(screen.getByText(/\$12 once for 30 days/)).toBeInTheDocument();
   });
 
   it("announces the price region, because the number changes without navigation", () => {
@@ -65,7 +66,7 @@ describe("what each tier claims", () => {
     render(<PricingTiers />);
     expect(within(tierNamed("Free")).getByText("$0")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
 
     expect(within(tierNamed("Free")).getByText("$0")).toBeInTheDocument();
     expect(within(tierNamed("Free")).getByText("forever")).toBeInTheDocument();
@@ -107,14 +108,16 @@ describe("the arithmetic behind the copy", () => {
 
     render(<PricingTiers />);
     expect(screen.getByRole("button", { name: /save 17%/ })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
     expect(screen.getByText(/17% off the monthly rate/)).toBeInTheDocument();
   });
 
-  it("prints the yearly total as $120 and the monthly one as $12", () => {
+  it("prints the monthly total as $12 and the yearly one as $120", () => {
     render(<PricingTiers />);
-    expect(screen.getByText(/\$120 once/)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Monthly" }));
     expect(screen.getByText(/\$12 once/)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Yearly/ }));
+    expect(screen.getByText(/\$120 once/)).toBeInTheDocument();
   });
 });

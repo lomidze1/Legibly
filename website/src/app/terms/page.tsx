@@ -56,8 +56,8 @@ export default function TermsPage() {
         <h2>Payment</h2>
         <ul>
           <li>
-            <strong>Pro is a one-time payment.</strong> $120 buys 365 days.
-            $12 buys 30 days. There is no subscription, nothing renews
+            <strong>Pro is a one-time payment.</strong> $12 buys 30 days.
+            $120 buys 365 days. There is no subscription, nothing renews
             automatically, and there is nothing to cancel.
           </li>
           <li>

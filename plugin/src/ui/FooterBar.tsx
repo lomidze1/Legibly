@@ -101,7 +101,7 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
       : license.busy === 'checkout'
         ? 'Waiting for payment…'
         : license.connected
-          ? 'Get Pro — $120/yr'
+          ? 'Get Pro — $12 / 30 days'
           : 'Connect to Figma';
 
   return (
@@ -127,7 +127,7 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
       <div className="plan-card is-pro">
         <div className="plan-head">
           <span className="plan-name">Pro</span>
-          <span className="plan-price">$120/yr</span>
+          <span className="plan-price">$12 / 30 days</span>
         </div>
         <ul className="plan-list">
           <li>One-click fix, snapped to a passing colour from your own library</li>
@@ -135,7 +135,8 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
           <li>Compliance report export (CSV) with before/after and the criterion for each finding</li>
         </ul>
         <p className="microtext">
-          Or $12 for 30 days. Both are one-time payments — nothing renews, nothing to cancel.
+          Or $120 for a full year — two months free. Both are one-time payments — nothing
+          renews, nothing to cancel.
           Free while Legibly is in public beta: fixing is unlocked for everyone today.
         </p>
       </div>
@@ -150,13 +151,13 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
         <button
           className="btn btn-primary btn-sm"
           disabled={working}
-          onClick={() => void (license.connected ? license.subscribe('yearly') : license.connect())}
+          onClick={() => void (license.connected ? license.subscribe('monthly') : license.connect())}
         >
           {buyLabel}
         </button>
         {license.connected && (
-          <button className="btn btn-sm" disabled={working} onClick={() => void license.subscribe('monthly')}>
-            $12 / 30 days
+          <button className="btn btn-sm" disabled={working} onClick={() => void license.subscribe('yearly')}>
+            $120 / year
           </button>
         )}
         <button className="btn btn-sm" onClick={() => onOpenUrl(LINKS.feedback)}>

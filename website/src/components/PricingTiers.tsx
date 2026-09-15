@@ -10,10 +10,9 @@ const RECOMMENDED_PLAN = "Pro";
 type Billing = "year" | "month";
 
 /**
- * $120 used to be the only number on the card. It is the cheaper of the two
- * ways to pay, but a yearly total reads as the price of entry and prices the
- * plugin next to a year of Figma rather than next to a coffee. Both cadences
- * now lead with the per-month figure and keep the total in the line beneath.
+ * Monthly leads (D28): $12 is the price of entry, and the year is the upgrade
+ * offered beside it rather than the first number a visitor meets. The yearly
+ * view still leads with its per-month figure, so the two compare like for like.
  *
  * The money itself is unchanged (D23): $120 per year or $12 per 30 days, both
  * one-time. $12 × 12 = $144, so the year saves 17%.
@@ -46,7 +45,7 @@ const proItems = [
 ];
 
 export function PricingTiers() {
-  const [billing, setBilling] = useState<Billing>("year");
+  const [billing, setBilling] = useState<Billing>("month");
 
   const tiers = [
     {
