@@ -113,33 +113,9 @@ export default function PrivacyPage() {
         <h2>This website</h2>
         <p>
           The site does not use advertising trackers or third-party analytics
-          cookies. If you join the waitlist, we store the email address you
-          submit and use it for one purpose: telling you about Legibly&apos;s
-          availability.
+          cookies, and it collects nothing of its own. The only data it handles
+          is the Figma sign-in and checkout described above.
         </p>
-        <ul>
-          <li>
-            <strong>What we collect:</strong> the email address you type into
-            the waitlist form, and nothing else. We do not collect a name, an
-            IP-based profile, or any behavioural data.
-          </li>
-          <li>
-            <strong>Legal basis (GDPR Art. 6):</strong> your consent, given by
-            submitting the form. You can withdraw it at any time, which has no
-            effect on processing carried out before you did.
-          </li>
-          <li>
-            <strong>Processor:</strong> the list is held by Resend
-            (transactional email), acting on our instructions under a data
-            processing agreement.
-          </li>
-          <li>
-            <strong>Retention:</strong> until Legibly launches and we have sent
-            the launch email, or until you ask us to delete it — whichever is
-            sooner. We delete the whole list no later than 12 months after
-            launch.
-          </li>
-        </ul>
 
         <h2>Who else touches this data</h2>
         <ul>
@@ -151,7 +127,8 @@ export default function PrivacyPage() {
             succeeded.
           </li>
           <li>
-            <strong>Resend</strong> — holds the waitlist.
+            <strong>Resend</strong> — delivers the emails we send you, such as
+            replies from billing@legibly.design.
           </li>
         </ul>
         <p>

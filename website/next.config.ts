@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
      * touching the plugin.
      */
     { source: "/pricing", destination: "/#pricing", permanent: false },
+    // The plugin's older builds link here; the page it held was a waitlist.
+    { source: "/subscribe", destination: "/checkout", permanent: false },
   ],
 };
 

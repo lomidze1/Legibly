@@ -56,12 +56,9 @@ describe("softwareApplicationSchema", () => {
     expect(schema.url).toBe(SITE_URL);
   });
 
-  it("advertises the beta as free, which is what the pricing section says", () => {
-    expect(softwareApplicationSchema().offers).toMatchObject({
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    });
+  it("advertises the real price list, which is what the pricing section says", () => {
+    expect(softwareApplicationSchema().offers.map((offer) => offer.price)).toEqual(["0", "12", "120"]);
+    for (const offer of softwareApplicationSchema().offers) expect(offer.priceCurrency).toBe("USD");
   });
 
   it("credits the publisher the footer credits", () => {

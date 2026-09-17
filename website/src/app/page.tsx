@@ -1,9 +1,9 @@
 import { Container } from "@/components/Container";
 import { JsonLd } from "@/components/JsonLd";
+import { Button } from "@/components/Button";
 import { PricingTiers } from "@/components/PricingTiers";
 import { ScanDemo } from "@/components/ScanDemo";
 import { SpecimenPanel } from "@/components/SpecimenPanel";
-import { WaitlistForm } from "@/components/WaitlistForm";
 import { site } from "@/data/site";
 import { softwareApplicationSchema } from "@/lib/schema";
 import styles from "./page.module.css";
@@ -52,7 +52,7 @@ function Hero() {
     <section className={styles.hero}>
       <div>
         <span className={styles.kicker}>
-          Private beta · Figma Community, {site.launch}
+          Figma plugin · WCAG&nbsp;2.2 AA
         </span>
         <h1 className={styles.h1}>
           <span>Checkers tell you.</span>
@@ -63,9 +63,11 @@ function Hero() {
           against WCAG&nbsp;2.2 AA, then repair every violation in one click,
           using your own design tokens and never an invented color.
         </p>
-        {/* The form's own consent line now carries "one email, nothing else". */}
-        <div className={styles.heroForm}>
-          <WaitlistForm />
+        <div className={`${styles.heroForm} ${styles.actions}`}>
+          <Button href="/checkout" variant="primary">
+            Get Pro — $12
+          </Button>
+          <Button href="/#pricing">See pricing</Button>
         </div>
       </div>
       <SpecimenPanel />
@@ -280,8 +282,8 @@ function Pricing() {
       <div className={styles.pricingHead}>
         <h2 className={styles.h2Flush}>Pricing</h2>
         <p className={styles.betaNote}>
-          Everything is free during the beta, one-click fixes included. The
-          prices below take effect at the {site.launch} Community launch.
+          One-time payments in USD. Nothing renews and there is nothing to
+          cancel — when your days run out, Legibly goes back to Free.
         </p>
       </div>
       <PricingTiers />
@@ -401,15 +403,17 @@ function Faq() {
 
 function Closing() {
   return (
-    <section id="early" className={styles.closing}>
-      <h2 className={styles.h2Closing}>Be first in line</h2>
+    <section id="get-pro" className={styles.closing}>
+      <h2 className={styles.h2Closing}>Fix the whole file this afternoon</h2>
       <div>
         <p className={styles.closingLead}>
-          Legibly is in private beta ahead of its {site.launch} Figma Community
-          launch. Leave your email and we will send you access.
+          Scanning is free. Pro clears every issue in the file with one button
+          and exports the report — $12 for 30 days, or $120 for a year.
         </p>
-        <div className={styles.closingForm}>
-          <WaitlistForm />
+        <div className={`${styles.closingForm} ${styles.actions}`}>
+          <Button href="/checkout" variant="primary">
+            Get Pro
+          </Button>
         </div>
       </div>
     </section>

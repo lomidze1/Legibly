@@ -16,18 +16,8 @@ export const site = {
     address: "Georgia, Shida Kartli, Khashuri, Borjomis st. N 106",
   },
   /**
-   * The public launch window, in one place so the hero kicker, the pricing
-   * note and the closing copy cannot drift apart — they used to say "coming
-   * soon", "private beta" and "public beta" on the same page.
-   *
-   * Internal plan: everything but payments is due 15 August 2026, payments
-   * by the 30th. September is the month that stays true if the second half
-   * of that slips, which is the half that historically does.
-   */
-  launch: "September 2026",
-  /**
-   * Set this to the Figma Community listing URL at launch.
-   * While null, the primary CTA is the waitlist form.
+   * The Figma Community listing URL. While null, the free tier's button
+   * points at the docs instead.
    */
   figmaCommunityUrl: null as string | null,
   /** Where the website's own calls go: Figma sign-in, the licence, checkout. */

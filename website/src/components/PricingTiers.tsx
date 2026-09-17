@@ -59,11 +59,11 @@ export function PricingTiers() {
       cadence: "forever",
       note: null,
       items: freeItems,
-      // Nothing to install until the Community listing is live, so until then
-      // the free card points at the launch list rather than a dead link.
+      // Straight to the Community listing once its URL is set; until then the
+      // docs, which say how to start.
       cta: site.figmaCommunityUrl
         ? { href: site.figmaCommunityUrl, label: "Install free" }
-        : { href: "/#early", label: "Get notified at launch" },
+        : { href: "/docs", label: "Get started free" },
     },
     {
       name: RECOMMENDED_PLAN,

@@ -105,14 +105,12 @@ describe("what each tier claims", () => {
     expect(screen.getByRole("link", { name: "Get Pro" })).toHaveAttribute("href", "/checkout?billing=yearly");
   });
 
-  it("gives the free tier a way in that exists today", () => {
-    // Until the Community listing is live there is nothing to install, so the
-    // free card points at the launch list instead of a dead link.
+  it("gives the free tier a way in, and never a waitlist", () => {
     render(<PricingTiers />);
     const free = within(tierNamed("Free")).getByRole("link");
 
-    expect(free).toHaveAttribute("href", site.figmaCommunityUrl ?? "/#early");
-    expect(screen.queryByText("Join the waitlist")).not.toBeInTheDocument();
+    expect(free).toHaveAttribute("href", site.figmaCommunityUrl ?? "/docs");
+    expect(screen.queryByText(/waitlist|launch/i)).not.toBeInTheDocument();
   });
 
   it("says Pro includes Free rather than listing the same lines twice", () => {

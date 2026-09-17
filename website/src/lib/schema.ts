@@ -12,12 +12,12 @@ export function softwareApplicationSchema() {
     operatingSystem: "Web (Figma plugin)",
     url: SITE_URL,
     description: site.description,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-      description: "Free during public beta",
-    },
+    // The real price list — the same three numbers the pricing section shows.
+    offers: [
+      { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+      { "@type": "Offer", name: "Pro — 30 days", price: "12", priceCurrency: "USD" },
+      { "@type": "Offer", name: "Pro — 365 days", price: "120", priceCurrency: "USD" },
+    ],
     publisher: {
       "@type": "Organization",
       name: "Glinc",

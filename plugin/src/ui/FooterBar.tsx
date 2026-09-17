@@ -90,8 +90,7 @@ function GuidePanel(): React.ReactElement {
 }
 
 /**
- * Plans sheet. Fixing is still unlocked for everyone (F20) — this sells Pro,
- * it does not yet gate anything.
+ * Plans sheet. ⚠️ It sells Pro, but fixing is not gated in code yet (F20).
  */
 function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
   const working = license.busy !== 'idle';
@@ -137,7 +136,6 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
         <p className="microtext">
           Or $120 for a full year — two months free. Both are one-time payments — nothing
           renews, nothing to cancel.
-          Free while Legibly is in public beta: fixing is unlocked for everyone today.
         </p>
       </div>
 
@@ -233,7 +231,7 @@ export function FooterBar({ onOpenUrl, license }: Props): React.ReactElement {
             <LinkRow label="Read the docs" url={LINKS.docs} onOpenUrl={onOpenUrl} />
             <LinkRow label="Send feedback" url={LINKS.feedback} onOpenUrl={onOpenUrl} />
             <LinkRow label="Contact us" url={LINKS.contact} onOpenUrl={onOpenUrl} />
-            <LinkRow label="Subscribe to updates" url={LINKS.subscribe} onOpenUrl={onOpenUrl} />
+            <LinkRow label="Get Pro on the website" url={LINKS.getPro} onOpenUrl={onOpenUrl} />
             <p className="microtext modal-foot">
               Every check and every fix runs on your device. The network is used only to verify a
               Pro licence — your design is never sent anywhere.

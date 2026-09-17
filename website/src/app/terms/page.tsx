@@ -39,9 +39,7 @@ export default function TermsPage() {
         <h2>Free and Pro</h2>
         <p>
           Scanning is free and stays free. Pro adds one-click fixing, batch
-          fixes across a file, and report export. During the public beta,
-          fixing is unlocked for everyone — when that ends, it becomes a Pro
-          feature and the plugin will say so before anything changes.
+          fixes across a file, and report export.
         </p>
 
         <p>

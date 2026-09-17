@@ -7,7 +7,7 @@ type ButtonProps = {
   type?: "button" | "submit";
   disabled?: boolean;
   onClick?: () => void;
-  /** "primary" is the page's one real action: the waitlist submit. */
+  /** "primary" is the page's one real action: Get Pro. */
   variant?: "default" | "primary";
 };
 

@@ -33,7 +33,7 @@ export default function OpengraphImage() {
             color: "#7d5411",
           }}
         >
-          Coming soon to Figma Community
+          Accessibility auto-fix for Figma
         </div>
         <div
           style={{

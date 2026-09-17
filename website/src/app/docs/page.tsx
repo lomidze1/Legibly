@@ -65,8 +65,9 @@ export default function DocsPage() {
 
         <h2>Free and Pro</h2>
         <p>
-          Scanning is free. During the beta, fixes are free too. Plans are
-          compared <Link href="/#pricing">on the pricing section</Link>.
+          Scanning is free. One-click and batch fixes and the report export are
+          Pro — $12 for 30 days or $120 for a year. Plans are compared{" "}
+          <Link href="/#pricing">on the pricing section</Link>.
         </p>
 
         <h2>Something missing?</h2>

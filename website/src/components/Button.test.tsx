@@ -4,15 +4,15 @@ import { Button } from "./Button";
 
 describe("Button", () => {
   it("renders a real button when there is nowhere to go", () => {
-    render(<Button>Get early access</Button>);
-    const button = screen.getByRole("button", { name: "Get early access" });
+    render(<Button>Get Pro</Button>);
+    const button = screen.getByRole("button", { name: "Get Pro" });
 
     expect(button.tagName).toBe("BUTTON");
     // Inside a form, an untyped <button> submits. The default has to be explicit.
     expect(button).toHaveAttribute("type", "button");
   });
 
-  it("carries the submit type through, which is what the waitlist form needs", () => {
+  it("carries the submit type through, which is what a form needs", () => {
     render(<Button type="submit">Join</Button>);
     expect(screen.getByRole("button", { name: "Join" })).toHaveAttribute("type", "submit");
   });
@@ -27,10 +27,10 @@ describe("Button", () => {
   });
 
   it("renders an in-site link as a link, not a button", () => {
-    render(<Button href="/#early">Join the waitlist</Button>);
-    const link = screen.getByRole("link", { name: "Join the waitlist" });
+    render(<Button href="/checkout">Get Pro</Button>);
+    const link = screen.getByRole("link", { name: "Get Pro" });
 
-    expect(link).toHaveAttribute("href", "/#early");
+    expect(link).toHaveAttribute("href", "/checkout");
     expect(link).not.toHaveAttribute("target");
   });
 

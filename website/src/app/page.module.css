@@ -525,6 +525,13 @@
   margin-top: var(--space-6);
 }
 
+/* The hero and closing calls to action: a row that wraps on narrow screens. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 /* ---------- Responsive ----------
  * The prototype was desktop-only at 1180px; this is the collapse the handoff
  * specifies. Type already uses clamp(), so headings scale on their own.

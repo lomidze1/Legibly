@@ -11,7 +11,6 @@ export const LINKS = {
   plans: `${SITE}/pricing`,
   docs: `${SITE}/docs`,
   contact: `${SITE}/contact`,
-  /** Resend-backed form lives on the site — the plugin never posts email itself. */
-  subscribe: `${SITE}/subscribe`,
+  getPro: `${SITE}/checkout`,
   feedback: `${SITE}/feedback`,
 } as const;

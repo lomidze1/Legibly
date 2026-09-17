@@ -108,6 +108,6 @@ describe('LINKS', () => {
   });
 
   it('covers the five destinations the footer offers', () => {
-    expect(Object.keys(LINKS).sort()).toEqual(['contact', 'docs', 'feedback', 'plans', 'subscribe']);
+    expect(Object.keys(LINKS).sort()).toEqual(['contact', 'docs', 'feedback', 'getPro', 'plans']);
   });
 });
