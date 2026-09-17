@@ -94,12 +94,12 @@ describe("signed in", () => {
   it("says why when the licence is already running", async () => {
     fetchMock
       .mockResolvedValueOnce(signedIn())
-      .mockResolvedValueOnce(json({ success: false, error: "already_pro", remainingDays: 20, renewalOpensInDays: 13 }, 400));
+      .mockResolvedValueOnce(json({ success: false, error: "already_pro", remainingDays: 30, renewalOpensInDays: 23, renewalWindowDays: 7 }, 400));
     render(<CheckoutFlow />);
 
     fireEvent.click(await screen.findByRole("button", { name: "Pay $12" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(/already active for 20 more days/);
+    expect(await screen.findByRole("alert")).toHaveTextContent("Pro is already active for 30 more days. Renewal opens in 23 days, 7 days before it ends.");
     expect(assign).not.toHaveBeenCalled();
   });
 

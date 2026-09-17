@@ -113,7 +113,9 @@ export function CheckoutFlow() {
         setError("Your sign-in has expired. Continue with Figma again.");
       } else if (body.error === "already_pro") {
         setError(
-          `Pro is already active for ${body.remainingDays} more days. You can renew ${body.renewalOpensInDays} days before it ends.`,
+          // renewalOpensInDays counts *from today*: renewal opens only in the
+          // last renewalWindowDays of the licence.
+          `Pro is already active for ${body.remainingDays} more days. Renewal opens in ${body.renewalOpensInDays} days, ${body.renewalWindowDays} days before it ends.`,
         );
       } else {
         setError("Checkout is unavailable right now. Please try again in a minute.");
@@ -189,8 +191,8 @@ export function CheckoutFlow() {
             </p>
             {account.plan === "pro" && (
               <p className={styles.line}>
-                Pro is active — {account.daysLeft} days left. Buying again adds
-                to them.
+                Pro is active — {account.daysLeft} days left. Renewing in the
+                last days before it ends adds to them.
               </p>
             )}
             <Button variant="primary" onClick={pay} disabled={paying}>
