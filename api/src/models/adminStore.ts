@@ -455,27 +455,37 @@ export const adminStore: AdminStore = {
   async users(request) {
     const now = new Date();
     const conditions: string[] = [];
-    const params: unknown[] = [now];
+    // ⚠️ A parameter is bound only where the SQL uses it. Postgres refuses a
+    // statement with an unreferenced parameter ("could not determine data type
+    // of parameter $1") — which is how an always-bound `now` took the whole
+    // Users tab down whenever no plan filter was set.
+    const params: unknown[] = [];
+    const bind = (value: unknown): string => {
+      params.push(value);
+      return `$${params.length}`;
+    };
 
     if (request.search !== undefined) {
-      params.push(`%${request.search}%`, request.search);
-      conditions.push(`(l.email ILIKE $${params.length - 1} OR l.figma_user_id = $${params.length})`);
+      const like = bind(`%${request.search}%`);
+      const exact = bind(request.search);
+      conditions.push(`(l.email ILIKE ${like} OR l.figma_user_id = ${exact})`);
     }
-    if (request.plan === 'pro') conditions.push(`(l.plan = 'pro' AND l.cycle_ends_at > $1)`);
-    if (request.plan === 'free') conditions.push(`NOT (l.plan = 'pro' AND l.cycle_ends_at > $1)`);
+    if (request.plan === 'pro') conditions.push(`(l.plan = 'pro' AND l.cycle_ends_at > ${bind(now)})`);
+    if (request.plan === 'free') conditions.push(`NOT (l.plan = 'pro' AND l.cycle_ends_at > ${bind(now)})`);
     if (request.paid === true) {
       conditions.push(`(l.flitt_order_id IS NOT NULL AND l.flitt_order_id NOT LIKE '${ADMIN_ORDER_PREFIX}%')`);
     }
 
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    params.push(request.limit, (request.page - 1) * request.limit);
+    const limit = bind(request.limit);
+    const offset = bind((request.page - 1) * request.limit);
 
     const rows = await query<UserDbRow>(
       `SELECT ${USER_COLUMNS}, count(*) OVER ()::text AS total
          FROM licenses l
          ${where}
         ORDER BY ${USER_SORTS[request.sort]}
-        LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        LIMIT ${limit} OFFSET ${offset}`,
       params,
     );
 
@@ -485,8 +495,8 @@ export const adminStore: AdminStore = {
   async user(figmaUserId, now) {
     const [userRows, eventRows, paymentRows, auditRows] = await Promise.all([
       query<UserDbRow>(
-        `SELECT ${USER_COLUMNS} FROM licenses l WHERE l.figma_user_id = $2`,
-        [now, figmaUserId],
+        `SELECT ${USER_COLUMNS} FROM licenses l WHERE l.figma_user_id = $1`,
+        [figmaUserId],
       ),
       query<ActivityDbRow>(
         `SELECT u.at, u.figma_user_id, l.email, u.kind, u.ok, u.detail
