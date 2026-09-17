@@ -79,9 +79,13 @@ export function createFlittWebhookHandler(deps: FlittWebhookDeps): ApiHandler {
       return refuse(`amount ${amountCents} does not match the ${duration} price`);
     }
 
-    // Flitt's own id when it sends one; otherwise the order plus its status, so
-    // an approval and a later reversal of the same order stay distinct.
-    const transactionId = asString(payload.payment_id) ?? `${orderId}_${orderStatus}`;
+    // One payment, several deliveries: Flitt reports `processing` (3DS), then the
+    // outcome, and later perhaps `reversed` — all under the same payment_id. So
+    // the ledger key is the id *and* the status. Keyed on the id alone, the
+    // outcome was deduplicated against `processing`: a 3DS approval charged the
+    // card and granted nothing, and a refund never revoked. A true retry repeats
+    // both parts and is still caught.
+    const transactionId = `${asString(payload.payment_id) ?? orderId}_${orderStatus}`;
 
     let heldLease: string | null = null;
     try {
@@ -137,14 +141,16 @@ export function createFlittWebhookHandler(deps: FlittWebhookDeps): ApiHandler {
           },
           at,
         );
-      } else {
-        // declined and expired change nothing — the record of the attempt is
+      } else if (orderStatus === 'declined' || orderStatus === 'expired') {
+        // Declined and expired change nothing — the record of the attempt is
         // the lease, and now also a funnel data point.
         await deps.usage.record(
           { figmaUserId, kind: 'checkout_failed', ok: false, detail: orderStatus },
           at,
         );
       }
+      // Anything else (`processing`, `created`) is an intermediate step: the
+      // ledger row is its record, and it is not a failed checkout.
 
       res.status(200).json({ received: true });
     } catch (error) {

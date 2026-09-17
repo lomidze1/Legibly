@@ -234,25 +234,15 @@ describe('replay and idempotency', () => {
     // The retry was deduped before any work started, so the original lease
     // must still be there — releasing someone else's would open the door to
     // paying twice.
-    expect(events.seen.has('pay-1')).toBe(true);
+    expect(events.seen.has('pay-1_approved')).toBe(true);
   });
 
   /*
-   * BUG: a reversal that reuses the approval's `payment_id` is silently
-   * deduplicated, and the refunded user keeps Pro until the cycle runs out.
-   *
-   * `transactionId` is `payment_id` alone (routes/webhooks/flitt.ts:80). The
-   * fallback `${orderId}_${orderStatus}` deliberately keeps an approval and a
-   * later reversal apart, but that reasoning does not carry over to the branch
-   * that is actually taken whenever Flitt sends an id — and Flitt's reversal
-   * callback reports on the payment it reverses, so the two deliveries can
-   * legitimately share one id.
-   *
-   * The dedup key should include the order status, exactly as the fallback
-   * does. Left skipped because the fix is a change to the ledger key and that
-   * is the owner's call, not a test's.
+   * Flitt's reversal reports on the payment it reverses, so it arrives under
+   * the approval's payment_id. Once the ledger key was the id alone, this was
+   * deduplicated and the refunded user kept Pro. The key is now id + status.
    */
-  it.skip('revokes on a reversal that reuses the payment id of the approval it reverses', async () => {
+  it('revokes on a reversal that reuses the payment id of the approval it reverses', async () => {
     const { handler, licenses } = setup();
 
     await post(handler, payload({ payment_id: 'pay-1' }));
@@ -291,6 +281,30 @@ describe('status transitions', () => {
     expect(licenses.rows.get(USER)?.plan).toBe('free');
   });
 
+  it('grants Pro when a 3DS payment reports processing first and approved after, under one payment id', async () => {
+    // Seen live on 2026-09-17: Flitt sent `processing` for a 3DS card, then the
+    // outcome under the same payment_id. Keyed on the id alone, the approval
+    // was a "duplicate" — the card was charged and nothing was granted.
+    const { handler, licenses } = setup();
+
+    await post(handler, payload({ order_status: 'processing', payment_id: 'pay-3ds' }));
+    expect(licenses.rows.get(USER)?.plan ?? 'free').toBe('free');
+
+    const res = await post(handler, payload({ order_status: 'approved', payment_id: 'pay-3ds' }));
+
+    expect(res.body).toEqual({ received: true });
+    expect(licenses.rows.get(USER)?.plan).toBe('pro');
+  });
+
+  it('still deduplicates a true retry — same payment id, same status', async () => {
+    const { handler } = setup();
+
+    await post(handler, payload({ order_status: 'processing', payment_id: 'pay-3ds' }));
+    const res = await post(handler, payload({ order_status: 'processing', payment_id: 'pay-3ds' }));
+
+    expect(res.body).toEqual({ received: true, deduped: true });
+  });
+
   it('leaves an unrecognised order status alone but still records the delivery', async () => {
     const { handler, licenses, events } = setup([proLicense(USER, new Date(NOW + 300 * DAY))]);
 
@@ -298,7 +312,7 @@ describe('status transitions', () => {
 
     expect(res.body).toEqual({ received: true });
     expect(licenses.rows.get(USER)?.plan).toBe('pro');
-    expect(events.seen.has('pay-processing')).toBe(true);
+    expect(events.seen.has('pay-processing_processing')).toBe(true);
   });
 
   it('ignores a reversal aimed at a user who has no licence row', async () => {
