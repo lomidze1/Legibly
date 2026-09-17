@@ -347,6 +347,12 @@ license state-ს store სჭირდება. სამაგიეროდ
 - **Outcome:** `api/src/lib/webSession.ts` (ახალი) · `middleware/{auth,cors}.ts` · `routes/auth/{login,callback,session}.ts` · `routes/{license/me,checkout/create}.ts` · `tests/webSession.test.ts` · `website/src/components/CheckoutFlow.tsx` + `app/checkout/page.tsx` (ახალი) · `PricingTiers.tsx` · checkout success/cancel · privacy (ორივე cookie დასახელებულია).
 ---
 
+### D30 — 2026-09-17 — **Beta-ს და waitlist-ის ტექსტი ამოღებულია; ყველგან რეალური ფასები** — user-approved
+- **Context:** Flitt-ის აქტივაციის review საიტს ნახავს, Pricing-ზე კი ეწერა „Everything is free during the beta". user-ის მითითება: „არანაირი ბეტა… ყველგან დაწერე რეალური ფასები… ისე, თითქოს უკვე გამოქვეყნებულია".
+- **Decision:** hero, closing, pricing note, terms, docs, JSON-LD (`offers` = $0 / $12 / $120), OG image, plugin-ის Plans sheet — beta/launch/waitlist ტექსტის გარეშე. CTA = **Get Pro → /checkout**. waitlist-ის ფორმა, `/api/waitlist`, `rateLimit`, `/subscribe` და `resend` dependency **წაშლილია**; `/subscribe` → `/checkout` redirect. privacy-დან ამოღებულია waitlist-ის სექცია.
+- **⚠️ ღია:** paywall (F20) კოდში ჯერ **არ** ჩართულია — fix ყველასთვის მუშაობს, თუმცა ტექსტი მას Pro-ს ფუნქციად აღწერს. `site.figmaCommunityUrl` null-ია → Free-ს ღილაკი „Get started free" → /docs.
+---
+
 ## 4. Risk Register (ბიზნესის რისკები)
 
 | # | რისკი | ალბათობა | ზიანი | Mitigation |
