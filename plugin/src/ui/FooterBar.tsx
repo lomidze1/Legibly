@@ -117,7 +117,7 @@ function PlansPanel({ onOpenUrl, license }: Props): React.ReactElement {
           <span className="plan-price">$0</span>
         </div>
         <ul className="plan-list">
-          <li>Unlimited scanning — selection or full canvas</li>
+          <li>Unlimited scanning</li>
           <li>All checks: contrast, non-text contrast, tap targets, line height, alt text</li>
           <li>Certain issues separated from “Check by eye”, with the reason for each</li>
         </ul>

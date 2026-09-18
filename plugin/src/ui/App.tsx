@@ -103,7 +103,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
   const [showSettings, setShowSettings] = useState(false);
   const [scanning, setScanning] = useState(false);
   /** The scope of the last scan, so the stale banner can re-run it. */
-  const [lastScope, setLastScope] = useState<'selection' | 'page' | null>(null);
+  const [lastScope, setLastScope] = useState<'selection' | null>(null);
   /** B4: the canvas changed outside our own fixes — results may no longer hold. */
   const [stale, setStale] = useState(false);
   /** Batch fix in flight — kept separate from `scanning` so results stay on screen (F1). */
@@ -152,7 +152,7 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
   );
 
   const scan = useCallback(
-    async (scope: 'selection' | 'page') => {
+    async (scope: 'selection') => {
       setScanning(true);
       setError(null);
       setApplied({});
@@ -623,9 +623,6 @@ export function App({ rpc, subscribe }: Props): React.ReactElement {
       <div className="toolbar">
         <button className="btn btn-primary" disabled={scanning} onClick={() => void scan('selection')}>
           Scan selection
-        </button>
-        <button className="btn" disabled={scanning} onClick={() => void scan('page')}>
-          Scan full canvas
         </button>
         <div className="toolbar-actions">
           {report && (

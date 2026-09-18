@@ -246,13 +246,10 @@ async function buildModeGuard(settings: Settings): Promise<ModeGuard | undefined
   };
 }
 
-async function scan(payload: { scope: 'selection' | 'page'; settings: Settings }): Promise<ScanReport> {
+async function scan(payload: { scope: 'selection'; settings: Settings }): Promise<ScanReport> {
   await watchCanvasChanges();
-  const roots =
-    payload.scope === 'selection'
-      ? (figma.currentPage.selection as unknown as NodeLite[])
-      : ([figma.currentPage] as unknown as NodeLite[]);
-  if (payload.scope === 'selection' && roots.length === 0) {
+  const roots = figma.currentPage.selection as unknown as NodeLite[];
+  if (roots.length === 0) {
     throw new Error('Nothing selected — select frames or layers to scan');
   }
   const report = scanNodes(roots, payload.settings);

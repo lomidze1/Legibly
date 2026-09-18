@@ -22,8 +22,7 @@ export default function DocsPage() {
         <ol>
           <li>Open the plugin in any Figma file.</li>
           <li>
-            Select a frame and press <strong>Scan selection</strong>, or press{" "}
-            <strong>Scan full canvas</strong> to check the whole page.
+            Select one or more frames and press <strong>Scan selection</strong>.
           </li>
           <li>
             Each issue names the layer, the criterion, and the measured value.
