@@ -1,65 +1,43 @@
 # Legibly
 
-> **Accessibility-first "correctness layer" for Figma.**
-> Currently in **research / planning phase** — no code yet.
+**Accessibility checker and auto-fixer for Figma.** Legibly scans a design against WCAG 2.2 AA and fixes what it finds in one click, using values from the file's own variables and styles.
+
+Live site: [legibly.design](https://legibly.design)
 
 ---
 
-## What is this?
+## What it does
 
-**Legibly** is an in-development Figma plugin (and standalone MCP server) that **checks any design and fixes its issues automatically** — starting with accessibility.
+- **Detects** contrast, target-size, text-spacing, use-of-color, non-text contrast, focus-state, form-label, clipped-text and missing alt-text issues.
+- **Resolves the real background.** It composites fill stacks, layer opacity and overlapping layers to find the colour actually behind the text. Gradients, images and blend modes are marked "needs review" instead of guessed.
+- **Checks every theme.** Colour checks re-run in each variable mode, so a file that passes in Light cannot hide a failure in Dark.
+- **Fixes on-system.** A fix snaps to a passing token from the user's own design system rather than inventing an off-brand value.
+- **Verifies every fix.** Each change is re-checked with the same function that flagged it, and reverted if it does not pass.
+- **AI only where it helps.** Alt-text suggestions come from Claude through a strict tool schema and a deterministic validator, and always need human review.
 
-It detects problems like unreadable text contrast, then **fixes them in one click** by snapping to the user's *own* design-system tokens. Every fix is **provably correct** — Legibly re-verifies each change against the same deterministic check and only commits it if it passes, so it never produces "one bad AI result from another."
+## Architecture
 
-- 🔍 **Detect** — find WCAG 2.2 AA + design-system violations reliably (deterministic-first, zero false-positives)
-- 🔧 **Fix** — one-click / batch auto-fix, on-system, with a before/after diff
-- ✅ **Trust** — correctness-by-construction; the fix is guaranteed better, not another guess
+| Part | Stack | What's in it |
+|---|---|---|
+| `plugin/` | TypeScript, React, Vite, Figma Plugin API, culori | Scanner, the WCAG checks (`src/shared/`), fix engine (`src/main/apply.ts`), plugin UI |
+| `api/` | TypeScript serverless functions on Vercel, PostgreSQL (Neon) | Figma OAuth, licences, Flitt checkout and webhooks, admin panel, AI judge |
+| `website/` | Next.js | Landing page, docs, pricing and checkout, terms and privacy |
+| `docs/` | Markdown | Requirements, decision log, architecture, competitor research (mostly in Georgian) |
 
-**Why not just use Figma's own Design Agent?** Figma's native agent (May 2026, free during beta) *generates* designs but does **not** hard-fail on accessibility or enforce your design system. Legibly is a neutral **correctness layer** that audits and fixes the output of *any* generator — including Figma's own — plus human-made designs. Generators are crowded and commoditized; **trust is the open lane.**
+The detection logic is deterministic and covered by unit tests. There are about 90 test files across the three packages, run with Vitest.
 
----
+## Running locally
 
-## Product direction (locked)
+```bash
+cd plugin  && npm install && npm test && npm run build   # load plugin/manifest.json in Figma → Plugins → Development
+cd api     && npm install && npm test                     # needs the env vars listed in api/.env.example
+cd website && npm install && npm run dev
+```
 
-| | |
-|---|---|
-| **What** | Accessibility-first correctness layer — detect & auto-fix |
-| **MVP v0.1** | "Contrast, fixed right" (deterministic, no backend/AI) |
-| **Roadmap** | contrast → target-size/spacing → alt-text (AI) → design-system enforcement → brand-QA |
-| **Money** | Free = detect · Pro $12/mo = fix + report (two tiers only — D20) |
-| **Why us** | Nobody does reliable a11y *auto-fix* (competitors only flag) |
+## How it was built
 
-See [`docs/goal.md §0`](./docs/goal.md) for the locked north-star.
-
----
-
-## Status
-
-| | |
-|---|---|
-| Stage | Planning / research (docs complete, scope locked) |
-| Code | None yet |
-| Name | **Legibly** ✅ locked ([`docs/branding.md`](./docs/branding.md)) |
-| Branches | `main` (protected) · `dev` (active) |
-| Visibility | **Private — all rights reserved** |
-| Repo | github.com/lomidze1/Legibly |
-
----
-
-## Documentation
-
-All project docs are in [`docs/`](./docs/). Start here:
-
-1. [`docs/README.md`](./docs/README.md) — entry point, navigation map
-2. [`docs/goal.md`](./docs/goal.md) — what we want and why (business view; §0 = locked direction)
-3. [`docs/requirements.md`](./docs/requirements.md) — MVP v0.1 scope (locked)
-4. [`docs/approach.md`](./docs/approach.md) — strategy, principles, decision log (D1–D9)
-5. [`docs/architecture.md`](./docs/architecture.md) — technical architecture (legacy, generation-era; correctness-first reframe pending)
-6. [`docs/research/`](./docs/research/) — competitor + methodology deep dives
-7. [`docs/website.md`](./docs/website.md) — landing-page plan (TODO)
-
----
+Built by Giorgi Lomidze in 2026: product scope, design decisions, pricing and launch, with Claude Code as a pair programmer. `CLAUDE.md`, `AGENTS.md` and `.claude/` hold the instructions and agents used during development. The reasoning behind each decision is in `docs/approach.md`.
 
 ## License
 
-Private. All rights reserved. No public distribution.
+Source is public for reference. All rights reserved; no licence is granted to reuse or redistribute the code.
